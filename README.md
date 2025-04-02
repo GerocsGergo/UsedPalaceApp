@@ -1,0 +1,2 @@
+# UsedPalaceApp
+Szakdolgozathoz
