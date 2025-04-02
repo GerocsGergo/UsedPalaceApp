@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EBD7D7"
+    tools:context=".ProfileFragment">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+
+        <!--TODO ezt kivenni
+        android:drawableLeft="@drawable/test_30"
+            android:textSize="30sp"
+
+            android:drawableLeft="@drawable/test_40"
+            android:textSize="40sp"
+        -->
+        <!--TODO itt lesznek a felhasz adatok-->
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Profil"
+            android:textSize="40sp"
+            android:textAlignment="center"
+            />
+
+        <Button
+            android:id="@+id/profile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/baseline_person_40"
+            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
+            android:textSize="30sp"
+            android:text="Profil"
+            android:textAlignment="textStart"
+            app:cornerRadius="0dp"
+
+            />
+
+        <!--TODO itt lehet létrehozni eladást-->
+        <Button
+            android:id="@+id/createSale"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/baseline_add_40"
+            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
+            android:textSize="30sp"
+            android:text="Ajánlat létrehozása"
+            android:textAlignment="textStart"
+            app:cornerRadius="0dp"
+
+            />
+
+        <!--TODO itt lesznek az eladások listázva-->
+        <Button
+            android:id="@+id/ownSales"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/baseline_note_40"
+            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
+            android:textSize="30sp"
+            android:text="Eladásaid"
+            android:textAlignment="textStart"
+            app:cornerRadius="0dp"
+
+            />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Segítség"
+            android:textSize="40sp"
+            android:textAlignment="center"/>
+
+        <!--TODO sugó?-->
+        <Button
+            android:id="@+id/help"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/baseline_question_mark_40"
+            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
+            android:textSize="30sp"
+            android:text="Súgó"
+            android:textAlignment="textStart"
+            app:cornerRadius="0dp"
+
+            />
+
+        <!--TODO settings-->
+        <Button
+            android:id="@+id/settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/baseline_settings_40"
+            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
+            android:textSize="30sp"
+            android:text="Beállítások"
+            android:textAlignment="textStart"
+            app:cornerRadius="0dp"
+
+            />
+
+        <Button
+            android:id="@+id/support"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/baseline_contact_support_40"
+            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
+            android:textSize="30sp"
+            android:text="Elérhetőségeink"
+            android:textAlignment="textStart"
+            app:cornerRadius="0dp"
+
+            />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Egyéb"
+            android:textSize="40sp"
+            android:textAlignment="center"/>
+
+        <!--TODO a usedPalace-ről (történet vagy valami)-->
+        <Button
+            android:id="@+id/about"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/baseline_info_outline_40"
+            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
+            android:textSize="30sp"
+            android:text="A UsedPalace-ről"
+            android:textAlignment="textStart"
+            app:cornerRadius="0dp"
+
+            />
+
+        <!--TODO kapcsolatok? akikkel van/volt chat nyitva-->
+        <Button
+            android:id="@+id/contacts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/baseline_chat_40"
+            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
+            android:textSize="30sp"
+            android:text="Kapcsolatok"
+            android:textAlignment="textStart"
+            app:cornerRadius="0dp"
+
+            />
+    </LinearLayout>
+</FrameLayout>
