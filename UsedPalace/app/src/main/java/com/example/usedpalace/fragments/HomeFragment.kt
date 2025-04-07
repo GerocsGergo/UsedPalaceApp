@@ -12,9 +12,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.usedpalace.R
-import com.example.usedpalace.Sale
-import com.example.usedpalace.profilemenus.forownsalesactivity.ModifySaleActivity
-import com.example.usedpalace.requests.SearchRequest
+import com.example.usedpalace.SaleWithSid
+import com.example.usedpalace.fragments.homefragmenthelpers.HomeFragmentSingleSaleActivity
+import com.example.usedpalace.requests.SearchRequestName
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -95,7 +95,7 @@ class HomeFragment : Fragment() {
                 }
 
                 // Make API call
-                val response = apiService.searchSales(SearchRequest(searchParam))
+                val response = apiService.searchSales(SearchRequestName(searchParam))
 
                 withContext(Dispatchers.Main) {
                     if (response.success) {
@@ -124,16 +124,16 @@ class HomeFragment : Fragment() {
         message: String = "No products found"
     ) {
         containerLayout?.removeAllViews()
-        val noProductsView = inflater.inflate(R.layout.no_products_found, containerLayout, false)
+        val noProductsView = inflater.inflate(R.layout.show_error_message, containerLayout, false)
         noProductsView.findViewById<TextView>(R.id.messageText).text = message
         containerLayout?.addView(noProductsView)
     }
 
-    private fun displaySales(sales: List<Sale>, containerLayout: LinearLayout?, inflater: LayoutInflater) {
+    private fun displaySales(sales: List<SaleWithSid>, containerLayout: LinearLayout?, inflater: LayoutInflater) {
         if (sales.isEmpty()) {
             // Create and show "No products found" message
             val noProductsView =
-                inflater.inflate(R.layout.no_products_found, containerLayout, false)
+                inflater.inflate(R.layout.show_error_message, containerLayout, false)
             containerLayout?.addView(noProductsView)
         } else {
             for (sale in sales) {
@@ -195,7 +195,7 @@ class HomeFragment : Fragment() {
 
                         //Add event listener
                         itemView.setOnClickListener {
-                            //onProductClick(sale) TODO change this
+                            onProductClick(sale)
                         }
                     }
                 }
@@ -205,21 +205,12 @@ class HomeFragment : Fragment() {
         }
     }
 
-        private fun onProductClick(sale: Sale) {
-            val intent = Intent(context, ModifySaleActivity::class.java).apply {
-                putExtra("SALE_ID", saleId) //Give the saleId to the activity
-            }
-            startActivity(intent)
+    private fun onProductClick(sale: SaleWithSid) {
+        val saleId = sale.Sid
+        val intent = Intent(context, HomeFragmentSingleSaleActivity::class.java).apply {
+            putExtra("SALE_ID", saleId) //Give the saleId to the activity
+        }
+        startActivity(intent)
     }
-//    private fun onProductClick(sale: Sale) {
-//        val productDetailFragment = ProductPageFragment.newInstance(sale)
-//
-//        // Get the parent activity and navigate
-//        (activity as? MainMenuActivity)?.apply {
-//            supportFragmentManager.beginTransaction()
-//                .replace(R.id.fragmentContainerView, productDetailFragment)
-//                .addToBackStack("product_detail") // This enables back navigation
-//                .commit()
-//        }
-//    }
+
 }

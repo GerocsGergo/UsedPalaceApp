@@ -21,6 +21,8 @@ import com.example.usedpalace.R
 import com.example.usedpalace.SaleWithSid
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.UserSession
+import com.example.usedpalace.fragments.homefragmenthelpers.HomeFragmentSingleSaleActivity
+import com.example.usedpalace.profilemenus.forownsalesactivity.OpenSaleActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -100,7 +102,7 @@ class OwnSalesActivity : AppCompatActivity() {
 
         if (sales.isEmpty()) {
             // Create and show "No products found" message
-            val noProductsView = inflater.inflate(R.layout.no_products_found, containerLayout, false)
+            val noProductsView = inflater.inflate(R.layout.show_error_message, containerLayout, false)
             containerLayout.addView(noProductsView)
         } else {
             for (sale in sales) {
@@ -117,14 +119,10 @@ class OwnSalesActivity : AppCompatActivity() {
                 val saleId = sale.Sid
                 // Add event listeners
                 open.setOnClickListener {
-                    //TODO open the sale
-
+                    onOpenClick(sale)
                 }
                 modify.setOnClickListener {
-                    val intent = Intent(this, ModifySaleActivity::class.java).apply {
-                        putExtra("SALE_ID", saleId) //Give the saleId to the activity
-                    }
-                    startActivity(intent)
+                    onModifyClick(sale)
                 }
                 delete.setOnClickListener {
                     showDeleteConfirmationDialog(apiService, saleId, itemView, containerLayout)
@@ -133,13 +131,29 @@ class OwnSalesActivity : AppCompatActivity() {
         }
     }
 
+    private fun onModifyClick(sale: SaleWithSid) {
+        val saleId = sale.Sid
+        val intent = Intent(this, ModifySaleActivity::class.java).apply {
+            putExtra("SALE_ID", saleId) //Give the saleId to the activity
+        }
+        startActivity(intent)
+    }
+
+    private fun onOpenClick(sale: SaleWithSid) {
+        val saleId = sale.Sid
+        val intent = Intent(this, OpenSaleActivity::class.java).apply {
+            putExtra("SALE_ID", saleId) //Give the saleId to the activity
+        }
+        startActivity(intent)
+    }
+
 
     private fun showNoProductsMessage(
         containerLayout: LinearLayout?,
         message: String = "No products found"
     ) {
         containerLayout?.removeAllViews()
-        val noProductsView = LayoutInflater.from(this).inflate(R.layout.no_products_found, containerLayout, false)
+        val noProductsView = LayoutInflater.from(this).inflate(R.layout.show_error_message, containerLayout, false)
         noProductsView.findViewById<TextView>(R.id.messageText).text = message
         containerLayout?.addView(noProductsView)
     }

@@ -1,13 +1,8 @@
-package com.example.usedpalace.fragments.homefragmenthelpers
+package com.example.usedpalace.profilemenus.forownsalesactivity
 
 import android.os.Bundle
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.widget.Button
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -15,9 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.R
 import com.example.usedpalace.SaleWithEverything
-import com.example.usedpalace.SaleWithSid
 import com.example.usedpalace.requests.SearchRequestID
-import com.example.usedpalace.requests.SearchRequestName
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +20,7 @@ import network.ApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class HomeFragmentSingleSaleActivity : AppCompatActivity() {
+class OpenSaleActivity : AppCompatActivity() {
 
     private lateinit var apiService: ApiService
     private var saleId: Int = -1
@@ -42,12 +35,10 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
     private lateinit var productPrice: TextView
     private lateinit var productDescription: TextView
     private lateinit var mainLayout: ConstraintLayout
-    private lateinit var messageButton: Button
-    private lateinit var backButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_home_fragment_single_sale)
+        setContentView(R.layout.activity_open_sale)
         enableEdgeToEdge()
 
         initializeViews()
@@ -56,19 +47,6 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
 
         if (saleId != -1) {
             fetchSaleData()
-        }
-
-        setUpClickListeners()
-
-    }
-
-    private fun setUpClickListeners(){
-        backButton.setOnClickListener {
-
-        }
-
-        messageButton.setOnClickListener {
-
         }
     }
 
@@ -82,9 +60,6 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
         productPrice = findViewById(R.id.productPrice)
         productDescription = findViewById(R.id.productDescription)
         mainLayout = findViewById(R.id.main)
-
-        backButton = findViewById(R.id.backButton)
-        messageButton = findViewById(R.id.messageButton)
     }
 
     private fun setupRetrofit() {
@@ -157,5 +132,4 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
         errorView.findViewById<TextView>(R.id.messageText).text = message
         mainLayout.addView(errorView)
     }
-
 }

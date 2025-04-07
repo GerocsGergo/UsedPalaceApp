@@ -1,8 +1,8 @@
 package network
 
 
-import com.example.usedpalace.responses.ApiResponse
-import com.example.usedpalace.responses.ApiResponseForModify
+import com.example.usedpalace.responses.ApiResponseForSearchSales
+import com.example.usedpalace.responses.ApiResponseForSalesWithEverything
 import com.example.usedpalace.responses.ApiResponseForSaleWithSid
 import com.example.usedpalace.responses.ApiResponseGeneric
 import com.example.usedpalace.requests.CreateSaleRequest
@@ -17,9 +17,9 @@ import com.example.usedpalace.requests.ResetPasswordRequest
 import com.example.usedpalace.responses.ResponseMessage
 import com.example.usedpalace.responses.ResponseMessageWithFolder
 import com.example.usedpalace.responses.ResponseMessageWithUser
-import com.example.usedpalace.Sale
+import com.example.usedpalace.SaleWithSid
 import com.example.usedpalace.requests.DeleteSingleImageRequest
-import com.example.usedpalace.requests.SearchRequest
+import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
 import okhttp3.MultipartBody
 import retrofit2.Call
@@ -54,13 +54,16 @@ interface ApiService {
     fun VerifyEmail(@Body request: EmailVerificationWithCodeRequest): Call<ResponseMessage>
 
     @GET("/api/sales")
-    suspend fun getSales(): List<Sale>
+    suspend fun getSales(): List<SaleWithSid>
 
-    @POST("search-sales")
-    suspend fun searchSales(@Body request: SearchRequest): ApiResponse
+    @POST("search-sales-withSaleName")
+    suspend fun searchSales(@Body request: SearchRequestName): ApiResponseForSearchSales
 
     @POST("search-salesID")
-    suspend fun searchSalesID(@Body request: SearchRequestID): ApiResponseForSaleWithSid
+    suspend fun searchSalesID(@Body request: SearchRequestID): ApiResponseForSaleWithSid   //USER ID-vel keresi a Saleket
+
+    @POST("search-sales-withSID")
+    suspend fun searchSalesSID(@Body request: SearchRequestID): ApiResponseForSalesWithEverything //Sales SID-el keresi a Saleket
 
     @POST("create-sale")
     fun createSale(@Body request: CreateSaleRequest): Call<ResponseMessageWithFolder>
@@ -77,7 +80,7 @@ interface ApiService {
     suspend fun deleteSale(@Body request: DeleteSaleRequest): ApiResponseGeneric
 
     @POST("get-images-with-saleId")
-    suspend fun searchImages(@Body request: SearchRequestID): ApiResponseForModify
+    suspend fun searchImages(@Body request: SearchRequestID): ApiResponseForSalesWithEverything
 
     @PUT("modify-sale")
     suspend fun modifySale(@Body request: ModifySaleRequest): ResponseMessageWithFolder

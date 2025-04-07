@@ -281,7 +281,49 @@ app.get('/api/sales', (req, res) => {
 // Serve static files (e.g., images)
 app.use(express.static('sales'));
 
-app.post('/search-sales', async (req, res) => {
+app.post('/search-sales-withSID', async (req, res) => {
+    try {
+        const { searchParam } = req.body;
+        
+        if (!searchParam) {
+            return res.status(400).json({
+                success: false,
+                message: "Search parameter is required",
+                data: null  // Changed from array to null
+            });
+        }
+
+        const query = 'SELECT * FROM Sales WHERE Sid = ?';
+        
+        // Remove the % wildcards since we're searching for exact ID match
+        const [results] = await connection.promise().query(query, [searchParam]);
+
+        if (results.length === 0) {
+            return res.json({
+                success: true,
+                message: "No product found with this ID",
+                data: null  // Return null when no results
+            });
+        }
+
+        // Return the first (and should be only) result as an object
+        res.json({
+            success: true,
+            message: "Product found",
+            data: results[0]  // Return single object instead of array
+        });
+        
+    } catch (err) {
+        console.error('Error in /search-sales-withSID:', err);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+            data: null  // Changed from array to null
+        });
+    }
+});
+
+app.post('/search-sales-withSaleName', async (req, res) => {
     try {
         const { searchParam } = req.body;
         console.log('Received search request:', searchParam);

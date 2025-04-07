@@ -2,7 +2,7 @@ package com.example.usedpalace.requests
 
 import com.google.gson.annotations.SerializedName
 
-data class SearchRequest(
+data class SearchRequestName(
     @SerializedName("searchParam")
     val searchParam: String
 )

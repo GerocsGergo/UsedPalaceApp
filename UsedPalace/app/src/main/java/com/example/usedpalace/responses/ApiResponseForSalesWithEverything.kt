@@ -1,10 +1,10 @@
 package com.example.usedpalace.responses
 
-import com.example.usedpalace.Sale
+import com.example.usedpalace.SaleWithEverything
 import com.google.gson.annotations.SerializedName
 
-data class ApiResponse(
+data class ApiResponseForSalesWithEverything(
     @SerializedName("success") val success: Boolean,
     @SerializedName("message") val message: String,
-    @SerializedName("data") val data: List<Sale>
+    @SerializedName("data") val data: SaleWithEverything?
 )
