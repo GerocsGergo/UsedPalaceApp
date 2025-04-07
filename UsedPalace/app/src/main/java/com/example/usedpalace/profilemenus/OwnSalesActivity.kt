@@ -16,7 +16,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.requests.DeleteSaleRequest
 import com.example.usedpalace.MainMenuActivity
-import com.example.usedpalace.ModifySaleActivity
+import com.example.usedpalace.profilemenus.forownsalesactivity.ModifySaleActivity
 import com.example.usedpalace.R
 import com.example.usedpalace.SaleWithSid
 import com.example.usedpalace.requests.SearchRequestID
@@ -117,7 +117,7 @@ class OwnSalesActivity : AppCompatActivity() {
                 val saleId = sale.Sid
                 // Add event listeners
                 open.setOnClickListener {
-
+                    //TODO open the sale
 
                 }
                 modify.setOnClickListener {

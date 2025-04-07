@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.usedpalace.requests.CreateSaleRequest
+import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.responses.ResponseMessage
 import com.example.usedpalace.responses.ResponseMessageWithFolder
 import network.ApiService
@@ -122,13 +123,13 @@ class SaleManagerMethod(private val context: Context, private val apiService: Ap
                     // Upload selected image
                     uploadSingleImage(saleFolder, imageView, index + 1)
                 }
-                isDefaultAddIcon(imageView) -> {
+                isDefaultImage(imageView) -> {
                     // Upload default image for unselected slots
-                    uploadDefaultImage(saleFolder, index + 1)
+//                   uploadDefaultImage(saleFolder, index + 1)
                 }
                 else -> {
                     // Fallback - upload default image
-                    uploadDefaultImage(saleFolder, index + 1)
+//                    uploadDefaultImage(saleFolder, index + 1)
                 }
             }
         }
@@ -198,8 +199,7 @@ class SaleManagerMethod(private val context: Context, private val apiService: Ap
         )
     }
 
-    // Update the isDefaultAddIcon method to be more reliable
-    private fun isDefaultAddIcon(imageView: ImageView): Boolean {
+    fun isDefaultImage(imageView: ImageView): Boolean {
         return try {
             val defaultAddIcon = ContextCompat.getDrawable(context, R.drawable.baseline_add_24)
             imageView.drawable?.constantState?.equals(defaultAddIcon?.constantState) == true
@@ -217,22 +217,41 @@ class SaleManagerMethod(private val context: Context, private val apiService: Ap
     ) {
         changedIndexes.forEach { index ->
             try {
-                val imageView = imageViews[index]
                 when {
+                    imageViews[index].tag == "deleted" -> {
+                        // Try to delete, but don't fail if image doesn't exist
+                        deleteSingleImage(saleFolder, index + 1)
+                    }
                     imageUris[index] != null -> {
-                        // Upload new selected image
                         uploadImageUri(saleFolder, imageUris[index]!!, index + 1)
-                    }
-                    isDefaultAddIcon(imageView) -> {
-                        // Upload default image if user removed the existing one
-                        uploadDefaultImage(saleFolder, index + 1)
-                    }
-                    else -> {
-                        // Keep existing image (no upload needed)
                     }
                 }
             } catch (e: Exception) {
-                Log.e("Upload", "Failed to upload image at position ${index + 1}", e)
+                Log.e("Upload", "Failed to process image at position ${index + 1}", e)
+                // Continue with other images even if one fails
+            }
+        }
+    }
+
+    private suspend fun deleteSingleImage(saleFolder: String, imageIndex: Int) {
+        try {
+            val response = apiService.deleteSingleImage(
+                DeleteSingleImageRequest(
+                    saleFolder = saleFolder,
+                    imageIndex = imageIndex
+                )
+            )
+
+            if (!response.success) {
+                // Only log as error if it's not a "not found" case
+                if (!response.message.contains("not found", ignoreCase = true)) {
+                    Log.e("ImageDelete", "Failed to delete image at index $imageIndex")
+                }
+            }
+        } catch (e: Exception) {
+            // Only log as error if it's not a 404
+            if ((e as? retrofit2.HttpException)?.code() != 404) {
+                Log.e("ImageDelete", "Error deleting image: ${e.message}")
             }
         }
     }

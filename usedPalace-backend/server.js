@@ -543,6 +543,40 @@ app.delete('/delete-sale', async (req, res) => {
 
 //Image Uploader and stuff for it
 
+//Delete single image
+app.post('/delete-single-image', async (req, res) => {
+    try {
+        const { saleFolder, imageIndex } = req.body;
+        
+        if (!saleFolder || !imageIndex) {
+            return res.status(400).json({
+                success: false,
+                message: "Both saleFolder and imageIndex are required"
+            });
+        }
+
+        const imagePath = path.join('sales', saleFolder, `image${imageIndex}.jpg`);
+        
+        if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+        }
+        
+        // Always return success even if file didn't exist
+        return res.json({
+            success: true,
+            message: "Operation completed"
+        });
+        
+    } catch (err) {
+        console.error('Error in /delete-single-image:', err);
+        res.status(500).json({ 
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
+    }
+});
+
 //Get images for modify
 app.post('/get-images-with-saleId', async (req, res) => {
     try {

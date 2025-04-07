@@ -1,4 +1,4 @@
-package com.example.usedpalace
+package com.example.usedpalace.profilemenus.forownsalesactivity
 
 import android.content.Intent
 import android.net.Uri
@@ -15,10 +15,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.MainMenuActivity
+import com.example.usedpalace.R
+import com.example.usedpalace.SaleManagerMethod
+import com.example.usedpalace.SaleWithEverything
+import com.example.usedpalace.UserSession
 import com.example.usedpalace.requests.ModifySaleRequest
 import com.example.usedpalace.requests.SearchRequestID
-import com.squareup.picasso.MemoryPolicy
-import com.squareup.picasso.NetworkPolicy
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -93,12 +96,12 @@ class ModifySaleActivity : AppCompatActivity() {
 
         setupUI()
         setupClickListeners()
-
         imageView1 = findViewById(R.id.image1)
         imageView2 = findViewById(R.id.image2)
         imageView3 = findViewById(R.id.image3)
         imageView4 = findViewById(R.id.image4)
         imageView5 = findViewById(R.id.image5)
+
         fetchSalesDataSearch(apiService, saleId)
 
     }
@@ -243,6 +246,27 @@ class ModifySaleActivity : AppCompatActivity() {
         imageView4.setImageResource(R.drawable.baseline_add_40)
         imageView5.setImageResource(R.drawable.baseline_add_40)
     }
+    //For image reset, for the delete buttons
+    private fun resetImageView(index: Int) {
+        // Set default image
+        getImageViewIndex(index).setImageResource(R.drawable.click_to_change)
+
+        // Clear any stored URI for this image
+        imageUris[index] = null
+
+        // Mark this image as changed
+        changedImageIndexes.add(index)
+
+        // Set a flag that this image was deleted
+        getImageViewIndex(index).tag = "deleted" // Add this line
+
+        //Clear cache
+        Picasso.get().invalidate(imageUrl1)
+        Picasso.get().invalidate(imageUrl2)
+        Picasso.get().invalidate(imageUrl3)
+        Picasso.get().invalidate(imageUrl4)
+        Picasso.get().invalidate(imageUrl5)
+    }
 
     private fun displaySales(sale: SaleWithEverything) {
         val saleManager = SaleManagerMethod(this, apiService)
@@ -283,7 +307,7 @@ class ModifySaleActivity : AppCompatActivity() {
             Picasso.get()
                 .load(url)
                 .placeholder(R.drawable.baseline_loading_24)
-                .error(R.drawable.baseline_error_24)
+                .error(R.drawable.click_to_change)
                 .into(imageView)
         }
 
@@ -308,7 +332,13 @@ class ModifySaleActivity : AppCompatActivity() {
         }
 
         // Setup image click listeners
-        listOf(R.id.image1, R.id.image2, R.id.image3, R.id.image4, R.id.image5).forEachIndexed { index, resId ->
+        listOf(
+            R.id.image1,
+            R.id.image2,
+            R.id.image3,
+            R.id.image4,
+            R.id.image5
+        ).forEachIndexed { index, resId ->
             findViewById<ImageView>(resId).setOnClickListener {
                 imageContracts[index].launch("image/*")
             }
@@ -323,6 +353,38 @@ class ModifySaleActivity : AppCompatActivity() {
         findViewById<Button>(R.id.confirm).setOnClickListener {
             modifySale(apiService, saleId)
         }
+
+
+        findViewById<Button>(R.id.deleteButtonCover).setOnClickListener {
+            if (!saleManagerMethod.isDefaultImage(imageView1)) {
+                resetImageView(0)
+            }
+        }
+
+        findViewById<Button>(R.id.deleteButton1).setOnClickListener {
+            if (!saleManagerMethod.isDefaultImage(imageView2)) {
+                resetImageView(1)
+            }
+        }
+
+        findViewById<Button>(R.id.deleteButton2).setOnClickListener {
+            if (!saleManagerMethod.isDefaultImage(imageView3)) {
+                resetImageView(2)
+            }
+        }
+
+        findViewById<Button>(R.id.deleteButton3).setOnClickListener {
+            if (!saleManagerMethod.isDefaultImage(imageView4)) {
+                resetImageView(3)
+            }
+        }
+
+        findViewById<Button>(R.id.deleteButton4).setOnClickListener {
+            if (!saleManagerMethod.isDefaultImage(imageView5)) {
+                resetImageView(4)
+            }
+        }
+
     }
 
     private fun navigateBackToProfile() {

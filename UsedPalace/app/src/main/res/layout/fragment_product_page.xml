@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".ProductPageFragment">
+    tools:context=".fragments.ProductPageFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -39,6 +40,72 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"/>
 
-    </LinearLayout>
+        <!-- Image grid container -->
+        <LinearLayout
+            android:id="@+id/imageGridContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clickable="false"
+            android:focusable="false">
 
+            <!-- First row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:clickable="false"
+                android:focusable="false">
+
+                <ImageView
+                    android:id="@+id/image2"
+                    android:layout_width="0dp"
+                    android:layout_height="150dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/click_to_change"
+                    android:scaleType="centerCrop"
+                    android:clickable="false"
+                    android:focusable="false"/>
+
+                <ImageView
+                    android:id="@+id/image3"
+                    android:layout_width="0dp"
+                    android:layout_height="150dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/click_to_change"
+                    android:scaleType="centerCrop"
+                    android:clickable="false"
+                    android:focusable="false"/>
+            </LinearLayout>
+
+            <!-- Second row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:clickable="false"
+                android:focusable="false">
+
+                <ImageView
+                    android:id="@+id/image4"
+                    android:layout_width="0dp"
+                    android:layout_height="150dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/click_to_change"
+                    android:scaleType="centerCrop"
+                    android:clickable="false"
+                    android:focusable="false"/>
+
+                <ImageView
+                    android:id="@+id/image5"
+                    android:layout_width="0dp"
+                    android:layout_height="150dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/click_to_change"
+                    android:scaleType="centerCrop"
+                    android:clickable="false"
+                    android:focusable="false"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
 </FrameLayout>

@@ -1,4 +1,4 @@
-package com.example.usedpalace
+package com.example.usedpalace.login
 
 import android.content.Intent
 import android.os.Bundle
@@ -9,6 +9,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.MainMenuActivity
+import com.example.usedpalace.R
+import com.example.usedpalace.UserSession
 import com.example.usedpalace.requests.NewLogin
 import com.example.usedpalace.responses.ResponseMessageWithUser
 import network.ApiService

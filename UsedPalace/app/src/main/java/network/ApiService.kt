@@ -18,6 +18,7 @@ import com.example.usedpalace.responses.ResponseMessage
 import com.example.usedpalace.responses.ResponseMessageWithFolder
 import com.example.usedpalace.responses.ResponseMessageWithUser
 import com.example.usedpalace.Sale
+import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.requests.SearchRequest
 import com.example.usedpalace.requests.SearchRequestID
 import okhttp3.MultipartBody
@@ -80,4 +81,7 @@ interface ApiService {
 
     @PUT("modify-sale")
     suspend fun modifySale(@Body request: ModifySaleRequest): ResponseMessageWithFolder
+
+    @POST("delete-single-image")
+    suspend fun deleteSingleImage(@Body request: DeleteSingleImageRequest): ApiResponseGeneric
 }

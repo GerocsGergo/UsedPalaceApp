@@ -1,4 +1,4 @@
-package com.example.usedpalace
+package com.example.usedpalace.fragments
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import com.example.usedpalace.R
 import com.example.usedpalace.profilemenus.AboutActivity
 import com.example.usedpalace.profilemenus.ContactsActivity
 import com.example.usedpalace.profilemenus.CreateSaleActivity

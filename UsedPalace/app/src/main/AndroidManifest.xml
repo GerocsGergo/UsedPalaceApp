@@ -17,7 +17,10 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".ModifySaleActivity"
+            android:name=".fragments.homefragmenthelpers.HomeFragmentSingleSaleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.forownsalesactivity.ModifySaleActivity"
             android:exported="false" />
         <activity
             android:name=".profilemenus.ContactsActivity"
@@ -44,19 +47,19 @@
             android:name=".profilemenus.ProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".EmailVerifyActivity"
+            android:name=".login.EmailVerifyActivity"
             android:exported="false" />
         <activity
-            android:name=".ResetPasswordActivity"
+            android:name=".login.ResetPasswordActivity"
             android:exported="false" />
         <activity
-            android:name=".ForgottenPasswordActivity"
+            android:name=".login.ForgottenPasswordActivity"
             android:exported="false" />
         <activity
             android:name=".MainMenuActivity"
             android:exported="false" /> <!-- a "android:usesCleartextTraffic="true"-t át kell írni hogy https-t használjon az app ne sima http-t -->
         <activity
-            android:name=".LogActivity"
+            android:name=".login.LogActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -64,7 +67,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".RegActivity" />
+        <activity android:name=".login.RegActivity" />
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
-package com.example.usedpalace
+package com.example.usedpalace.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,9 @@ import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.usedpalace.R
+import com.example.usedpalace.Sale
+import com.example.usedpalace.profilemenus.forownsalesactivity.ModifySaleActivity
 import com.example.usedpalace.requests.SearchRequest
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
@@ -147,7 +151,6 @@ class HomeFragment : Fragment() {
                     .error(R.drawable.baseline_error_24)
                     .into(imageView)
 
-
                 containerLayout?.addView(itemView)
 
                 //Add event listener
@@ -192,7 +195,7 @@ class HomeFragment : Fragment() {
 
                         //Add event listener
                         itemView.setOnClickListener {
-                            onProductClick(sale)
+                            //onProductClick(sale) TODO change this
                         }
                     }
                 }
@@ -202,15 +205,21 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun onProductClick(sale: Sale) {
-        val productDetailFragment = ProductPageFragment.newInstance(sale)
-
-        // Get the parent activity and navigate
-        (activity as? MainMenuActivity)?.apply {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainerView, productDetailFragment)
-                .addToBackStack("product_detail") // This enables back navigation
-                .commit()
-        }
+        private fun onProductClick(sale: Sale) {
+            val intent = Intent(context, ModifySaleActivity::class.java).apply {
+                putExtra("SALE_ID", saleId) //Give the saleId to the activity
+            }
+            startActivity(intent)
     }
+//    private fun onProductClick(sale: Sale) {
+//        val productDetailFragment = ProductPageFragment.newInstance(sale)
+//
+//        // Get the parent activity and navigate
+//        (activity as? MainMenuActivity)?.apply {
+//            supportFragmentManager.beginTransaction()
+//                .replace(R.id.fragmentContainerView, productDetailFragment)
+//                .addToBackStack("product_detail") // This enables back navigation
+//                .commit()
+//        }
+//    }
 }

@@ -8,6 +8,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.usedpalace.databinding.MainMenuBinding
+import com.example.usedpalace.fragments.ProfileFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainMenuActivity : AppCompatActivity() {
@@ -30,7 +31,7 @@ class MainMenuActivity : AppCompatActivity() {
         val navController = findNavController(R.id.fragmentContainerView)
         navView.setupWithNavController(navController)
 
-        // Check if we're coming from SettingsActivity to show ProfileFragment
+        // Check if we're coming from profile activities to show ProfileFragment
         if (intent?.getBooleanExtra("SHOW_PROFILE_FRAGMENT", false) == true) {
             showProfileFragment()
         }

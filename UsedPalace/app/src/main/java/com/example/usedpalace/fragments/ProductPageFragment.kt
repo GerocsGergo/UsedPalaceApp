@@ -1,4 +1,4 @@
-package com.example.usedpalace
+package com.example.usedpalace.fragments
 
 import android.os.Build
 import android.os.Bundle
@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import com.example.usedpalace.R
+import com.example.usedpalace.Sale
 import com.squareup.picasso.Picasso
 
 class ProductPageFragment : Fragment() {
@@ -41,7 +43,43 @@ class ProductPageFragment : Fragment() {
             Picasso.get()
                 .load(imageUrl)
                 .into(productImage)
+
+//            val imageUrl2 = "http://10.0.2.2:3000/${it.SaleFolder}/image2.jpg"
+//            val productImage2 = view.findViewById<ImageView>(R.id.image2)
+//
+//            Picasso.get()
+//                .load(imageUrl2)
+//                .into(productImage2)
+//
+//            val imageUrl3 = "http://10.0.2.2:3000/${it.SaleFolder}/image3.jpg"
+//            val productImage3 = view.findViewById<ImageView>(R.id.image3)
+//
+//            Picasso.get()
+//                .load(imageUrl3)
+//                .into(productImage3)
+//
+//            val imageUrl4 = "http://10.0.2.2:3000/${it.SaleFolder}/image4.jpg"
+//            val productImage4 = view.findViewById<ImageView>(R.id.image4)
+//
+//            Picasso.get()
+//                .load(imageUrl4)
+//                .into(productImage4)
+//
+//            val imageUrl5 = "http://10.0.2.2:3000/${it.SaleFolder}/image5.jpg"
+//            val productImage5 = view.findViewById<ImageView>(R.id.image5)
+//
+//            Picasso.get()
+//                .load(imageUrl5)
+//                .into(productImage5)
+
         }
+
+//        listOf(R.id.image2, R.id.image3, R.id.image4, R.id.image5).forEach { id ->
+//            view.findViewById<ImageView>(id).apply {
+//                isClickable = false
+//                isFocusable = false
+//            }
+//        }
 
         return view
     }
