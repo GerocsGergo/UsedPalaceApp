@@ -55,7 +55,7 @@ class EmailVerifyActivity : AppCompatActivity() {
 
             // Send request to the server
             val request = EmailVerificationWithCodeRequest(email = email, code = code)
-            apiService.VerifyEmail(request).enqueue(object : Callback<ResponseMessage> {
+            apiService.verifyEmail(request).enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
                         Toast.makeText(this@EmailVerifyActivity, "Email verified successfully", Toast.LENGTH_SHORT).show()

@@ -1,7 +1,5 @@
 package com.example.usedpalace
 
-import android.os.Parcel
-import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 
 data class SaleWithEverything(
@@ -11,6 +9,7 @@ data class SaleWithEverything(
     @SerializedName("Description") val Description: String,
     @SerializedName("SaleFolder") val SaleFolder: String,
     @SerializedName("BigCategory") val mainCategory: String,
-    @SerializedName("SmallCategory") val subCategory: String
+    @SerializedName("SmallCategory") val subCategory: String,
+    @SerializedName("Uid") val Uid: Int
 )
 

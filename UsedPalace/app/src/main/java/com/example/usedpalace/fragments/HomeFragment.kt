@@ -207,8 +207,10 @@ class HomeFragment : Fragment() {
 
     private fun onProductClick(sale: SaleWithSid) {
         val saleId = sale.Sid
+        val sellerId = sale.SellerId
         val intent = Intent(context, HomeFragmentSingleSaleActivity::class.java).apply {
             putExtra("SALE_ID", saleId) //Give the saleId to the activity
+            putExtra("SELLER_ID", sellerId)
         }
         startActivity(intent)
     }

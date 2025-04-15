@@ -18,6 +18,8 @@ import com.example.usedpalace.responses.ResponseMessage
 import com.example.usedpalace.responses.ResponseMessageWithFolder
 import com.example.usedpalace.responses.ResponseMessageWithUser
 import com.example.usedpalace.SaleWithSid
+import com.example.usedpalace.fragments.messageHelpers.InitiateChatRequest
+import com.example.usedpalace.fragments.messageHelpers.InitiateChatResponse
 import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
@@ -51,7 +53,7 @@ interface ApiService {
     fun sendVerifyEmail(@Body request: EmailVerificationRequest): Call<ResponseMessage>
 
     @POST("verify-email")
-    fun VerifyEmail(@Body request: EmailVerificationWithCodeRequest): Call<ResponseMessage>
+    fun verifyEmail(@Body request: EmailVerificationWithCodeRequest): Call<ResponseMessage>
 
     @GET("/api/sales")
     suspend fun getSales(): List<SaleWithSid>
@@ -75,7 +77,6 @@ interface ApiService {
                      @Part image: MultipartBody.Part): Call<ResponseMessage>
 
 
-
     @HTTP(method = "DELETE", path = "delete-sale", hasBody = true)
     suspend fun deleteSale(@Body request: DeleteSaleRequest): ApiResponseGeneric
 
@@ -87,4 +88,15 @@ interface ApiService {
 
     @POST("delete-single-image")
     suspend fun deleteSingleImage(@Body request: DeleteSingleImageRequest): ApiResponseGeneric
+
+
+
+    @POST("initiate-chat")
+    suspend fun initiateChat(@Body request: InitiateChatRequest): InitiateChatResponse
+
+    @GET("load-all-chats")
+    suspend fun getAllChats()
+
+
+
 }

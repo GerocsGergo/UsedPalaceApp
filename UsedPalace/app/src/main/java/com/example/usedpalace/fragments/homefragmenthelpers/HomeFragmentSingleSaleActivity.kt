@@ -1,5 +1,6 @@
 package com.example.usedpalace.fragments.homefragmenthelpers
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -16,6 +17,10 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.R
 import com.example.usedpalace.SaleWithEverything
 import com.example.usedpalace.SaleWithSid
+import com.example.usedpalace.UserSession
+import com.example.usedpalace.fragments.messageHelpers.ChatActivity
+import com.example.usedpalace.fragments.messageHelpers.InitiateChatRequest
+import com.example.usedpalace.requests.ModifySaleRequest
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.requests.SearchRequestName
 import com.squareup.picasso.Picasso
@@ -31,6 +36,8 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
 
     private lateinit var apiService: ApiService
     private var saleId: Int = -1
+    private var sellerId: Int = -1
+    private var buyerId: Int = -1
 
     // Views
     private lateinit var productImage: ImageView
@@ -44,6 +51,8 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
     private lateinit var mainLayout: ConstraintLayout
     private lateinit var messageButton: Button
     private lateinit var backButton: Button
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,13 +73,69 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
 
     private fun setUpClickListeners(){
         backButton.setOnClickListener {
-
+            //TODO implement
         }
 
         messageButton.setOnClickListener {
-
+            initiateChat()
         }
     }
+
+    private fun initiateChat() {
+        buyerId = UserSession.getUserId() ?: run {
+            Toast.makeText(this, "You must be logged in to message sellers", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (sellerId == buyerId) {
+            Toast.makeText(this, "You can't message yourself", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = apiService.initiateChat(
+                    InitiateChatRequest(
+                        sellerId = sellerId,
+                        buyerId = buyerId,
+                        saleId = saleId
+                    )
+                )
+                withContext(Dispatchers.Main) {
+                    if (response.success) {
+                        if (response.chatId != null) {
+                            // Pass the chat ID to the ChatActivity
+                            val intent = Intent(this@HomeFragmentSingleSaleActivity, ChatActivity::class.java).apply {
+                                putExtra("CHAT_ID", response.chatId)
+                            }
+                            startActivity(intent)
+                        } else {
+                            Toast.makeText(
+                                this@HomeFragmentSingleSaleActivity,
+                                response.message ?: "Failed to initiate chat",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
+                        Toast.makeText(
+                            this@HomeFragmentSingleSaleActivity,
+                            "Error: " + response.message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@HomeFragmentSingleSaleActivity,
+                        "Network error: ${e.localizedMessage}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
 
     private fun initializeViews() {
         productImage = findViewById(R.id.productImage)
@@ -99,6 +164,11 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
         saleId = intent.getIntExtra("SALE_ID", -1)
         if (saleId == -1) {
             showErrorMessage("Invalid sale ID")
+            finish()
+        }
+        sellerId = intent.getIntExtra("SELLER_ID", -1)
+        if (sellerId == -1) {
+            showErrorMessage("Invalid seller ID")
             finish()
         }
     }

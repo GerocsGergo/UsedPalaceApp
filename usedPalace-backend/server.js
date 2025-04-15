@@ -758,6 +758,76 @@ app.use((err, req, res, next) => {
     next();
 });
 
+//For the chat part
+// Get or create chat between users for a specific sale
+app.post('/initiate-chat', async (req, res) => {
+    try {
+        const { sellerId, buyerId, saleId } = req.body;
+
+        // Input validation
+        if (!sellerId || !buyerId || !saleId) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields (sellerId, buyerId, saleId)"
+            });
+        }
+
+        // Check if chat already exists
+        const [existingChat] = await connection.promise().query(
+            'SELECT ChatID FROM Chats WHERE SellerID = ? AND BuyerID = ? AND SaleID = ?',
+            [sellerId, buyerId, saleId]
+        );
+
+        if (existingChat.length > 0) {
+            return res.json({ 
+                success: true, 
+                chatId: existingChat[0].ChatID,
+                isNew: false,
+                message: "Chat already exists"
+            });
+        }
+
+        // Create new chat
+        const [result] = await connection.promise().query(
+            'INSERT INTO Chats (SellerID, BuyerID, SaleID) VALUES (?, ?, ?)',
+            [sellerId, buyerId, saleId]
+        );
+
+        // Update with the newly created chat ID
+        await connection.promise().query(
+            'UPDATE Chats SET LastMessageAt = CURRENT_TIMESTAMP WHERE ChatID = ?',
+            [result.insertId]
+        );
+
+        res.json({ 
+            success: true, 
+            chatId: result.insertId,
+            isNew: true,
+            message: "Chat created successfully"
+        });
+
+    } catch (err) {
+        console.error('Error initiating chat:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to initiate chat: ' + err.message 
+        });
+    }
+});
+
+
+app.post('/load-all-chats', async (req, res) => {
+    try {
+        
+
+    } catch (err) {
+        console.error('Error loading chats:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to load chats: ' + err.message 
+        });
+    }
+});
 
 // Start the server
 app.listen(port, () => {
