@@ -6,10 +6,12 @@
     android:background="#D07B7B"
     tools:context=".fragments.MessagesFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+
+    <LinearLayout
+        android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:orientation="horizontal">
 
+    </LinearLayout>
 </FrameLayout>

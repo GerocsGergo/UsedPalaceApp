@@ -18,8 +18,10 @@ import com.example.usedpalace.responses.ResponseMessage
 import com.example.usedpalace.responses.ResponseMessageWithFolder
 import com.example.usedpalace.responses.ResponseMessageWithUser
 import com.example.usedpalace.SaleWithSid
+import com.example.usedpalace.fragments.messageHelpers.ChatListResponse
 import com.example.usedpalace.fragments.messageHelpers.InitiateChatRequest
 import com.example.usedpalace.fragments.messageHelpers.InitiateChatResponse
+import com.example.usedpalace.fragments.messageHelpers.SearchChatRequest
 import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
@@ -94,8 +96,8 @@ interface ApiService {
     @POST("initiate-chat")
     suspend fun initiateChat(@Body request: InitiateChatRequest): InitiateChatResponse
 
-    @GET("load-all-chats")
-    suspend fun getAllChats()
+    @POST("load-all-chats")
+    suspend fun getAllChats(@Body request: SearchChatRequest): ChatListResponse
 
 
 

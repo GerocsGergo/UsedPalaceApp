@@ -815,16 +815,34 @@ app.post('/initiate-chat', async (req, res) => {
     }
 });
 
-
+//Load all chats for user
 app.post('/load-all-chats', async (req, res) => {
     try {
+        const { buyerId } = req.body;
         
+        if (!buyerId) {
+            return res.status(400).json({
+                success: false,
+                message: "Search parameter is required",
+                data: []
+            });
+        }
+
+        const query = 'SELECT * FROM Chats WHERE BuyerId = ?'; // Removed LIMIT 1
+        const [results] = await connection.promise().query(query, [buyerId]);
+
+        res.json({
+            success: true,
+            message: results.length ? "Chats found" : "No chats found",
+            data: results // Return array (empty if no results)
+        });
 
     } catch (err) {
         console.error('Error loading chats:', err);
         res.status(500).json({ 
             success: false, 
-            message: 'Failed to load chats: ' + err.message 
+            message: 'Failed to load chats: ' + err.message,
+            data: []
         });
     }
 });
