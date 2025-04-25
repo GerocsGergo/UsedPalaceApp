@@ -22,7 +22,9 @@ import com.example.usedpalace.fragments.messagesHelpers.responses.ChatListRespon
 import com.example.usedpalace.fragments.messagesHelpers.Requests.InitiateChatRequest
 import com.example.usedpalace.fragments.messagesHelpers.responses.InitiateChatResponse
 import com.example.usedpalace.fragments.messagesHelpers.Requests.SearchChatRequest
+import com.example.usedpalace.fragments.messagesHelpers.Requests.SendMessageRequest
 import com.example.usedpalace.fragments.messagesHelpers.responses.ChatResponse
+import com.example.usedpalace.fragments.messagesHelpers.responses.MessageResponse
 import com.example.usedpalace.fragments.messagesHelpers.responses.UsernameResponse
 import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.requests.SearchRequestName
@@ -106,4 +108,7 @@ interface ApiService {
 
     @POST("get-chat-messages")
     suspend fun getChatMessages(@Body request: SearchRequestID): ChatResponse
+
+    @POST("send-message")
+    suspend fun sendMessage(@Body request: SendMessageRequest): MessageResponse
 }

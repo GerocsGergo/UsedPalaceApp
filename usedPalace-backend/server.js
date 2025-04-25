@@ -9,6 +9,7 @@ const fs = require('fs');  //filesystem node.js module
 const { v4: uuidv4 } = require('uuid'); //uuid library Generates unique identifiers
 const multer = require('multer');
 
+
 // Middleware to parse JSON request bodies
 app.use(express.json());
 
@@ -923,19 +924,19 @@ app.post('/get-chat-messages', async (req, res) => {
 // Send a new message
 app.post('/send-message', async (req, res) => {
     try {
-        const { chatId, senderId, messageText } = req.body;
+        const { chatId, senderId, content } = req.body;
 
-        if (!chatId || !senderId || !messageText) {
+        if (!chatId || !senderId || !content) {
             return res.status(400).json({
                 success: false,
-                message: "Missing required fields (chatId, senderId, messageText)"
+                message: "Missing required fields (chatId, senderId, content)"
             });
         }
 
         // Insert the new message
         const [result] = await connection.promise().query(
-            'INSERT INTO Messages (ChatID, SenderID, MessageText) VALUES (?, ?, ?)',
-            [chatId, senderId, messageText]
+            'INSERT INTO Messages (ChatID, SenderID, Content) VALUES (?, ?, ?)',
+            [chatId, senderId, content]
         );
 
         // Update the chat's last message timestamp
