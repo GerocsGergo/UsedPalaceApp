@@ -816,25 +816,25 @@ app.post('/initiate-chat', async (req, res) => {
 });
 
 //Load all chats for user
-app.post('/load-all-chats', async (req, res) => {
+app.post('/load-user-chats', async (req, res) => {
     try {
-        const { buyerId } = req.body;
+        const { userId } = req.body; // Now using userId instead of buyerID
         
-        if (!buyerId) {
+        if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "Search parameter is required",
+                message: "User ID required",
                 data: []
             });
         }
 
-        const query = 'SELECT * FROM Chats WHERE BuyerId = ?'; // Removed LIMIT 1
-        const [results] = await connection.promise().query(query, [buyerId]);
+        const query = 'SELECT * FROM Chats WHERE BuyerID = ? OR SellerID = ?';
+        const [results] = await connection.promise().query(query, [userId, userId]);
 
         res.json({
             success: true,
             message: results.length ? "Chats found" : "No chats found",
-            data: results // Return array (empty if no results)
+            data: results
         });
 
     } catch (err) {
@@ -843,6 +843,118 @@ app.post('/load-all-chats', async (req, res) => {
             success: false, 
             message: 'Failed to load chats: ' + err.message,
             data: []
+        });
+    }
+});
+
+//Search Username
+app.post('/search-username', async (req, res) => {
+    try {
+        const { searchParam } = req.body;
+        
+        if (!searchParam) {
+            return res.status(400).json({
+                success: false,
+                message: "Search parameter is required",
+                data: null
+            });
+        }
+
+        const query = 'SELECT Fullname FROM Users WHERE Uid = ? LIMIT 1';
+        const [results] = await connection.promise().query(query, [searchParam]);
+
+        if (results.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: null
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Username found",
+            Fullname: results[0].Fullname
+           
+        });
+
+    } catch (err) {
+        console.error('Error searching username:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to search username: ' + err.message,
+            data: null
+        });
+    }
+});
+
+// Get chat messages by chat ID
+app.post('/get-chat-messages', async (req, res) => {
+    try {
+        const { searchParam } = req.body;
+        
+        if (!searchParam) {
+            return res.status(400).json({
+                success: false,
+                message: "Chat ID is required",
+                data: []
+            });
+        }
+
+        const query = 'SELECT * FROM Messages WHERE ChatID = ? ORDER BY SentAt ASC';
+        const [results] = await connection.promise().query(query, [searchParam]);
+
+        res.json({
+            success: true,
+            message: results.length ? "Messages found" : "No messages found",
+            data: results
+        });
+
+    } catch (err) {
+        console.error('Error getting chat messages:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to get messages: ' + err.message,
+            data: []
+        });
+    }
+});
+
+// Send a new message
+app.post('/send-message', async (req, res) => {
+    try {
+        const { chatId, senderId, messageText } = req.body;
+
+        if (!chatId || !senderId || !messageText) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields (chatId, senderId, messageText)"
+            });
+        }
+
+        // Insert the new message
+        const [result] = await connection.promise().query(
+            'INSERT INTO Messages (ChatID, SenderID, MessageText) VALUES (?, ?, ?)',
+            [chatId, senderId, messageText]
+        );
+
+        // Update the chat's last message timestamp
+        await connection.promise().query(
+            'UPDATE Chats SET LastMessageAt = CURRENT_TIMESTAMP WHERE ChatID = ?',
+            [chatId]
+        );
+
+        res.json({ 
+            success: true, 
+            message: "Message sent successfully",
+            messageId: result.insertId
+        });
+
+    } catch (err) {
+        console.error('Error sending message:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to send message: ' + err.message
         });
     }
 });

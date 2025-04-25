@@ -21,7 +21,6 @@ import com.example.usedpalace.R
 import com.example.usedpalace.SaleWithSid
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.UserSession
-import com.example.usedpalace.fragments.homefragmenthelpers.HomeFragmentSingleSaleActivity
 import com.example.usedpalace.profilemenus.forownsalesactivity.OpenSaleActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

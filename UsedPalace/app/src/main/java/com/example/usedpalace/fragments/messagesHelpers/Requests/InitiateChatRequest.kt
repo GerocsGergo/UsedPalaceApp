@@ -1,4 +1,4 @@
-package com.example.usedpalace.fragments.messageHelpers
+package com.example.usedpalace.fragments.messagesHelpers.Requests
 
 data class InitiateChatRequest(
     val sellerId: Int,

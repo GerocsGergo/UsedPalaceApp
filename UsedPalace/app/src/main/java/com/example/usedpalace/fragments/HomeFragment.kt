@@ -13,7 +13,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.usedpalace.R
 import com.example.usedpalace.SaleWithSid
-import com.example.usedpalace.fragments.homefragmenthelpers.HomeFragmentSingleSaleActivity
+import com.example.usedpalace.fragments.homefragmentHelpers.HomeFragmentSingleSaleActivity
 import com.example.usedpalace.requests.SearchRequestName
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope

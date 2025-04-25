@@ -1,6 +1,6 @@
-package com.example.usedpalace.fragments.messageHelpers
+package com.example.usedpalace.fragments.messagesHelpers.responses
 
-import com.example.usedpalace.SaleWithSid
+import com.example.usedpalace.fragments.messagesHelpers.ChatItem
 import com.google.gson.annotations.SerializedName
 
 data class ChatListResponse(
