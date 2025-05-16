@@ -1,0 +1,20 @@
+{
+
+  "versions": [
+    {
+      "version": "0.0.1",
+      "changes": [
+        "Made version counter",
+        "Made changeLog File and started version counting"
+      ]
+    },
+    {
+      "version": "0.0.2",
+      "changes": [
+        "Fixed version shower"
+      ]
+    }
+
+  ]
+}
+

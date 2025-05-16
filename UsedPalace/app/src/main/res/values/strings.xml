@@ -1,0 +1,66 @@
+<resources>
+    <string name="app_name">Used Palace</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string-array name="search_types">
+        <item>Product</item>
+        <item>User</item>
+        <item>Category</item>
+    </string-array>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <string-array name="big_categories">
+        <item>Válassz főkategóriát</item>
+        <item>Könyv</item>
+        <item>Dvd</item>
+        <item>Blu-ray</item>
+        <item>Cd</item>
+        <item>Konzol</item>
+        <item>Videojátékok</item>
+    </string-array>
+
+    <string-array name="book_subcategories">
+        <item>Thriller</item>
+        <item>Kaland</item>
+        <item>Romantikus</item>
+        <item>Krimi</item>
+    </string-array>
+
+    <string-array name="dvd_subcategories">
+        <item>Akció</item>
+        <item>Kaland</item>
+        <item>Horror</item>
+        <item>Vígjáték</item>
+    </string-array>
+
+    <string-array name="bluray_subcategories">
+        <item>Akció</item>
+        <item>Kaland</item>
+        <item>Horror</item>
+        <item>Vígjáték</item>
+    </string-array>
+
+    <string-array name="cd_subcategories">
+        <item>Rock</item>
+        <item>Jazz</item>
+        <item>Klasszikus</item>
+    </string-array>
+
+    <string-array name="console_subcategories">
+        <item>Playstation 5</item>
+        <item>Playstation 4</item>
+        <item>Playstation 3</item>
+        <item>Playstation 2</item>
+        <item>Playstation 1</item>
+    </string-array>
+
+    <string-array name="games_subcategories">
+        <item>Playstation 5</item>
+        <item>Playstation 4</item>
+        <item>Playstation 3</item>
+        <item>Playstation 2</item>
+        <item>Playstation 1</item>
+    </string-array>
+</resources>

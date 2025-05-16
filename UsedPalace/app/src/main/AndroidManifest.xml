@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.UsedPalace"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+        <activity
+            android:name=".fragments.messagesHelpers.ChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.forownsalesactivity.OpenSaleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".fragments.homefragmentHelpers.HomeFragmentSingleSaleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.forownsalesactivity.ModifySaleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.InformationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.AboutActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.SupportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.HelpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.OwnSalesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.CreateSaleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".login.EmailVerifyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".login.ResetPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".login.ForgottenPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainMenuActivity"
+            android:exported="false" /> <!-- a "android:usesCleartextTraffic="true"-t át kell írni hogy https-t használjon az app ne sima http-t -->
+        <activity
+            android:name=".login.LogActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".login.RegActivity" />
+    </application>
+
+</manifest>
