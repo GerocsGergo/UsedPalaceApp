@@ -7,21 +7,133 @@
     android:layout_height="match_parent"
     tools:context=".profilemenus.HelpActivity">
 
+
+
     <LinearLayout
+        android:id="@+id/top_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/pageName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Információk az applikációról"
+            android:textSize="30sp"
+            android:textAlignment="center"
+            android:layout_marginBottom="30dp"
+            />
+
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/middle_layout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/top_layout"
+        app:layout_constraintBottom_toTopOf="@id/bottom_layout">
+
+        <LinearLayout
+            android:id="@+id/content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/profileTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="Profil menü:"
+                android:layout_marginBottom="3dp"/>
+
+            <TextView
+                android:id="@+id/profileText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Felhasználói fiókod adatait itt láthatod és módosíthatod?" />
+
+            <TextView
+                android:id="@+id/createSaleTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="Ajánlat létrehozása menü:" />
+
+            <TextView
+                android:id="@+id/createSaleText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ebben a menüben tudsz létrehozni hirdetést." />
+
+            <TextView
+                android:id="@+id/ownSalesTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="Saját hirdetéseid menü:" />
+
+            <TextView
+                android:id="@+id/ownSalesText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ebben a menüben láthatod hirdetéseid, módosíthatod, törölheted őket." />
+
+            <TextView
+                android:id="@+id/settingsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="Beállítások:" />
+
+            <TextView
+                android:id="@+id/settingsText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Applikációval kapcsolatos beállítások" />
+
+            <TextView
+                android:id="@+id/supportTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="Elérhetőségeink menü:" />
+
+            <TextView
+                android:id="@+id/supportText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Az applikációt készítő embike elérhetősége." />
+
+            <TextView
+                android:id="@+id/informationTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="Információk menü:" />
+
+            <TextView
+                android:id="@+id/informationText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Applikációval kapcsolatos információk" />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottom_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <Button
             android:id="@+id/buttonBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Back" />
-
-        <TextView
-            android:id="@+id/textView4"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="activity_help" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

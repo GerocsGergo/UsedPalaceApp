@@ -8,7 +8,7 @@ data class MessageWithEverything(
     @SerializedName("ChatID") val chatId: Int,
     @SerializedName("SenderID") val senderId: Int,
     @SerializedName("Content") val content: String,
-    @SerializedName("SentAt") val sentAt: Date,
+    @SerializedName("SentAt") val sentAt: String,
 
     )
 

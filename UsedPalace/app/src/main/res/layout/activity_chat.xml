@@ -71,15 +71,16 @@
     	            android:maxLines="6"
     	            tools:ignore="Autofill" />
 
-    	        <Button
-    	            android:id="@+id/button_send"
-    	            android:layout_width="64dp"
-    	            android:layout_height="48dp"
-    	            android:layout_alignParentEnd="true"
-    	            android:background="?attr/selectableItemBackground"
-    	            android:text="Send"
-    	            android:textColor="@color/light_blue_600" />
+				<ImageButton
+					android:id="@+id/button_send"
+					android:layout_width="48dp"
+					android:layout_height="48dp"
+					android:layout_alignParentEnd="true"
+					android:background="?attr/selectableItemBackground"
+					android:src="@drawable/baseline_send_24"
+					android:contentDescription="send message"
+                    app:tint="@color/light_blue_600" />
 
-    	    </RelativeLayout>
+			</RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

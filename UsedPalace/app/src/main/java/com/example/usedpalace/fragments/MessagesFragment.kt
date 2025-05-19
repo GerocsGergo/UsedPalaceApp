@@ -1,7 +1,6 @@
 package com.example.usedpalace.fragments
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -12,11 +11,11 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import com.example.usedpalace.R
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.fragments.messagesHelpers.ChatActivity
 import com.example.usedpalace.fragments.messagesHelpers.ChatItem
+import com.example.usedpalace.fragments.messagesHelpers.ChatHelper
 import com.example.usedpalace.fragments.messagesHelpers.Requests.SearchChatRequest
 import com.example.usedpalace.requests.SearchRequestID
 import com.squareup.picasso.Picasso
@@ -42,7 +41,6 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -76,7 +74,6 @@ class MessagesFragment : Fragment() {
         containerLayout?.addView(noChatsView)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun displayChats(apiService: ApiService, chats: List<ChatItem>, containerLayout: LinearLayout?, inflater: LayoutInflater){
         if (chats.isEmpty()) {
 
@@ -89,20 +86,32 @@ class MessagesFragment : Fragment() {
 
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
-                        if (userId == chat.buyerId){
-                            val username= fetchUsername(chat.sellerId)
-                            itemView.findViewById<TextView>(R.id.profile_name).text = username
+                        val username = if (userId == chat.buyerId){
+                             fetchUsername(chat.sellerId)
 
                         }else{
-                            val username= fetchUsername(chat.buyerId)
+                             fetchUsername(chat.buyerId)
+
+                        }
+                        if (username != null) {
                             itemView.findViewById<TextView>(R.id.profile_name).text = username
+                            itemView.setOnClickListener {
+                                onProductClick(chat.chatId, username)
+                            }
+                        } else {
+                            Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
+                        }
+
+                        //Add event listener
+                        itemView.setOnClickListener {
+                            onProductClick(chat.chatId, username)
                         }
                     }catch (e: Exception){
                         Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
                     }
                 }
 
-                itemView.findViewById<TextView>(R.id.last_message_date).text = formatDate(chat.lastMessageAt)
+                itemView.findViewById<TextView>(R.id.last_message_date).text = ChatHelper.formatDateString(chat.lastMessageAt)//formatDate(chat.lastMessageAt)
                 // Load sale info asynchronously
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
@@ -133,17 +142,14 @@ class MessagesFragment : Fragment() {
 
                 containerLayout?.addView(itemView)
 
-                //Add event listener
-                itemView.setOnClickListener {
-                    onProductClick(chat.chatId)
-                }
             }
         }
     }
 
-    private fun onProductClick(chatId: Int){
+    private fun onProductClick(chatId: Int, username: String?) {
         val intent = Intent(context, ChatActivity::class.java).apply {
             putExtra("CHAT_ID", chatId)
+            putExtra("USERNAME", username)
         }
         startActivity(intent)
     }
@@ -164,17 +170,7 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun formatDate(dateString: String): String {
-        return try {
-            val formatter = DateTimeFormatter.ofPattern("MMM dd, HH:mm", Locale.getDefault())
-            LocalDateTime.parse(dateString).format(formatter)
-        } catch (e: Exception) {
-            dateString // Return raw string if parsing fails
-        }
-    }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun fetchChats(apiService: ApiService, containerLayout: LinearLayout?, inflater: LayoutInflater) {
         CoroutineScope(Dispatchers.IO).launch {
             try {

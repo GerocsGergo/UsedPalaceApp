@@ -1,25 +1,35 @@
 package com.example.usedpalace.fragments.messagesHelpers
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.usedpalace.R
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.example.usedpalace.requests.SearchRequestID
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import network.ApiService
+
 
 class MessageAdapter(
     private var messages: List<MessageWithEverything>,
+    private val apiService: ApiService,
     private val currentUserId: Int)
     : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
 
 
     companion object {
         private const val VIEW_TYPE_SENT = 1
         private const val VIEW_TYPE_RECEIVED = 2
     }
+
+
+
 
     override fun getItemViewType(position: Int): Int {
         return if (messages[position].senderId == currentUserId) {
@@ -48,36 +58,29 @@ class MessageAdapter(
             is SentMessageViewHolder -> bindSentMessage(holder, message)
             is ReceivedMessageViewHolder -> bindReceivedMessage(holder, message)
         }
+
+
     }
+
+
+
 
     private fun bindSentMessage(holder: SentMessageViewHolder, message: MessageWithEverything) {
         holder.messageText.text = message.content
-        holder.messageTime.text = formatMessageTime(message.sentAt)
+        holder.messageTime.text = ChatHelper.formatMessageTime(message.sentAt)//formatMessageTime(message.sentAt)
     }
 
     private fun bindReceivedMessage(holder: ReceivedMessageViewHolder, message: MessageWithEverything) {
         holder.messageText.text = message.content
-        holder.messageTime.text = formatMessageTime(message.sentAt)
-        holder.senderName.text = message.senderId.toString()  //TODO NEVET IRJA KI
-        // You can add sender name here if needed
-    }
-
-    private fun formatMessageTime(date: Date?): String {
-        if (date == null) return "Just now"
-
-        return try {
-            val now = Date()
-            val diff = now.time - date.time
-
-            when {
-                diff < 60 * 1000 -> "Just now"
-                diff < 24 * 60 * 60 * 1000 -> SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
-                else -> SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(date)
+        holder.messageTime.text = ChatHelper.formatMessageTime(message.sentAt)//formatMessageTime(message.sentAt)
+        CoroutineScope(Dispatchers.IO).launch {
+            val username = ChatHelper.getUserName(apiService, message.senderId)
+            withContext(Dispatchers.Main) {
+                holder.senderName.text = username ?: "Unknown"
             }
-        } catch (e: Exception) {
-            "Just now"
         }
     }
+
 
     override fun getItemCount() = messages.size
 

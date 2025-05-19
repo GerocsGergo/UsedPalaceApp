@@ -73,6 +73,13 @@ class LogActivity : AppCompatActivity() {
                         Log.d("JWTCheck", "Token is valid")
 
                         val savedUserName = prefs.getString("userName", null)
+                        val savedUserId = prefs.getInt("userId", -1)
+
+                        // Set it back into UserSession
+                        UserSession.setUserData(
+                            id = savedUserId,
+                            name = savedUserName?: ""
+                        )
 
                         // Token exists: show only the two buttons
                         btnLogout.visibility = View.VISIBLE
@@ -187,6 +194,7 @@ class LogActivity : AppCompatActivity() {
                         val editor = prefs.edit()
                         editor.putString("token", token)
                         editor.putString("userName", userData?.name)
+                        editor.putInt("userId", userData?.id ?: -1)
                         editor.apply()
 
                         // Navigate to the main menu

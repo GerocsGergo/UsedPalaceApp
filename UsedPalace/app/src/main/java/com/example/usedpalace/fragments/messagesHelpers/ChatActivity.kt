@@ -8,8 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toolbar
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -28,6 +30,8 @@ import kotlinx.coroutines.withContext
 import network.ApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Date
 
 class ChatActivity : AppCompatActivity() {
@@ -36,15 +40,20 @@ class ChatActivity : AppCompatActivity() {
     //private lateinit var webSocketClient: ChatWebSocketClient
 
     private var chatId: Int = -1
+    private var toolbarUsername: String? = "null"
 
     private lateinit var mainLayout: ConstraintLayout
     private lateinit var messagesRecyclerView: RecyclerView
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var enterMessage: EditText
-    private lateinit var buttonSend: Button
+    private lateinit var buttonSend: ImageButton
+
+    private lateinit var toolbar: androidx.appcompat.widget.Toolbar
 
     private val handler = Handler(Looper.getMainLooper())
     private val updateInterval = 3000L // 3 seconds
+
+    private var lastMessageId: Int? = null
 
     private val updateRunnable = object : Runnable {
         override fun run() {
@@ -63,16 +72,31 @@ class ChatActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+
+
         getIntentData()
         setupRetrofit()
         initializeViews()
         //setupWebSocket()
         setupSendButton()
-        loadMessages()
+        setupToolbar(toolbarUsername)
+        initializeMessages()
 
     }
 
+    private fun setupToolbar(toolbarUsername: String?){
+        toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        toolbar.setNavigationOnClickListener {
+            finish()
+        }
+
+        supportActionBar?.title = toolbarUsername
+
+    }
 
     private fun initializeViews() {
         mainLayout = findViewById(R.id.main)
@@ -80,13 +104,12 @@ class ChatActivity : AppCompatActivity() {
         enterMessage = findViewById(R.id.enter_message)
         buttonSend = findViewById(R.id.button_send)
 
-        // Initialize adapter with current user ID (you need to get this from your auth system)
         val currentUserId = UserSession.getUserId()!!
-        messageAdapter = MessageAdapter(emptyList(), currentUserId)
+        messageAdapter = MessageAdapter(emptyList(),apiService, currentUserId)
 
         messagesRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@ChatActivity).apply {
-                stackFromEnd = true // Makes the list start from the bottom
+                stackFromEnd = true
             }
             adapter = messageAdapter
         }
@@ -160,7 +183,7 @@ class ChatActivity : AppCompatActivity() {
                             chatId = chatId,
                             senderId = currentUserId,
                             content = content,
-                            sentAt = Date(), // Current time
+                            sentAt = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME), // Current time
                         )
 
                         messageAdapter.addMessage(newMessage)
@@ -178,13 +201,13 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-
-    private fun loadMessages() {
+    private fun initializeMessages() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = apiService.getChatMessages(SearchRequestID(chatId))
                 if (response.success) {
                     val messages = response.data
+                    lastMessageId = messages.maxByOrNull { it.messageId }?.messageId
                     withContext(Dispatchers.Main) {
                         messageAdapter.updateMessages(messages)
                         messagesRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
@@ -201,6 +224,39 @@ class ChatActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun loadMessages() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = apiService.getChatMessages(SearchRequestID(chatId))
+                if (response.success) {
+                    val messages = response.data
+
+                    val newestMessageId = messages.maxByOrNull { it.messageId }?.messageId
+
+                    if (newestMessageId != null && newestMessageId != lastMessageId) {
+                        lastMessageId = newestMessageId
+                        withContext(Dispatchers.Main) {
+                            messageAdapter.updateMessages(messages)
+                            messagesRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
+                        }
+                    } else {
+                        // No new messages, do nothing or log if you want
+                        Log.d("ChatActivity", "No new messages to update.")
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        showErrorMessage("Failed to load messages: ${response.message}")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showErrorMessage("Network error: ${e.message}")
+                }
+            }
+        }
+    }
+
 
 
     override fun onBackPressed() {
@@ -221,6 +277,12 @@ class ChatActivity : AppCompatActivity() {
         chatId = intent.getIntExtra("CHAT_ID", -1)
         if (chatId == -1) {
             showErrorMessage("Could not get chatID")
+            finish()
+        }
+
+        toolbarUsername = intent.getStringExtra("USERNAME")
+        if (toolbarUsername.isNullOrEmpty()){
+            showErrorMessage("Could not get username for enemy")
             finish()
         }
     }

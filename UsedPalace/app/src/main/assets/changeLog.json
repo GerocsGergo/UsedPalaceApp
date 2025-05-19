@@ -21,6 +21,15 @@
         "Fixed github files"
       ]
     }
+  ,
+    {
+      "version": "0.1.0",
+      "changes": [
+        "Fixed chat issues",
+        "Fixed date issues",
+        "Added help menu"
+      ]
+    }
 
   ]
 }
