@@ -30,6 +30,13 @@
         "Added help menu"
       ]
     }
+  ,
+    {
+      "version": "0.1.1",
+      "changes": [
+        "Fixed changeLog list"
+      ]
+    }
 
   ]
 }

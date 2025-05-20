@@ -38,38 +38,54 @@ class InformationActivity : AppCompatActivity() {
         showLastVersion(this, versionTextView)
     }
     private fun navigateBackToProfile() {
-        // Create an intent to return to MainMenuActivity
         val intent = Intent(this, MainMenuActivity::class.java).apply {
-            // Add flag to indicate we want to show ProfileFragment
             putExtra("SHOW_PROFILE_FRAGMENT", true)
-            // Clear the activity stack so we don't have multiple MainMenuActivities
+
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         startActivity(intent)
-        finish() // Close the current SettingsActivity
+        finish()
     }
 
-    // Handle system back button press
+
     override fun onBackPressed() {
         super.onBackPressed()
         navigateBackToProfile()
     }
 
-    fun showChangeLog(context: Context, textView: TextView) {
-        val (version, changesList) = readChangeLog(context)
-
-        val formattedText = buildString {
-            append("Verzió: $version\n\n")
-            changesList.forEach { change ->
-                append("- $change\n")
-            }
-        }
-
-
-        textView.text = formattedText
+    private fun showChangeLog(context: Context, textView: TextView) {
+        val changelogText = buildFullChangeLog(context)
+        textView.text = changelogText
     }
 
-    fun showLastVersion(context: Context, textView: TextView) {
+    private fun buildFullChangeLog(context: Context): String {
+        val inputStream = context.assets.open("changeLog.json")
+        val jsonString = inputStream.bufferedReader().use { it.readText() }
+
+        val jsonObject = JSONObject(jsonString)
+        val versionsArray = jsonObject.getJSONArray("versions")
+
+        val stringBuilder = StringBuilder()
+
+        for (i in 0 until versionsArray.length()) {
+            val versionEntry = versionsArray.getJSONObject(i)
+            val version = versionEntry.getString("version")
+            val changesArray = versionEntry.getJSONArray("changes")
+
+            stringBuilder.append("Verzió: $version\n")
+
+            for (j in 0 until changesArray.length()) {
+                val change = changesArray.getString(j)
+                stringBuilder.append("- $change\n")
+            }
+
+            stringBuilder.append("\n")
+        }
+
+        return stringBuilder.toString()
+    }
+
+    private fun showLastVersion(context: Context, textView: TextView) {
         val inputStream = context.assets.open("changeLog.json")
         val jsonString = inputStream.bufferedReader().use { it.readText() }
 
@@ -83,7 +99,7 @@ class InformationActivity : AppCompatActivity() {
 
 
 
-    fun readChangeLog(context: Context): Pair<String, List<String>> {
+    private fun readChangeLog(context: Context): Pair<String, List<String>> {
         val inputStream = context.assets.open("changeLog.json")
         val jsonString = inputStream.bufferedReader().use { it.readText() }
 
