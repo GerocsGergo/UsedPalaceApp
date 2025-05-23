@@ -45,7 +45,13 @@
         "Implemented email change"
       ]
     }
-
+  ,
+    {
+      "version": "0.3.0",
+      "changes": [
+        "Implemented phoneNumber change"
+      ]
+    }
 
   ]
 }

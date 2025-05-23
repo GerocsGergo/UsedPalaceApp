@@ -28,7 +28,9 @@ import com.example.usedpalace.fragments.messagesHelpers.responses.MessageRespons
 import com.example.usedpalace.fragments.messagesHelpers.responses.UsernameResponse
 import com.example.usedpalace.requests.ChangeEmailRequest
 import com.example.usedpalace.requests.ChangePasswordRequest
+import com.example.usedpalace.requests.ChangePhoneNumberRequest
 import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeRequest
+import com.example.usedpalace.requests.ConfirmPhoneNumberChangeRequest
 import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
@@ -133,6 +135,13 @@ interface ApiService {
 
     @POST("confirm-password-change")
     fun confirmPasswordChange(@Body request: ConfirmEmailOrPasswordChangeRequest): Call<ApiResponseGeneric>
+
+    @POST("request-phoneNumber-change")
+    fun requestPhoneNumberChange(@Body request: ChangePhoneNumberRequest): Call<ApiResponseGeneric>
+
+    @POST("confirm-phoneNumber-change")
+    fun confirmPhoneNumberChange(@Body request: ConfirmPhoneNumberChangeRequest): Call<ApiResponseGeneric>
+
 
 
 

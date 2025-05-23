@@ -124,9 +124,11 @@ app.post('/reset-password', async (req, res) => {
 //TODO bruteforce protection with login rate limiter
 // Login user
 app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-
+    
     try {
+	
+		const { email, password } = req.body;
+		
         const query = 'SELECT * FROM Users WHERE Email = ?';
         const [results] = await connection.promise().query(query, [email]);
 
@@ -1269,12 +1271,101 @@ app.post('/confirm-password-change', async (req, res) => {
 
 
 
+app.post('/request-phoneNumber-change', async (req, res) => {
+    try {
+        const { userId, password } = req.body;
+
+        console.log('Received phone number change request from:', userId);
+
+        if (!userId || !password) {
+            return res.status(400).json({ message: 'Missing fields' });
+        }
+
+        const query = 'SELECT * FROM Users WHERE Uid = ?';
+        const [results] = await connection.promise().query(query, [userId]);
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = results[0];
+
+        const isPasswordValid = await bcrypt.compare(password, user.PassHashed);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid password' });
+        }
+
+        const mailOptions = {
+            from: 'filmbeadando2024@gmail.com',
+            to: user.Email,
+            subject: 'Phone number change requested',
+            text: `A phone number change has been requested for your account. If this wasn't you, please contact support immediately.`
+        };
+
+        transporter.sendMail(mailOptions, (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'Failed to send email' });
+            }
+            res.json({ message: 'Password valid, you can now enter new phone number' });
+        });
+
+    } catch (err) {
+        console.error('Error in request-phoneNumber-change:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/confirm-phoneNumber-change', async (req, res) => {
+    try {
+        const { userId, phoneNumber } = req.body;
+        console.log('Received confirmation request for phone number change from:', userId);
+
+        if (!userId || !phoneNumber) {
+            return res.status(400).json({ message: 'Missing fields' });
+        }
+		
+		if (!/^\d{11}$/.test(phoneNumber)) {
+			return res.status(400).json({ message: 'Invalid phone number format' });
+		}
+
+        const [rows] = await connection.promise().query(
+            'SELECT PhoneNumber FROM Users WHERE Uid = ?',
+            [userId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const currentPhoneNumber = rows[0].PhoneNumber;
+
+        if (currentPhoneNumber === phoneNumber) {
+            return res.status(400).json({ message: 'New phone number cannot be the same as the current one' });
+        }
+
+        await connection.promise().query(
+            'UPDATE Users SET PhoneNumber = ? WHERE Uid = ?',
+            [phoneNumber, userId]
+        );
+
+        res.json({ message: 'Phone number changed successfully' });
+
+    } catch (err) {
+        console.error('Error in confirm-phoneNumber-change:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
 
 
 //delete account
 
 app.delete('/delete-user', async (req, res) => {
 	try {
+	
+	
 		
 	} catch (err) {
 		
