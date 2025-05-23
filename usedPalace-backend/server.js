@@ -982,7 +982,383 @@ app.post('/send-message', async (req, res) => {
     }
 });
 
+
+//modify phonenumber
+app.put('/modify-user-phone', async (req, res) => {
+	try{
+		const { phoneNumber, userId } = req.body //06204445566
+		
+		if (!userId) {
+			return res.status(400).json({
+				success: false,
+				message: "Missing userId"
+			});
+		}
+		
+		const [userResult] = await connection.promise.query(
+			  "SELECT * FROM Users WHERE Uid = ?",
+			  [userId]
+			);
+
+			if (userResult.length === 0) {
+			  return res.status(404).json({
+				success: false,
+				message: "User not found"
+			  });
+			}
+		
+		if ( !phoneNumber) {
+			 return res.status(400).json({
+                success: false,
+                message: "Missing required fields"
+            });
+		}
+		
+		const phoneRegex = /^06\d{9}$/;
+		if (!phoneRegex.test(phoneNumber)) {
+				return res.status(400).json({
+				success: false,
+				message: "Phone number format invalid"
+				});
+		}
+		
+		const updateQuery = `
+			UPDATE Users
+			SET PhoneNumber = ?
+			WHERE Uid = ?`;
+		await connection.promise.query(
+			updateQuery,
+			[phoneNumber, userId]
+		);
+		
+		  res.json({
+            success: true,
+            message: "User modified successfully",
+        });
+		
+		
+	} catch (err) {
+		 console.error('Error modifying user account: ', err)
+		         res.status(500).json({ 
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
+	}
+});
+
+
+//modify Email
+app.put('/request-user-email-change', async (req, res) => {  //create request és send email
+    try {
+
+        const { userId, newEmail } = req.body;
+		
+		console.log('Received email change request from:', userId);
+		
+        if (!userId || !newEmail) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required data'
+            });
+        }
+
+        // Generate verification code
+        const code = await generateUniqueCode2();
+
+        // Insert into EmailChangeRequests
+        const insertQuery = `
+            INSERT INTO EmailChangeRequests (Uid, NewEmail, Code)
+            VALUES (?, ?, ?)
+        `;
+        await connection.promise().query(insertQuery, [userId, newEmail, code]);
+
+        // Send verification email to new email address
+        const mailOptions = {
+            from: 'filmbeadando2024@gmail.com',
+            to: newEmail,
+            subject: 'Confirm your new email address',
+            text: `Your email verification code is: ${code}`
+        };
+
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error('Error sending email:', err);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to send verification email'
+                });
+            }
+
+            res.json({
+                success: true,
+                message: 'Verification email sent to new address'
+            });
+        });
+
+    } catch (err) {
+        console.error('Error in /request-user-email-change:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
+    }
+});
+
+
+app.put('/confirm-user-email-change', async (req, res) => { //confirm code és updateol tényleg
+    try {
+        const { userId, code } = req.body;
+		
+		console.log('Received conformation request for email change from:', userId);
+		
+        if (!userId || !code) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields'
+            });
+        }
+
+        const [rows] = await connection.promise().query(
+            'SELECT NewEmail, Code FROM EmailChangeRequests WHERE Uid = ? ORDER BY RequestedAt DESC LIMIT 1',
+            [userId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No pending email change found'
+            });
+        }
+
+        const { NewEmail, Code: storedCode } = rows[0];
+
+        if (storedCode !== code) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid verification code'
+            });
+        }
+
+        await connection.promise().query(
+            'UPDATE Users SET Email = ? WHERE Uid = ?',
+            [NewEmail, userId]
+        );
+
+        await connection.promise().query(
+            'DELETE FROM EmailChangeRequests WHERE Uid = ?',
+            [userId]
+        );
+
+        res.json({
+            success: true,
+            message: 'Email address updated successfully'
+        });
+
+    } catch (err) {
+        console.error('Error in /confirm-user-email-change:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
+    }
+});
+
+
+
+//modify password
+app.post('/request-password-change', async (req, res) => {
+    try {
+        const { userId, oldPassword, newPassword } = req.body;
+		
+		  console.log('Received password change request from:', userId);
+		
+        if (!userId || !oldPassword || !newPassword) {
+            return res.status(400).json({ message: 'Missing fields' });
+        }
+
+        const [rows] = await connection.promise().query(
+            'SELECT PassHashed, Email FROM Users WHERE Uid = ?', [userId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = rows[0];
+
+        const passwordMatch = await bcrypt.compare(oldPassword, user.PassHashed);
+        if (!passwordMatch) {
+            return res.status(401).json({ message: 'Old password is incorrect' });
+        }
+
+        const code = await generateUniqueCode2();
+
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        const insertQuery = `
+            INSERT INTO PasswordChangeRequests (Uid, NewPassword, Code)
+            VALUES (?, ?, ?)
+        `;
+        await connection.promise().query(insertQuery, [userId, hashedNewPassword, code]);
+
+        const mailOptions = {
+            from: 'filmbeadando2024@gmail.com',
+            to: user.Email,
+            subject: 'Confirm your password change',
+            text: `Your password change verification code is: ${code}`
+        };
+
+        transporter.sendMail(mailOptions, (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'Failed to send email' });
+            }
+            res.json({ message: 'Verification code sent' });
+        });
+
+    } catch (err) {
+        console.error('Error in request-password-change:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+
+app.post('/confirm-password-change', async (req, res) => {
+    try {
+		
+        const { userId, code } = req.body;
+		    console.log('Received conformation request for password change from:', userId);
+		
+        const [rows] = await connection.promise().query(
+            'SELECT NewPassword, Code FROM PasswordChangeRequests WHERE Uid = ? ORDER BY RequestedAt DESC LIMIT 1',
+            [userId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'No pending password change found' });
+        }
+
+        const request = rows[0];
+
+        if (request.Code !== code) {
+            return res.status(400).json({ message: 'Invalid verification code' });
+        }
+
+        // **Use the stored hashed password directly**
+        await connection.promise().query(
+            'UPDATE Users SET PassHashed  = ? WHERE Uid = ?',
+            [request.NewPassword, userId]
+        );
+
+        await connection.promise().query(
+            'DELETE FROM PasswordChangeRequests WHERE Uid = ?',
+            [userId]
+        );
+
+        res.json({ message: 'Password changed successfully' });
+
+    } catch (err) {
+        console.error('Error in confirm-password-change:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+
+
+
+//delete account
+
+app.delete('/delete-user', async (req, res) => {
+	try {
+		
+	} catch (err) {
+		
+	}
+});
+
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
+});
+
+
+
+//Delete sale end point
+app.delete('/delete-sale', async (req, res) => {
+    try {
+        const { saleId, userId } = req.body;
+
+        // Validate input
+        if (!saleId || !userId) {
+            return res.status(400).json({
+                success: false,
+                message: "Both saleId and userId are required",
+                data: null
+            });
+        }
+
+        // First verify the sale belongs to the user
+        const [sale] = await connection.promise().query(
+            'SELECT Uid FROM Sales WHERE Sid = ?', 
+            [saleId]
+        );
+
+        if (sale.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Sale not found",
+                data: null
+            });
+        }
+
+        if (sale[0].Uid !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized - you can only delete your own sales",
+                data: null
+            });
+        }
+
+        // Get sale folder before deletion
+        const [saleData] = await connection.promise().query(
+            'SELECT SaleFolder FROM Sales WHERE Sid = ?',
+            [saleId]
+        );
+
+        // Delete from database
+        await connection.promise().query(
+            'DELETE FROM Sales WHERE Sid = ?',
+            [saleId]
+        );
+
+        // Delete associated images folder
+        if (saleData.length > 0 && saleData[0].SaleFolder) {
+            const saleFolderPath = path.join('sales', saleData[0].SaleFolder);
+            if (fs.existsSync(saleFolderPath)) {
+                fs.rmSync(saleFolderPath, { recursive: true });
+            }
+        }
+
+        res.json({
+            success: true,
+            message: "Sale deleted successfully",
+            data: {
+                deletedSaleId: saleId
+            }
+        });
+
+    } catch (err) {
+        console.error('Error in /delete-sale:', err);
+        res.status(500).json({ 
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
+    }
 });

@@ -26,6 +26,9 @@ import com.example.usedpalace.fragments.messagesHelpers.Requests.SendMessageRequ
 import com.example.usedpalace.fragments.messagesHelpers.responses.ChatResponse
 import com.example.usedpalace.fragments.messagesHelpers.responses.MessageResponse
 import com.example.usedpalace.fragments.messagesHelpers.responses.UsernameResponse
+import com.example.usedpalace.requests.ChangeEmailRequest
+import com.example.usedpalace.requests.ChangePasswordRequest
+import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeRequest
 import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
@@ -101,7 +104,7 @@ interface ApiService {
     suspend fun deleteSingleImage(@Body request: DeleteSingleImageRequest): ApiResponseGeneric
 
 
-
+    //CHAT
     @POST("initiate-chat")
     suspend fun initiateChat(@Body request: InitiateChatRequest): InitiateChatResponse
 
@@ -116,4 +119,21 @@ interface ApiService {
 
     @POST("send-message")
     suspend fun sendMessage(@Body request: SendMessageRequest): MessageResponse
+
+
+    //Profil menu
+    @PUT("request-user-email-change")
+    fun requestEmailChange(@Body request: ChangeEmailRequest): Call<ApiResponseGeneric>
+
+    @PUT("confirm-user-email-change")
+    fun confirmEmailChange(@Body request: ConfirmEmailOrPasswordChangeRequest): Call<ApiResponseGeneric>
+
+    @POST("request-password-change")
+    fun requestPasswordChange(@Body request: ChangePasswordRequest): Call<ApiResponseGeneric>
+
+    @POST("confirm-password-change")
+    fun confirmPasswordChange(@Body request: ConfirmEmailOrPasswordChangeRequest): Call<ApiResponseGeneric>
+
+
+
 }

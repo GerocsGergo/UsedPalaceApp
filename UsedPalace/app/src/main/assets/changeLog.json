@@ -37,6 +37,15 @@
         "Fixed changeLog list"
       ]
     }
+  ,
+    {
+      "version": "0.2.0",
+      "changes": [
+        "Implemented password change",
+        "Implemented email change"
+      ]
+    }
+
 
   ]
 }

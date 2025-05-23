@@ -17,6 +17,15 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".profilemenus.forprofileactivity.ModifyPhoneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.forprofileactivity.ModifyPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profilemenus.forprofileactivity.ModifyEmailActivity"
+            android:exported="false" />
+        <activity
             android:name=".fragments.messagesHelpers.ChatActivity"
             android:exported="false" />
         <activity
