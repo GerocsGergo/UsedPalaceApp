@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".profilemenus.forprofileactivity.ModifyPasswordActivity">
+    tools:context=".profilemenus.forprofileactivity.DeleteAccountActivity">
 
     <LinearLayout
         android:id="@+id/top_layout"
@@ -14,15 +14,15 @@
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:id="@+id/pageName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Jelszó csere"
-        android:textSize="30sp"
-        android:textAlignment="center"
-        android:layout_marginBottom="30dp"
-        />
+        <TextView
+            android:id="@+id/pageName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Fiók törlés"
+            android:textSize="30sp"
+            android:textAlignment="center"
+            android:layout_marginBottom="30dp"
+            />
     </LinearLayout>
 
     <ScrollView
@@ -39,68 +39,48 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/oldPasswordText"
+                android:id="@+id/passwordText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Régi jelszó:"
+                android:text="Jelszó:"
                 android:textSize="18sp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"/>
 
             <EditText
-                android:id="@+id/inputOldPassword"
+                android:id="@+id/inputPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Adja meg a régi jelszavát"
+                android:hint="Adja meg a jelszavát"
                 android:inputType="textPassword"
                 android:textSize="16sp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"/>
 
             <TextView
-                android:id="@+id/newPasswordText"
+                android:id="@+id/emailText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Új jelszó:"
+                android:text="E-mail cím:"
                 android:textSize="18sp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"/>
 
             <EditText
-                android:id="@+id/inputNewPassword"
+                android:id="@+id/inputEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Adja meg az új jelszavát"
-                android:inputType="textPassword"
+                android:hint="Adja meg az e-mail címét"
+                android:inputType="textEmailAddress"
                 android:textSize="16sp"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:id="@+id/newPasswordReText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Új jelszó mégegyszer:"
-                android:textSize="18sp"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/inputNewRePassword"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Adja meg az új jelszavát mégegyszer"
-                android:inputType="textPassword"
-                android:textSize="16sp"
-                android:layout_marginBottom="16dp" />
-
-            <Button
-                android:id="@+id/buttonRequest"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Módosítás"
-                android:textSize="18sp" />
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"/>
 
             <TextView
                 android:id="@+id/codeText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Kód:"
+                android:text="Megerősítő kód:"
                 android:textSize="18sp"
                 android:layout_marginBottom="8dp"
                 android:visibility="gone"/>
@@ -109,20 +89,38 @@
                 android:id="@+id/inputCode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Írd be a megerősítő kódot"
+                android:hint="Adja meg az e-mailben kapott kódot"
                 android:inputType="number"
                 android:textSize="16sp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="16dp"
                 android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/buttonConfirm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Végleges törlés"
+                android:textSize="18sp"
+                android:visibility="gone"
+                />
+
+            <TextView
+                android:id="@+id/text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="A törlés kéréséhez nyomja az alábbimeg a gombot."
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp"
+                />
 
 
             <Button
-                android:id="@+id/buttonModify"
+                android:id="@+id/buttonRequest"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Módosítás"
+                android:text="Kérelem küldése"
                 android:textSize="18sp"
-                android:visibility="gone"/>
+               />
 
 
         </LinearLayout>
@@ -142,4 +140,5 @@
             android:layout_height="wrap_content"
             android:text="Mégsem" />
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

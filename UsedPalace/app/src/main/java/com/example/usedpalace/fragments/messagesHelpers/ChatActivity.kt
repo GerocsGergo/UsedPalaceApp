@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import android.widget.Toolbar
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -73,14 +74,11 @@ class ChatActivity : AppCompatActivity() {
             insets
         }
 
-
-
-        getIntentData()
         setupRetrofit()
         initializeViews()
-        //setupWebSocket()
-        setupSendButton()
+        getIntentData()
         setupToolbar(toolbarUsername)
+        setupSendButton()
         initializeMessages()
 
     }
@@ -95,6 +93,15 @@ class ChatActivity : AppCompatActivity() {
         }
 
         supportActionBar?.title = toolbarUsername
+
+
+        if (toolbarUsername.equals("Deleted User")){
+            val message = "You cant send message to deleted user"
+            enterMessage.hint = message
+            enterMessage.isEnabled = false
+            buttonSend.isEnabled = false
+
+        }
 
     }
 
@@ -117,11 +124,17 @@ class ChatActivity : AppCompatActivity() {
 
     private fun setupSendButton() {
         buttonSend.setOnClickListener {
-            val messageText = enterMessage.text.toString().trim()
-            if (messageText.isNotEmpty()) {
-                sendMessage(messageText)
+            if (!toolbarUsername.equals("Deleted User")){
+                val messageText = enterMessage.text.toString().trim()
+                if (messageText.isNotEmpty()) {
+                    sendMessage(messageText)
+                    enterMessage.text.clear()
+                }
+            } else {
                 enterMessage.text.clear()
+                Toast.makeText(this, "You cant send message to deleted user.", Toast.LENGTH_SHORT).show()
             }
+
         }
     }
 
@@ -134,28 +147,6 @@ class ChatActivity : AppCompatActivity() {
         super.onPause()
         handler.removeCallbacks(updateRunnable)
     }
-
-//    private fun setupWebSocket() {
-//        webSocketClient = ChatWebSocketClient(
-//            context = this,
-//            chatId = chatId,
-//            onMessageReceived = { newMessage ->
-//                messageAdapter.addMessage(newMessage)
-//                messagesRecyclerView.smoothScrollToPosition(messageAdapter.itemCount - 1)
-//            }
-//        )
-//
-//        try {
-//            webSocketClient.connect()
-//        } catch (e: Exception) {
-//            Log.e("WebSocket", "Connection error", e)
-//        }
-//    }
-
-//    override fun onDestroy() {
-//        webSocketClient.close()
-//        super.onDestroy()
-//    }
 
 
     private fun sendMessage(content: String) {

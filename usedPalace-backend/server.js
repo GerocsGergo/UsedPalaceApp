@@ -291,7 +291,7 @@ app.post('/verify-email', async (req, res) => {
 
 //End points for home fragment
 // API endpoint to fetch sales data
-app.get('/api/sales', (req, res) => {
+app.get('/getSales', (req, res) => {
     const query = 'SELECT * FROM Sales';
     connection.query(query, (err, results) => {
         if (err) {
@@ -308,30 +308,31 @@ app.use(express.static('sales'));
 
 app.post('/search-sales-withSID', async (req, res) => {
     try {
+		
         const { searchParam } = req.body;
-        
+        console.log('Received sales search request:', searchParam);
+		
         if (!searchParam) {
             return res.status(400).json({
                 success: false,
                 message: "Search parameter is required",
-                data: null  // Changed from array to null
+                data: null
             });
         }
 
         const query = 'SELECT * FROM Sales WHERE Sid = ?';
         
-        // Remove the % wildcards since we're searching for exact ID match
         const [results] = await connection.promise().query(query, [searchParam]);
 
         if (results.length === 0) {
             return res.json({
                 success: true,
                 message: "No product found with this ID",
-                data: null  // Return null when no results
+                data: null
             });
         }
 
-        // Return the first (and should be only) result as an object
+        // Return the first result as an object
         res.json({
             success: true,
             message: "Product found",
@@ -343,7 +344,50 @@ app.post('/search-sales-withSID', async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Server error",
-            data: null  // Changed from array to null
+            data: null 
+        });
+    }
+});
+
+app.post('/search-deletedSales-withSID', async (req, res) => {
+    try {
+		
+        const { searchParam } = req.body;
+        console.log('Received deleted sales search request:', searchParam);
+		
+        if (!searchParam) {
+            return res.status(400).json({
+                success: false,
+                message: "Search parameter is required",
+                data: null
+            });
+        }
+
+        const query = 'SELECT * FROM DeletedSales WHERE Sid = ?';
+        
+        const [results] = await connection.promise().query(query, [searchParam]);
+
+        if (results.length === 0) {
+            return res.json({
+                success: true,
+                message: "No product found with this ID",
+                data: null 
+            });
+        }
+
+ 
+        res.json({
+            success: true,
+            message: "Product found",
+            data: results[0]  
+        });
+        
+    } catch (err) {
+        console.error('Error in /search-deletedSales-withSID:', err);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+            data: null 
         });
     }
 });
@@ -575,6 +619,11 @@ app.delete('/delete-sale', async (req, res) => {
             [saleId]
         );
 
+		await connection.promise().query(
+			'INSERT INTO DeletedSales (Sid, Uid) SELECT Sid, Uid FROM Sales WHERE Uid = ?',
+			[userId]
+		);
+		
         // Delete from database
         await connection.promise().query(
             'DELETE FROM Sales WHERE Sid = ?',
@@ -889,12 +938,25 @@ app.post('/search-username', async (req, res) => {
         const [results] = await connection.promise().query(query, [searchParam]);
 
         if (results.length === 0) {
+			
+			const query2 = 'SELECT Id FROM DeletedUsers WHERE Uid = ? LIMIT 1';
+			const [results2] = await connection.promise().query(query2, [searchParam]);
+			//Keresni a deleted usersben
+			if (results2.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: "User not found",
                 data: null
             });
-        }
+			}
+			
+			return res.json({
+            success: true,
+            message: "User was deleted",
+            Fullname: "Deleted User"
+           	});
+
+        } 
 
         res.json({
             success: true,
@@ -984,7 +1046,7 @@ app.post('/send-message', async (req, res) => {
     }
 });
 
-
+//PROFILban modifyok és delete
 //modify phonenumber
 app.put('/modify-user-phone', async (req, res) => {
 	try{
@@ -1051,7 +1113,7 @@ app.put('/modify-user-phone', async (req, res) => {
 
 
 //modify Email
-app.put('/request-user-email-change', async (req, res) => {  //create request és send email
+app.post('/request-user-email-change', async (req, res) => {  //create request és send email
     try {
 
         const { userId, newEmail } = req.body;
@@ -1229,7 +1291,7 @@ app.post('/request-password-change', async (req, res) => {
 
 
 
-app.post('/confirm-password-change', async (req, res) => {
+app.put('/confirm-password-change', async (req, res) => {
     try {
 		
         const { userId, code } = req.body;
@@ -1316,7 +1378,7 @@ app.post('/request-phoneNumber-change', async (req, res) => {
     }
 });
 
-app.post('/confirm-phoneNumber-change', async (req, res) => {
+app.put('/confirm-phoneNumber-change', async (req, res) => {
     try {
         const { userId, phoneNumber } = req.body;
         console.log('Received confirmation request for phone number change from:', userId);
@@ -1362,13 +1424,135 @@ app.post('/confirm-phoneNumber-change', async (req, res) => {
 
 //delete account
 
-app.delete('/delete-user', async (req, res) => {
+app.post('/request-delete-user', async (req, res) => {
 	try {
+		const { userId } = req.body;
+		console.log('Received deletion request for user: ', userId);
+		 
+		const query = 'SELECT * FROM Users WHERE Uid = ?';
+        const [results] = await connection.promise().query(query, [userId]);
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 	
-	
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "UserId are missing"
+            });
+        }
+		
+		const user = results[0];
+		
+		const code = await generateUniqueCode2();
+		
+		const insertQuery = `
+            INSERT INTO DeleteAccountRequests  (Uid, Code)
+            VALUES (?, ?)
+        `;
+		
+		 await connection.promise().query(insertQuery, [userId, code]);
+		
+        const mailOptions = {
+            from: 'filmbeadando2024@gmail.com',
+            to: user.Email,
+            subject: 'Account deletion',
+            text: `Account deletion has been requested, your code is: ${code}, if it was not you, contact support immediately!`
+        };
+
+        transporter.sendMail(mailOptions, (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'Failed to send email' });
+            }
+            res.json({ message: 'Verification code sent' });
+        });
 		
 	} catch (err) {
+		 console.error('Error in request-delete-account:', err);
+        res.status(500).json({ message: 'Internal server error' });
+	}
+});
+
+app.post('/confirm-delete-user', async (req, res) => {
+	try {
+		const { userId, password, email, code } = req.body;
+		console.log('Received deletion confirm request for user: ', userId);
 		
+		  if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "UserId are missing"
+            });
+        }
+		
+		//Code validation
+		const [rows] = await connection.promise().query(
+            'SELECT Code FROM DeleteAccountRequests WHERE Uid = ? ORDER BY CreatedAt DESC LIMIT 1',
+            [userId]
+        );
+		
+		 if (rows.length === 0) {
+            return res.status(404).json({ message: 'No pending account deletion found' });
+        }
+
+        const request = rows[0];
+
+        if (request.Code !== code) {
+            return res.status(400).json({ message: 'Invalid verification code' });
+        }
+		//End
+		
+		//Email and password validation
+		 const query = 'SELECT * FROM Users WHERE Email = ?';
+        const [results] = await connection.promise().query(query, [email]);
+
+        if (results.length === 0) {
+            return res.status(401).json({ error: 'Email not found' });
+        }
+
+        const user = results[0];
+
+        const isPasswordValid = await bcrypt.compare(password, user.PassHashed);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid password' });
+        }
+
+		//End
+		
+		await connection.promise().query(
+			'INSERT INTO DeletedSales (Sid, Uid) SELECT Sid, Uid FROM Sales WHERE Uid = ?',
+			[userId]
+		);
+		
+		await connection.promise().query(
+            'Delete FROM Sales WHERE Uid = ?',
+			[userId]
+        );
+		
+		await connection.promise().query(
+			'INSERT INTO DeletedUsers (Uid) VALUES (?)',
+			[userId]
+		);
+		
+		await connection.promise().query(
+            'Delete FROM Users WHERE Uid = ?',
+			[userId]
+        );
+		
+		await connection.promise().query(
+            'DELETE FROM DeleteAccountRequests WHERE Uid = ?',
+            [userId]
+        );
+		
+		 res.json({ message: 'Account deleted successfully' });
+		
+		
+		
+	} catch (err) {
+			  console.error('Error in confirm-delete-account:', err);
+        res.status(500).json({ message: 'Internal server error' });
 	}
 });
 
@@ -1378,78 +1562,3 @@ app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
 
-
-
-//Delete sale end point
-app.delete('/delete-sale', async (req, res) => {
-    try {
-        const { saleId, userId } = req.body;
-
-        // Validate input
-        if (!saleId || !userId) {
-            return res.status(400).json({
-                success: false,
-                message: "Both saleId and userId are required",
-                data: null
-            });
-        }
-
-        // First verify the sale belongs to the user
-        const [sale] = await connection.promise().query(
-            'SELECT Uid FROM Sales WHERE Sid = ?', 
-            [saleId]
-        );
-
-        if (sale.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Sale not found",
-                data: null
-            });
-        }
-
-        if (sale[0].Uid !== userId) {
-            return res.status(403).json({
-                success: false,
-                message: "Unauthorized - you can only delete your own sales",
-                data: null
-            });
-        }
-
-        // Get sale folder before deletion
-        const [saleData] = await connection.promise().query(
-            'SELECT SaleFolder FROM Sales WHERE Sid = ?',
-            [saleId]
-        );
-
-        // Delete from database
-        await connection.promise().query(
-            'DELETE FROM Sales WHERE Sid = ?',
-            [saleId]
-        );
-
-        // Delete associated images folder
-        if (saleData.length > 0 && saleData[0].SaleFolder) {
-            const saleFolderPath = path.join('sales', saleData[0].SaleFolder);
-            if (fs.existsSync(saleFolderPath)) {
-                fs.rmSync(saleFolderPath, { recursive: true });
-            }
-        }
-
-        res.json({
-            success: true,
-            message: "Sale deleted successfully",
-            data: {
-                deletedSaleId: saleId
-            }
-        });
-
-    } catch (err) {
-        console.error('Error in /delete-sale:', err);
-        res.status(500).json({ 
-            success: false,
-            message: 'Internal server error',
-            error: err.message
-        });
-    }
-});

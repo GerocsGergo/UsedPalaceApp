@@ -46,19 +46,19 @@
                 android:id="@+id/open"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                app:srcCompat="@drawable/baseline_info_outline_40" />
+                app:srcCompat="@drawable/baseline_eye_40"/>
 
             <ImageButton
                 android:id="@+id/modify"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                app:srcCompat="@drawable/baseline_settings_40" />
+                app:srcCompat="@drawable/baseline_edit_40" />
 
             <ImageButton
                 android:id="@+id/delete"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                app:srcCompat="@drawable/baseline_question_mark_40" />
+                app:srcCompat="@drawable/baseline_delete_40" />
         </LinearLayout>
 
     </LinearLayout>

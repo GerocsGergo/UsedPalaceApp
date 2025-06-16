@@ -15,7 +15,7 @@ import com.example.usedpalace.R
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.profilemenus.ProfileActivity
 import com.example.usedpalace.requests.ChangePasswordRequest
-import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeRequest
+import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeOrDeleteRequest
 import com.example.usedpalace.responses.ApiResponseGeneric
 import network.ApiService
 import retrofit2.Call
@@ -28,11 +28,13 @@ class ModifyPasswordActivity : AppCompatActivity() {
 
     private lateinit var inputOldPassword: EditText
     private lateinit var inputNewPassword: EditText
+    private lateinit var inputNewRePassword: EditText
     private lateinit var inputCode: EditText
     private lateinit var buttonModify: Button
     private lateinit var buttonRequest: Button
     private lateinit var buttonCancel: Button
     private lateinit var newPasswordText: TextView
+    private lateinit var newPasswordReText: TextView
     private lateinit var oldPasswordText: TextView
     private lateinit var codeText: TextView
 
@@ -60,17 +62,23 @@ class ModifyPasswordActivity : AppCompatActivity() {
         buttonRequest.setOnClickListener {
             val oldPassword = inputOldPassword.text.toString()
             val newPassword = inputNewPassword.text.toString()
+            val newPasswordRe = inputNewRePassword.text.toString()
 
-            if (UserSession.getUserId() != null) {
-                if (oldPassword.isNotEmpty() && newPassword.isNotEmpty()) {
-                    //Step 1 request
-                    changePasswordRequest(oldPassword, newPassword)
-                } else {
-                    Toast.makeText(this, "Please enter the passwords.", Toast.LENGTH_SHORT).show()
+            if (newPasswordRe == newPassword){
+                if (UserSession.getUserId() != null) {
+                    if (oldPassword.isNotEmpty() && newPassword.isNotEmpty()) {
+                        //Step 1 request
+                        changePasswordRequest(oldPassword, newPassword)
+                    } else {
+                        Toast.makeText(this, "Please enter the passwords.", Toast.LENGTH_SHORT).show()
+                    }
+                } else  {
+                    Toast.makeText(this, "Could not get UserId.", Toast.LENGTH_SHORT).show()
                 }
             } else  {
-                Toast.makeText(this, "Could not get UserId.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "A jelszavak nem egyeznek", Toast.LENGTH_SHORT).show()
             }
+
 
         }
         buttonModify.setOnClickListener {
@@ -103,6 +111,8 @@ class ModifyPasswordActivity : AppCompatActivity() {
                     buttonRequest.visibility = View.GONE
                     oldPasswordText.visibility = View.GONE
                     newPasswordText.visibility = View.GONE
+                    inputNewRePassword.visibility = View.GONE
+                    newPasswordReText.visibility = View.GONE
 
                     codeText.visibility = View.VISIBLE
                     inputCode.visibility = View.VISIBLE
@@ -123,7 +133,7 @@ class ModifyPasswordActivity : AppCompatActivity() {
     }
 
     private fun confirmPassword(code: String){
-        val request = ConfirmEmailOrPasswordChangeRequest(UserSession.getUserId()!!, code)
+        val request = ConfirmEmailOrPasswordChangeOrDeleteRequest(UserSession.getUserId()!!, code)
 
         apiService.confirmPasswordChange(request).enqueue(object : Callback<ApiResponseGeneric> {
             override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>) {
@@ -157,6 +167,8 @@ class ModifyPasswordActivity : AppCompatActivity() {
         oldPasswordText = findViewById(R.id.oldPasswordText)
         newPasswordText = findViewById(R.id.newPasswordText)
         codeText = findViewById(R.id.codeText)
+        newPasswordReText= findViewById(R.id.newPasswordReText)
+        inputNewRePassword = findViewById(R.id.inputNewRePassword)
 
     }
 

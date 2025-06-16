@@ -1,6 +1,6 @@
 package com.example.usedpalace.requests
 
-data class ConfirmEmailOrPasswordChangeRequest(
+data class ConfirmEmailOrPasswordChangeOrDeleteRequest(
     val userId: Int,
     val code: String
 )

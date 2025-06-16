@@ -2,7 +2,6 @@ package com.example.usedpalace.profilemenus.forprofileactivity
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -16,7 +15,7 @@ import com.example.usedpalace.R
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.profilemenus.ProfileActivity
 import com.example.usedpalace.requests.ChangeEmailRequest
-import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeRequest
+import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeOrDeleteRequest
 import com.example.usedpalace.responses.ApiResponseGeneric
 import network.ApiService
 import retrofit2.Call
@@ -134,7 +133,7 @@ class ModifyEmailActivity : AppCompatActivity() {
 
     private fun confirmEmail(code: String){
         val confirmRequest =
-            ConfirmEmailOrPasswordChangeRequest(UserSession.getUserId()!!, code)
+            ConfirmEmailOrPasswordChangeOrDeleteRequest(UserSession.getUserId()!!, code)
         apiService.confirmEmailChange(confirmRequest).enqueue(object : Callback<ApiResponseGeneric> {
             override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>) {
                     if (response.isSuccessful) {

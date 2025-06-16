@@ -29,15 +29,19 @@ import com.example.usedpalace.fragments.messagesHelpers.responses.UsernameRespon
 import com.example.usedpalace.requests.ChangeEmailRequest
 import com.example.usedpalace.requests.ChangePasswordRequest
 import com.example.usedpalace.requests.ChangePhoneNumberRequest
-import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeRequest
+import com.example.usedpalace.requests.ConfirmDeleteAccount
+import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeOrDeleteRequest
 import com.example.usedpalace.requests.ConfirmPhoneNumberChangeRequest
+import com.example.usedpalace.requests.DeleteAccountRequest
 import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
+import com.example.usedpalace.responses.ApiResponseForDeletedSaleWithEverything
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
 import okhttp3.MultipartBody
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.Header
@@ -48,6 +52,7 @@ import retrofit2.http.Part
 
 interface ApiService {
 
+    //Login and register
     @POST("register")
     fun registerUser(@Body user: RegUser): Call<ResponseMessage>
 
@@ -57,11 +62,9 @@ interface ApiService {
     @GET("verify-token")
     fun verifyToken(@Header("Authorization") authHeader: String): Call<ResponseForLoginTokenExpiration>
 
-    // Request a password reset (send 6-digit code)
     @POST("forgot-password")
     fun forgotPassword(@Body request: ForgotPasswordRequest): Call<ResponseMessage>
 
-    // Reset the user's password
     @POST("reset-password")
     fun resetPassword(@Body request: ResetPasswordRequest): Call<ResponseMessage>
 
@@ -71,7 +74,9 @@ interface ApiService {
     @POST("verify-email")
     fun verifyEmail(@Body request: EmailVerificationWithCodeRequest): Call<ResponseMessage>
 
-    @GET("/api/sales")
+
+    //Sales
+    @GET("getSales")
     suspend fun getSales(): List<SaleWithSid>
 
     @POST("search-sales-withSaleName")
@@ -82,6 +87,9 @@ interface ApiService {
 
     @POST("search-sales-withSID")
     suspend fun searchSalesSID(@Body request: SearchRequestID): ApiResponseForSalesWithEverything //Sales SID-el keresi a Saleket
+
+    @POST("search-deletedSales-withSID")
+    suspend fun searchDeletedSalesSID(@Body request: SearchRequestID): ApiResponseForDeletedSaleWithEverything
 
     @POST("create-sale")
     fun createSale(@Body request: CreateSaleRequest): Call<ResponseMessageWithFolder>
@@ -124,23 +132,29 @@ interface ApiService {
 
 
     //Profil menu
-    @PUT("request-user-email-change")
+    @POST("request-user-email-change")
     fun requestEmailChange(@Body request: ChangeEmailRequest): Call<ApiResponseGeneric>
 
     @PUT("confirm-user-email-change")
-    fun confirmEmailChange(@Body request: ConfirmEmailOrPasswordChangeRequest): Call<ApiResponseGeneric>
+    fun confirmEmailChange(@Body request: ConfirmEmailOrPasswordChangeOrDeleteRequest): Call<ApiResponseGeneric>
 
     @POST("request-password-change")
     fun requestPasswordChange(@Body request: ChangePasswordRequest): Call<ApiResponseGeneric>
 
-    @POST("confirm-password-change")
-    fun confirmPasswordChange(@Body request: ConfirmEmailOrPasswordChangeRequest): Call<ApiResponseGeneric>
+    @PUT("confirm-password-change")
+    fun confirmPasswordChange(@Body request: ConfirmEmailOrPasswordChangeOrDeleteRequest): Call<ApiResponseGeneric>
 
     @POST("request-phoneNumber-change")
     fun requestPhoneNumberChange(@Body request: ChangePhoneNumberRequest): Call<ApiResponseGeneric>
 
-    @POST("confirm-phoneNumber-change")
+    @PUT("confirm-phoneNumber-change")
     fun confirmPhoneNumberChange(@Body request: ConfirmPhoneNumberChangeRequest): Call<ApiResponseGeneric>
+
+    @POST("request-delete-user")
+    fun requestDeleteUser(@Body request: DeleteAccountRequest): Call<ApiResponseGeneric>
+
+    @POST("confirm-delete-user")
+    fun confirmDeleteUser(@Body request: ConfirmDeleteAccount): Call<ApiResponseGeneric>
 
 
 

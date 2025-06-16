@@ -67,12 +67,12 @@ class MessageAdapter(
 
     private fun bindSentMessage(holder: SentMessageViewHolder, message: MessageWithEverything) {
         holder.messageText.text = message.content
-        holder.messageTime.text = ChatHelper.formatMessageTime(message.sentAt)//formatMessageTime(message.sentAt)
+        holder.messageTime.text = ChatHelper.formatMessageTime(message.sentAt)
     }
 
     private fun bindReceivedMessage(holder: ReceivedMessageViewHolder, message: MessageWithEverything) {
         holder.messageText.text = message.content
-        holder.messageTime.text = ChatHelper.formatMessageTime(message.sentAt)//formatMessageTime(message.sentAt)
+        holder.messageTime.text = ChatHelper.formatMessageTime(message.sentAt)
         CoroutineScope(Dispatchers.IO).launch {
             val username = ChatHelper.getUserName(apiService, message.senderId)
             withContext(Dispatchers.Main) {

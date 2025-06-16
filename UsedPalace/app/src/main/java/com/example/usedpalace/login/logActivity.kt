@@ -134,6 +134,7 @@ class LogActivity : AppCompatActivity() {
         }
 
         btnOpenMainMenu.setOnClickListener {
+            Log.d("Login activity","Logged in user id: " + UserSession.getUserId())
             val intent = Intent(this@LogActivity, MainMenuActivity::class.java)
             startActivity(intent)
         }
@@ -198,6 +199,7 @@ class LogActivity : AppCompatActivity() {
                         editor.apply()
 
                         // Navigate to the main menu
+                        Log.d("Login activity","Logged in user id: " + UserSession.getUserId())
                         val intent = Intent(this@LogActivity, MainMenuActivity::class.java)
                         startActivity(intent)
                     } else {

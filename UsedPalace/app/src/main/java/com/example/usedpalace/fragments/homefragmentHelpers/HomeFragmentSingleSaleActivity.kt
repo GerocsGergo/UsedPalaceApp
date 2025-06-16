@@ -2,6 +2,7 @@ package com.example.usedpalace.fragments.homefragmentHelpers
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -96,9 +97,15 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     if (response.success) {
                         if (response.chatId != null) {
-                            // Pass the chat ID to the ChatActivity
                             val intent = Intent(this@HomeFragmentSingleSaleActivity, ChatActivity::class.java).apply {
                                 putExtra("CHAT_ID", response.chatId)
+                                val userId = UserSession.getUserId()
+                                val username = if (userId == buyerId){
+                                    fetchUsername(sellerId)
+                                }else{
+                                    fetchUsername(buyerId)
+                                }
+                                putExtra("USERNAME", username)
                             }
                             startActivity(intent)
                         } else {
@@ -125,6 +132,22 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
                     ).show()
                 }
             }
+        }
+    }
+
+    private suspend fun fetchUsername(userId: Int): String? {
+
+        return try {
+            val response = apiService.searchUsername(SearchRequestID(userId))
+            if (response.success && response.fullname != null) {
+                response.fullname
+            } else {
+                Log.e("Search", "Username not found: ${response.message}")
+                null // Return null if not found
+            }
+        } catch (e: Exception) {
+            Log.e("Search", "Error fetching username", e)
+            null // Return null on error
         }
     }
 

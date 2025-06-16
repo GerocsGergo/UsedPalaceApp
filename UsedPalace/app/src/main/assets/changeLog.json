@@ -2,7 +2,7 @@
 
   "versions": [
     {
-      "version": "0.0.1",
+      "version": "0.1.0",
       "changes": [
         "Made version counter",
         "Made changeLog File and started version counting"
@@ -52,7 +52,23 @@
         "Implemented phoneNumber change"
       ]
     }
+  ,
+    {
+      "version": "0.4.0",
+      "changes": [
+        "Implemented more chat options, users can now see the deleted chats, deleted users",
+        "Accounts can now be deleted",
+        "Some bug fixed"
+      ]
+    }
+  ,
+    {
+      "version": "0.5.0",
+      "changes": [
+        "Deleted, All, Active chat lists fixed"
 
+      ]
+    }
   ]
 }
 

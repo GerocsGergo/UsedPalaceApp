@@ -9,6 +9,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
+import com.example.usedpalace.profilemenus.forprofileactivity.DeleteAccountActivity
 import com.example.usedpalace.profilemenus.forprofileactivity.ModifyEmailActivity
 import com.example.usedpalace.profilemenus.forprofileactivity.ModifyPasswordActivity
 import com.example.usedpalace.profilemenus.forprofileactivity.ModifyPhoneActivity
@@ -22,6 +23,7 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var buttonModifyPhone: Button
     private lateinit var buttonModifyEmail: Button
     private lateinit var buttonModifyPassword: Button
+    private lateinit var buttonDeleteUser: Button
 
     private lateinit var apiService: ApiService
 
@@ -48,6 +50,7 @@ class ProfileActivity : AppCompatActivity() {
         buttonModifyPhone = findViewById(R.id.modifyPhone)
         buttonModifyEmail = findViewById(R.id.modifyEmail)
         buttonModifyPassword = findViewById(R.id.modifyPassword)
+        buttonDeleteUser = findViewById(R.id.deleteUser)
     }
 
     private fun setupClickListeners(){
@@ -76,6 +79,13 @@ class ProfileActivity : AppCompatActivity() {
             finish()
 
         }
+        buttonDeleteUser.setOnClickListener {
+            val intent = Intent(this, DeleteAccountActivity::class.java).apply {
+            }
+            startActivity(intent)
+            finish()
+        }
+
     }
 
     private fun setupRetrofit(){
