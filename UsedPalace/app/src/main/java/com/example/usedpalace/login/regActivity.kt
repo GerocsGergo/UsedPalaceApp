@@ -117,6 +117,12 @@ class RegActivity : AppCompatActivity(){
                 return@setOnClickListener
             }
 
+            val phoneNumberPattern = Regex("^06\\d{9}\$")
+            if (!phoneNumberPattern.matches(phoneNumber)) {
+                Toast.makeText(this, "Invalid phoneNumber format", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             // If all validations pass, proceed with registration
             val newUser = RegUser(
                 fullname = fullname,

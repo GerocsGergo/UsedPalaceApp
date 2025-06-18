@@ -9,12 +9,18 @@ const fs = require('fs');  //filesystem node.js module
 const { v4: uuidv4 } = require('uuid'); //uuid library Generates unique identifiers
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
+const validator = require('validator');
+
+
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
+
+// Serve static files (e.g., images)
+app.use(express.static('sales'));
 
 // MySQL connection
 const connection = mysql.createConnection({
@@ -60,6 +66,25 @@ app.post('/forgot-password', async (req, res) => {
     try {
         const { email, phoneNumber } = req.body;
         console.log('Received forgot-password request:', req.body);
+		
+		if (!email && !phoneNumber){
+		return res.status(400).json({ error: 'Somefields are empty!' });
+		}
+		
+		if (!validator.isEmail(email)) {
+        return res.status(400).json({ error: 'Invalid email address.' });
+		}
+		
+		if (phoneNumber.trim().length != 11) {
+        return res.status(400).json({ error: 'Phone number format invalid.' });
+		}
+	
+		const phoneRegex = /^06\d{9}$/;
+		if (!phoneRegex.test(phoneNumber)) {
+			return res.status(400).json({
+			message: "Phone number format invalid."
+			});
+		}
 
         const query = 'SELECT * FROM Users WHERE Email = ? AND PhoneNumber = ?';
         const [results] = await connection.promise().query(query, [email, phoneNumber]);
@@ -98,7 +123,26 @@ app.post('/forgot-password', async (req, res) => {
 app.post('/reset-password', async (req, res) => {
     try {
         const { email, code, newPassword } = req.body;
-        console.log('Received reset-password request:', req.body);
+        console.log('Received reset-password request:', email);
+		
+		if (!email && !newPassword){
+		return res.status(400).json({ error: 'Somefields are empty!' });
+		}
+		
+		if (!validator.isEmail(email)) {
+        return res.status(400).json({ error: 'Invalid email address.' });
+		}
+		
+		if (newPassword.trim().length < 8) {
+			return res.status(400).json({ error: 'Password must be atleast 8 characters.' });
+		}
+	
+		const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+		if (!passwordRegex.test(newPassword)) {
+			return res.status(400).json({ 
+				error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+			});
+		}
 
         const query = 'SELECT * FROM Users WHERE Email = ? AND ForgetToken = ?';
         const [results] = await connection.promise().query(query, [email, code]);
@@ -128,6 +172,15 @@ app.post('/login', async (req, res) => {
     try {
 	
 		const { email, password } = req.body;
+		console.log('Received login request:', email);
+		
+		if (!password && !phoneNumber){
+		return res.status(400).json({ error: 'Somefields are empty!' });
+		}
+		
+		if (!validator.isEmail(email)) {
+        return res.status(400).json({ error: 'Invalid email address.' });
+		}
 		
         const query = 'SELECT * FROM Users WHERE Email = ?';
         const [results] = await connection.promise().query(query, [email]);
@@ -189,7 +242,53 @@ app.get('/verify-token', (req, res) => {
 // API to register a new user
 app.post('/register', async (req, res) => {
     const { fullname, email, password, phoneNumber } = req.body;
+	console.log('Received registration request:', email);
+	
+	if (!fullname && !email && !password && !phoneNumber){
+		return res.status(500).json({ error: 'Somefields are empty!' });
+	}
+	
+	if (fullname.trim().length < 2 && fullname.trim().length > 50) {
+        return res.status(400).json({ error: 'Fullname must be between 2-50 characters.' });
+    }
+	
+	if (password.trim().length < 8) {
+        return res.status(400).json({ error: 'Password must be atleast 8 characters.' });
+    }
+	
+	const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+        return res.status(400).json({ 
+            error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+        });
+    }
+	
+	if (!validator.isEmail(email)) {
+        return res.status(400).json({ error: 'Invalid email address.' });
+    }
+	
+	const [existingUser] = await connection.promise().query(
+            'SELECT Uid FROM Users WHERE Email = ?',
+            [email]
+        );
 
+        if (existingUser.length > 0) {
+            return res.status(400).json({
+                message: 'Email address already in use.'
+            });
+        }
+	
+	if (phoneNumber.trim().length != 11) {
+        return res.status(400).json({ error: 'Phone number format invalid.' });
+    }
+	
+	const phoneRegex = /^06\d{9}$/;
+	if (!phoneRegex.test(phoneNumber)) {
+		return res.status(400).json({
+		message: "Phone number format invalid."
+		});
+	}
+	
     try {
         // Hash the password
         const saltRounds = 10; // Number of salt rounds (higher = more secure but slower)
@@ -199,7 +298,7 @@ app.post('/register', async (req, res) => {
         const query = 'INSERT INTO Users (Fullname, Email, PassHashed, PhoneNumber) VALUES (?, ?, ?, ?)';
         connection.query(query, [fullname, email, hashedPassword, phoneNumber], (err, results) => {
             if (err) {
-                res.status(500).json({ error: 'Failed to register user' });
+                res.status(400).json({ error: 'Failed to register user' });
             } else {
                 res.json({ message: 'User registered successfully!' });
             }
@@ -232,16 +331,17 @@ const generateUniqueCode2 = async () => {
 app.post('/send-verify-email', async (req, res) => {
     try {
         const { email } = req.body;
-        console.log('Received send-verify-email request:', req.body);
-
-        // Generate a unique verification code
+        console.log('Received send-verify-email request:', email);
+		
+		if (!validator.isEmail(email)) {
+			return res.status(400).json({ error: 'Invalid email address.' });
+		}
+     
         const code = await generateUniqueCode2();
-
-        // Save the verification code to the database for the user
+    
         const updateQuery = 'UPDATE Users SET VerifyToken = ? WHERE Email = ?';
         await connection.promise().query(updateQuery, [code, email]);
-
-        // Send the verification email
+ 
         const mailOptions = {
             from: 'filmbeadando2024@gmail.com',
             to: email,
@@ -266,9 +366,12 @@ app.post('/send-verify-email', async (req, res) => {
 app.post('/verify-email', async (req, res) => {
     try {
         const { email, code } = req.body;
-        console.log('Received verify-email request:', req.body);
+        console.log('Received verify-email request:', email);
+		
+		if (!validator.isEmail(email)) {
+			return res.status(400).json({ error: 'Invalid email address.' });
+		}
 
-        // Check if the email and code match in the database
         const query = 'SELECT * FROM Users WHERE Email = ? AND VerifyToken = ?';
         const [results] = await connection.promise().query(query, [email, code]);
 
@@ -278,7 +381,6 @@ app.post('/verify-email', async (req, res) => {
 
         const user = results[0];
 
-        // Update the Verified column to true and clear the VerifyToken
         const updateQuery = 'UPDATE Users SET Verified = TRUE, VerifyToken = NULL WHERE Uid = ?';
         await connection.promise().query(updateQuery, [user.Uid]);
 
@@ -289,8 +391,11 @@ app.post('/verify-email', async (req, res) => {
     }
 });
 
-//End points for home fragment
-// API endpoint to fetch sales data
+
+
+
+//End points for sales
+//fetch sales data
 app.get('/getSales', (req, res) => {
     const query = 'SELECT * FROM Sales';
     connection.query(query, (err, results) => {
@@ -302,9 +407,6 @@ app.get('/getSales', (req, res) => {
         }
     });
 });
-
-// Serve static files (e.g., images)
-app.use(express.static('sales'));
 
 app.post('/search-sales-withSID', async (req, res) => {
     try {
@@ -466,13 +568,14 @@ app.post('/create-sale', (req, res) =>  {
     try {
         const { name, description, cost, bigCategory, smallCategory, userId } = req.body;
 
-        // Validate input
+
         if (!name || !description || !cost || !bigCategory || !userId) {
             return res.status(400).json({
                 success: false,
                 message: "Missing required fields"
             });
         }
+		console.log('Received sale creation request: ', userId);
 
         // Create unique folder name
         const saleFolder = `sale_${uuidv4()}`;
@@ -483,7 +586,6 @@ app.post('/create-sale', (req, res) =>  {
             fs.mkdirSync(saleFolderPath, { recursive: true });
         }
 
-        // Insert into database using callback style
         const query = `INSERT INTO Sales 
                       (Name, Description, Cost, SaleFolder, BigCategory, SmallCategory, Uid) 
                       VALUES (?, ?, ?, ?, ?, ?, ?)`;
@@ -522,7 +624,9 @@ app.put('/modify-sale', async (req, res) => {
     try {
         const { saleId, name, description, cost, bigCategory, smallCategory, userId } = req.body;
         
-        // Validate input
+		console.log('Received sale modification request: ', userId);
+		
+       
         if (!saleId || !name || !description || !cost || !bigCategory || !userId) {
             return res.status(400).json({
                 success: false,
@@ -530,7 +634,6 @@ app.put('/modify-sale', async (req, res) => {
             });
         }
 
-        // 1. Verify ownership
         const [sale] = await connection.promise().query(
             'SELECT Uid, SaleFolder FROM Sales WHERE Sid = ?',
             [saleId]
@@ -550,7 +653,6 @@ app.put('/modify-sale', async (req, res) => {
             });
         }
 
-        // 2. Update sale data
         const updateQuery = `
             UPDATE Sales 
 			SET Name = ?,Description = ?, Cost = ?, BigCategory = ?, SmallCategory = ?
@@ -581,8 +683,8 @@ app.put('/modify-sale', async (req, res) => {
 app.delete('/delete-sale', async (req, res) => {
     try {
         const { saleId, userId } = req.body;
-
-        // Validate input
+		console.log('Received sale deletion request: ', userId);
+		
         if (!saleId || !userId) {
             return res.status(400).json({
                 success: false,
@@ -591,7 +693,6 @@ app.delete('/delete-sale', async (req, res) => {
             });
         }
 
-        // First verify the sale belongs to the user
         const [sale] = await connection.promise().query(
             'SELECT Uid FROM Sales WHERE Sid = ?', 
             [saleId]
@@ -624,7 +725,6 @@ app.delete('/delete-sale', async (req, res) => {
 			[userId]
 		);
 		
-        // Delete from database
         await connection.promise().query(
             'DELETE FROM Sales WHERE Sid = ?',
             [saleId]
@@ -745,7 +845,6 @@ const storage = multer.diskStorage({
     filename: (req, file, cb) => {
         const imageIndex = req.body.imageIndex || '1';
         const ext = path.extname(file.originalname) || '.jpg';
-        // Changed from image_${imageIndex} to image${imageIndex}
         const filename = `image${imageIndex}${ext}`;
         cb(null, filename);
     }
@@ -832,11 +931,15 @@ app.use((err, req, res, next) => {
     next();
 });
 
+
+
+
 //For the chat part
 // Get or create chat between users for a specific sale
 app.post('/initiate-chat', async (req, res) => {
     try {
         const { sellerId, buyerId, saleId } = req.body;
+		console.log('Received initiate chat request for sale: ', saleId);
 
         // Input validation
         if (!sellerId || !buyerId || !saleId) {
@@ -845,6 +948,15 @@ app.post('/initiate-chat', async (req, res) => {
                 message: "Missing required fields (sellerId, buyerId, saleId)"
             });
         }
+		
+		   
+		// Input validation
+        if (  !validator.isInt(String(sellerId)) || !validator.isInt(String(buyerId)) || !validator.isInt(String(saleId)) ) {
+				return res.status(400).json({
+					success: false,
+					message: "Sending request error"
+				});
+		}
 
         // Check if chat already exists
         const [existingChat] = await connection.promise().query(
@@ -861,13 +973,11 @@ app.post('/initiate-chat', async (req, res) => {
             });
         }
 
-        // Create new chat
         const [result] = await connection.promise().query(
             'INSERT INTO Chats (SellerID, BuyerID, SaleID) VALUES (?, ?, ?)',
             [sellerId, buyerId, saleId]
         );
 
-        // Update with the newly created chat ID
         await connection.promise().query(
             'UPDATE Chats SET LastMessageAt = CURRENT_TIMESTAMP WHERE ChatID = ?',
             [result.insertId]
@@ -892,8 +1002,9 @@ app.post('/initiate-chat', async (req, res) => {
 //Load all chats for user
 app.post('/load-user-chats', async (req, res) => {
     try {
-        const { userId } = req.body; // Now using userId instead of buyerID
-        
+        const { userId } = req.body;
+        console.log('Received load chats request for user: ', userId);
+		
         if (!userId) {
             return res.status(400).json({
                 success: false,
@@ -925,7 +1036,8 @@ app.post('/load-user-chats', async (req, res) => {
 app.post('/search-username', async (req, res) => {
     try {
         const { searchParam } = req.body;
-        
+           console.log('Received search username request: ', searchParam);
+		
         if (!searchParam) {
             return res.status(400).json({
                 success: false,
@@ -979,7 +1091,7 @@ app.post('/search-username', async (req, res) => {
 app.post('/get-chat-messages', async (req, res) => {
     try {
         const { searchParam } = req.body;
-        
+		
         if (!searchParam) {
             return res.status(400).json({
                 success: false,
@@ -1011,6 +1123,7 @@ app.post('/get-chat-messages', async (req, res) => {
 app.post('/send-message', async (req, res) => {
     try {
         const { chatId, senderId, content } = req.body;
+		console.log('Received message send request: ', senderId);
 
         if (!chatId || !senderId || !content) {
             return res.status(400).json({
@@ -1019,22 +1132,27 @@ app.post('/send-message', async (req, res) => {
             });
         }
 
-        // Insert the new message
         const [result] = await connection.promise().query(
             'INSERT INTO Messages (ChatID, SenderID, Content) VALUES (?, ?, ?)',
             [chatId, senderId, content]
         );
 
-        // Update the chat's last message timestamp
         await connection.promise().query(
             'UPDATE Chats SET LastMessageAt = CURRENT_TIMESTAMP WHERE ChatID = ?',
             [chatId]
         );
+		
+		const [messageRow] = await connection.promise().query(
+			'SELECT SentAt FROM Messages WHERE MessageID = ? LIMIT 1',
+			[result.insertId]
+		);
+
 
         res.json({ 
             success: true, 
             message: "Message sent successfully",
-            messageId: result.insertId
+            messageId: result.insertId,
+			sentAt: messageRow[0].SentAt
         });
 
     } catch (err) {
@@ -1059,6 +1177,7 @@ app.put('/modify-user-phone', async (req, res) => {
 			});
 		}
 		
+		
 		const [userResult] = await connection.promise.query(
 			  "SELECT * FROM Users WHERE Uid = ?",
 			  [userId]
@@ -1078,12 +1197,24 @@ app.put('/modify-user-phone', async (req, res) => {
             });
 		}
 		
+		if (phoneNumber.trim().length != 11) {
+			return res.status(400).json({ error: 'Phone number format invalid.' });
+		}
+		
 		const phoneRegex = /^06\d{9}$/;
 		if (!phoneRegex.test(phoneNumber)) {
 				return res.status(400).json({
 				success: false,
 				message: "Phone number format invalid"
 				});
+		}
+		
+		const currentPhoneNumber = userResult[0].PhoneNumber;
+		if (currentPhoneNumber === phoneNumber) {
+			return res.status(400).json({
+				success: false,
+				message: "The new phone number cannot be the same as the current one"
+			});
 		}
 		
 		const updateQuery = `
@@ -1117,7 +1248,6 @@ app.post('/request-user-email-change', async (req, res) => {  //create request Ã
     try {
 
         const { userId, newEmail } = req.body;
-		
 		console.log('Received email change request from:', userId);
 		
         if (!userId || !newEmail) {
@@ -1126,18 +1256,32 @@ app.post('/request-user-email-change', async (req, res) => {  //create request Ã
                 message: 'Missing required data'
             });
         }
+		
+		if (!validator.isEmail(newEmail)) {
+			return res.status(400).json({ error: 'Invalid email address.' });
+		}
+		
+		const [existingUser] = await connection.promise().query(
+            'SELECT Uid FROM Users WHERE Email = ?',
+            [newEmail]
+        );
 
-        // Generate verification code
+        if (existingUser.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email address already in use.'
+            });
+        }
+	
+
         const code = await generateUniqueCode2();
 
-        // Insert into EmailChangeRequests
         const insertQuery = `
             INSERT INTO EmailChangeRequests (Uid, NewEmail, Code)
             VALUES (?, ?, ?)
         `;
         await connection.promise().query(insertQuery, [userId, newEmail, code]);
 
-        // Send verification email to new email address
         const mailOptions = {
             from: 'filmbeadando2024@gmail.com',
             to: newEmail,
@@ -1171,7 +1315,7 @@ app.post('/request-user-email-change', async (req, res) => {  //create request Ã
 });
 
 
-app.put('/confirm-user-email-change', async (req, res) => { //confirm code Ã©s updateol tÃ©nyleg
+app.put('/confirm-user-email-change', async (req, res) => {
     try {
         const { userId, code } = req.body;
 		
@@ -1252,11 +1396,28 @@ app.post('/request-password-change', async (req, res) => {
         }
 
         const user = rows[0];
-
+		
+		//Old password cant match newPassword
+        if (oldPassword === newPassword) {
+            return res.status(401).json({ message: 'Old password cant match new password' });
+        }
+		
+		//Password validation
         const passwordMatch = await bcrypt.compare(oldPassword, user.PassHashed);
         if (!passwordMatch) {
             return res.status(401).json({ message: 'Old password is incorrect' });
         }
+		
+		//New password validation
+		
+		if (newPassword.trim().length < 8) {
+			return res.status(400).json({ error: 'Password must be atleast 8 characters.' });
+		}
+		
+		const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+			if (!passwordRegex.test(newPassword)) {
+				return res.status(400).json({ message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.' });
+		}
 
         const code = await generateUniqueCode2();
 
@@ -1312,7 +1473,7 @@ app.put('/confirm-password-change', async (req, res) => {
             return res.status(400).json({ message: 'Invalid verification code' });
         }
 
-        // **Use the stored hashed password directly**
+        //Use the stored hashed password directly
         await connection.promise().query(
             'UPDATE Users SET PassHashed  = ? WHERE Uid = ?',
             [request.NewPassword, userId]
@@ -1387,9 +1548,17 @@ app.put('/confirm-phoneNumber-change', async (req, res) => {
             return res.status(400).json({ message: 'Missing fields' });
         }
 		
-		if (!/^\d{11}$/.test(phoneNumber)) {
-			return res.status(400).json({ message: 'Invalid phone number format' });
+		if (phoneNumber.trim().length != 11) {
+			return res.status(400).json({ error: 'Phone number format invalid.' });
 		}
+	
+		const phoneRegex = /^06\d{9}$/;
+		if (!phoneRegex.test(phoneNumber)) {
+			return res.status(400).json({
+				message: "Phone number format invalid."
+			});
+		}
+
 
         const [rows] = await connection.promise().query(
             'SELECT PhoneNumber FROM Users WHERE Uid = ?',

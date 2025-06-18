@@ -98,7 +98,6 @@ class MessageAdapter(
         val messageText: TextView = itemView.findViewById(R.id.message_other)
         val messageTime: TextView = itemView.findViewById(R.id.date_other)
         val senderName: TextView = itemView.findViewById(R.id.user_other)
-        // val senderName: TextView = itemView.findViewById(R.id.sender_name) // Uncomment if needed
     }
 
     fun addMessage(newMessage: MessageWithEverything) {

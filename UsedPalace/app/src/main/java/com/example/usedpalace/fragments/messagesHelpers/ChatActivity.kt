@@ -163,18 +163,16 @@ class ChatActivity : AppCompatActivity() {
                 Log.d("before api call ","success: " + request.chatId +
                         " chat id: " + request.senderId
                         + "content: " + request.content)
-                // Send to server
                 val response = apiService.sendMessage(request)
                 Log.d("after api call ","success: " + response.success + " message id: " + response.messageId)
                 withContext(Dispatchers.Main) {
                     if (response.success) {
-                        // Add message to local list immediately for fast UI response
                         val newMessage = MessageWithEverything(
                             messageId = response.messageId,
                             chatId = chatId,
                             senderId = currentUserId,
                             content = content,
-                            sentAt = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME), // Current time
+                            sentAt = response.sentAt//LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
                         )
 
                         messageAdapter.addMessage(newMessage)

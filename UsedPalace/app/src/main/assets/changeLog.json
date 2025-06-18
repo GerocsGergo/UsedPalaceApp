@@ -68,6 +68,15 @@
         "Deleted, All, Active chat lists fixed"
       ]
     }
+  ,
+    {
+      "version": "0.6.0",
+      "changes": [
+        "Message date fixed",
+        "Some server endpoint fixed",
+        "Added more validators to the server"
+      ]
+    }
   ]
 }
 

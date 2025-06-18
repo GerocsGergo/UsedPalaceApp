@@ -19,6 +19,7 @@ object ChatHelper {
 
         return try {
             val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+            Log.d("FormatMessageTime", "date: " + dateString)
             val messageTime = ZonedDateTime.parse(dateString, inputFormatter).withZoneSameInstant(ZoneId.systemDefault())
 
             val now = ZonedDateTime.now(ZoneId.systemDefault())
@@ -49,8 +50,11 @@ object ChatHelper {
         return try {
             val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX", huLocale)
             val outputFormatter = DateTimeFormatter.ofPattern("yyyy MMM dd, HH:mm", huLocale)
+
+            Log.d("formatDateString", "date: " + dateString)
             val dateTime = LocalDateTime.parse(dateString, inputFormatter)
             dateTime.format(outputFormatter)
+            dateTime.plusHours(2).format(outputFormatter)
         } catch (e: Exception) {
             Log.e("DateUtils", "Failed to parse date: $dateString", e)
             dateString

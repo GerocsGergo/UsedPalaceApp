@@ -129,6 +129,7 @@ class ModifyPhoneActivity : AppCompatActivity() {
                     finishAffinity() //cleareli a backstacket elv
                 } else {
                     Toast.makeText(this@ModifyPhoneActivity, "Invalid phone number or error.", Toast.LENGTH_SHORT).show()
+
                 }
             }
 

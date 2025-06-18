@@ -50,7 +50,7 @@
                 android:id="@+id/inputPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Add meg a régi jelszavát"
+                android:hint="Add meg a jelszavát"
                 android:inputType="textPassword"
                 android:textSize="16sp"
                 android:layout_marginBottom="16dp" />
@@ -76,7 +76,7 @@
                 android:id="@+id/inputPhoneNumber"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Írd be a megerősítő kódot"
+                android:hint="Írja be az új telefonszámát"
                 android:inputType="phone"
                 android:textSize="16sp"
                 android:layout_marginBottom="24dp"
