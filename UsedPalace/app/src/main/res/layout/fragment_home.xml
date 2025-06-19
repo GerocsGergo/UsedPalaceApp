@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EBD7D7"
+    android:background="@color/colorBackground"
     tools:context=".fragments.HomeFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -32,25 +32,17 @@
                 android:queryHint="Search..."
                 android:iconifiedByDefault="false" />
 
-            <ImageButton
+            <Button
                 android:id="@+id/clearSearchButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/baseline_search_24"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Clear search"
+                android:textSize="18sp"
+                android:textColor="@color/colorText"
+                android:text="Bezárás"
                 android:padding="8dp"
                 android:visibility="gone"/>
 
-            <!-- TODO make the spinner to let the user choose what to search for
-            <Spinner
-                android:id="@+id/searchTypeSpinner"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:entries="@array/search_types"
-
-                />
-                -->
         </LinearLayout>
 
         <!-- Scrollable Content -->
@@ -75,6 +67,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Önnek ajánljuk:"
+                    android:textColor="@color/colorText"
                     android:textSize="20sp"/>
 
                 <LinearLayout

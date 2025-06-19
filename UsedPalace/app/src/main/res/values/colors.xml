@@ -7,4 +7,10 @@
     <color name="light_blue_A200">#FF40C4FF</color>
     <color name="light_blue_A400">#FF00B0FF</color>
     <color name="black_overlay">#66000000</color>
+
+    <color name="colorPrimary">#4ABC4B</color>
+    <color name="colorBackground">#F5F5F5</color>
+    <color name="colorText">#000000</color>
+    <color name="colorTextButton">#F5F5F5</color>
+
 </resources>

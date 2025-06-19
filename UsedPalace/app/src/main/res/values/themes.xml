@@ -3,12 +3,13 @@
     <style name="Base.Theme.UsedPalace" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:textColor">@color/colorText</item>
     </style>
 
-    <style name="Theme.UsedPalace" parent="Base.Theme.UsedPalace" />
-
-    <style name="ThemeOverlay.UsedPalace.FullscreenContainer" parent="">
-        <item name="fullscreenBackgroundColor">@color/light_blue_600</item>
-        <item name="fullscreenTextColor">@color/light_blue_A200</item>
+     <style name="ThemeOverlay.UsedPalace.FullscreenContainer" parent="">
+        <item name="fullscreenBackgroundColor">@color/colorBackground</item>
+        <item name="fullscreenTextColor">@color/colorText</item>
     </style>
 </resources>

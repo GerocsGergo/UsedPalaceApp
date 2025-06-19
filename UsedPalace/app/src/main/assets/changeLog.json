@@ -77,6 +77,13 @@
         "Added more validators to the server"
       ]
     }
+  ,
+    {
+      "version": "0.7.0",
+      "changes": [
+        "Remade some menus, to look better"
+      ]
+    }
   ]
 }
 

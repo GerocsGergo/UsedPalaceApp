@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -57,7 +58,7 @@ class HomeFragment : Fragment() {
         // Fetch data from the API
         fetchSalesData(apiService, containerLayout, inflater)
 
-        val clearButton = view.findViewById<ImageButton>(R.id.clearSearchButton)
+        val clearButton = view.findViewById<Button>(R.id.clearSearchButton)
         val exampleText = view.findViewById<TextView>(R.id.forExample)
 
 
@@ -67,7 +68,6 @@ class HomeFragment : Fragment() {
                 if (query.isNotEmpty()) {
                     containerLayout.removeAllViews()
                     fetchSalesDataSearch(apiService, containerLayout, inflater, query)
-                    // TODO Collapse the keyboard
                     searchView.clearFocus()
 
                     clearButton.visibility = View.VISIBLE
@@ -159,7 +159,7 @@ class HomeFragment : Fragment() {
             containerLayout?.addView(noProductsView)
         } else {
             for (sale in sales) {
-                val itemView = inflater.inflate(R.layout.item_home, containerLayout, false)
+                val itemView = inflater.inflate(R.layout.item_fragment_single_sale, containerLayout, false)
 
                 itemView.findViewById<TextView>(R.id.productLabel).text = sale.Name
                 itemView.findViewById<TextView>(R.id.productPrice).text = "${sale.Cost} Ft"
@@ -193,7 +193,7 @@ class HomeFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     for (sale in sales) {
                         // Inflate the item layout
-                        val itemView = inflater.inflate(R.layout.item_home, containerLayout, false)
+                        val itemView = inflater.inflate(R.layout.item_fragment_single_sale, containerLayout, false)
 
                         // Populate the views with data
                         itemView.findViewById<TextView>(R.id.productLabel).text = sale.Name
