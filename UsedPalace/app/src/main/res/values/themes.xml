@@ -1,15 +1,56 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
+
     <style name="Base.Theme.UsedPalace" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="android:windowBackground">@color/colorBackground</item>
         <item name="android:textColor">@color/colorText</item>
+        <item name="rippleColor">@color/colorPrimaryRipple</item>
+
+        <item name="colorOnSurface">@color/colorText</item>
+        <item name="colorOnSurfaceVariant">@color/colorPrimary</item>
+        <item name="colorSurfaceContainerHighest">@color/colorBackground</item>
+        <item name="colorOutline">@color/colorOutline</item>
+
     </style>
 
-     <style name="ThemeOverlay.UsedPalace.FullscreenContainer" parent="">
-        <item name="fullscreenBackgroundColor">@color/colorBackground</item>
-        <item name="fullscreenTextColor">@color/colorText</item>
+    <style name="Widget.Material3.Button.UsedPalace" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/colorPrimary</item>
+        <item name="android:textColor">@color/colorTextButton</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textSize">18sp</item>
     </style>
+
+    <style name="Widget.Material3.Button.UsedPalace.ProfileMenuItem" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/colorPrimary</item>
+        <item name="android:textColor">@color/colorTextButton</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textSize">24sp</item>
+        <item name="iconPadding">16dp</item>
+        <item name="android:drawablePadding">16dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="android:textAlignment">viewStart</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="iconTint">@color/colorTextButton</item>
+        <item name="iconSize">32dp</item>
+    </style>
+
+
+    <style name="Widget.Material3.TextInputLayout.UsedPalace" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxStrokeColor">@color/colorPrimary</item>
+    </style>
+
+    <style name="Widget.UsedPalace.ChatInputEditText" parent="Widget.Material3.TextInputEditText.OutlinedBox">
+        <item name="android:textColor">@color/colorText</item>
+        <item name="android:textColorHint">@color/colorOutline</item>
+        <item name="android:backgroundTint">@color/colorPrimary</item>
+        <item name="android:padding">12dp</item>
+    </style>
+
+
 </resources>

@@ -1,52 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#BF7F7F"
+    android:background="@color/colorBackground"
     tools:context=".fragments.MessagesFragment">
 
-        <!-- Top buttons bar -->
-        <LinearLayout
-            android:id="@+id/top_layout"
+        <!-- Top Material Buttons bar -->
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/top_button_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_margin="8dp"
+            app:singleSelection="true"
+            app:selectionRequired="true">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/allChats"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
-                    android:text="All Chat" />
+                    android:text="Minden"
+                    android:textColor="@color/colorTextButton"
+                    app:cornerRadius="12dp"
+                    app:iconPadding="8dp"
 
-                <Button
+                    />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/deletedChats"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
-                    android:text="Deleted Chats" />
+                    android:text="Törölt"
+                    android:textColor="@color/colorTextButton"
+                    app:cornerRadius="12dp"
+                    app:iconPadding="8dp"
 
-                <Button
+                    />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/activeChats"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
-                    android:text="Active Chats" />
-        </LinearLayout>
+                    android:text="Aktív"
+                    android:textColor="@color/colorTextButton"
+                    app:cornerRadius="12dp"
+                    app:iconPadding="8dp" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
 
+        <!-- Scrollable chats container -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:padding="8dp">
 
                 <LinearLayout
                     android:id="@+id/container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical" />
+                    android:orientation="vertical"
+                    android:paddingBottom="16dp"/>
         </ScrollView>
 
 </LinearLayout>

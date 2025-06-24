@@ -20,6 +20,7 @@ import com.example.usedpalace.requests.ConfirmDeleteAccount
 import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeOrDeleteRequest
 import com.example.usedpalace.requests.DeleteAccountRequest
 import com.example.usedpalace.responses.ApiResponseGeneric
+import com.google.android.material.textfield.TextInputLayout
 import network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
@@ -41,6 +42,10 @@ class DeleteAccountActivity : AppCompatActivity() {
     private lateinit var passwordText: TextView
     private lateinit var emailText: TextView
     private lateinit var codeText: TextView
+
+    private lateinit var emailInputLayout: TextInputLayout
+    private lateinit var codeInputLayout: TextInputLayout
+    private lateinit var passwordInputLayout: TextInputLayout
 
     private lateinit var apiService: ApiService
 
@@ -106,6 +111,10 @@ class DeleteAccountActivity : AppCompatActivity() {
                     inputEmail.visibility = View.VISIBLE
                     inputCode.visibility = View.VISIBLE
                     inputPassword.visibility = View.VISIBLE
+                    emailInputLayout.visibility = View.VISIBLE
+                    codeInputLayout.visibility = View.VISIBLE
+                    passwordInputLayout.visibility = View.VISIBLE
+
                     buttonConfirm.visibility = View.VISIBLE
 
                     passwordText.visibility = View.VISIBLE
@@ -179,6 +188,10 @@ class DeleteAccountActivity : AppCompatActivity() {
         passwordText = findViewById(R.id.passwordText)
         emailText = findViewById(R.id.emailText)
         codeText = findViewById(R.id.codeText)
+
+        emailInputLayout = findViewById(R.id.emailInputLayout)
+        codeInputLayout = findViewById(R.id.codeInputLayout)
+        passwordInputLayout = findViewById(R.id.passwordInputLayout)
     }
 
     private fun setupRetrofit() {

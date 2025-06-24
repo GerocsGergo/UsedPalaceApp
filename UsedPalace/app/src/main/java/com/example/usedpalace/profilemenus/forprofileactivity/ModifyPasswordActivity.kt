@@ -17,6 +17,7 @@ import com.example.usedpalace.profilemenus.ProfileActivity
 import com.example.usedpalace.requests.ChangePasswordRequest
 import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeOrDeleteRequest
 import com.example.usedpalace.responses.ApiResponseGeneric
+import com.google.android.material.textfield.TextInputLayout
 import network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
@@ -30,6 +31,10 @@ class ModifyPasswordActivity : AppCompatActivity() {
     private lateinit var inputNewPassword: EditText
     private lateinit var inputNewRePassword: EditText
     private lateinit var inputCode: EditText
+    private lateinit var oldPasswordInputLayout: TextInputLayout
+    private lateinit var newPasswordInputLayout: TextInputLayout
+    private lateinit var newPasswordReInputLayout: TextInputLayout
+    private lateinit var codeInputLayout: TextInputLayout
     private lateinit var buttonModify: Button
     private lateinit var buttonRequest: Button
     private lateinit var buttonCancel: Button
@@ -113,12 +118,17 @@ class ModifyPasswordActivity : AppCompatActivity() {
                     newPasswordText.visibility = View.GONE
                     inputNewRePassword.visibility = View.GONE
                     newPasswordReText.visibility = View.GONE
+                    oldPasswordInputLayout.visibility = View.GONE
+                    newPasswordInputLayout.visibility = View.GONE
+                    newPasswordReInputLayout.visibility = View.GONE
 
+                    codeInputLayout.visibility = View.VISIBLE
                     codeText.visibility = View.VISIBLE
                     inputCode.visibility = View.VISIBLE
                     buttonModify.visibility = View.VISIBLE
                 } else {
-                    Toast.makeText(this@ModifyPasswordActivity, "Failed to request password change.", Toast.LENGTH_SHORT).show()
+                    val errorBody = response.errorBody()?.string()
+                    Toast.makeText(this@ModifyPasswordActivity, "Failed to request password change: $errorBody", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -143,7 +153,8 @@ class ModifyPasswordActivity : AppCompatActivity() {
                         startActivity(intent)
                         finishAffinity() //cleareli a backstacket elv
                     } else {
-                        Toast.makeText(this@ModifyPasswordActivity, "Invalid code or error.", Toast.LENGTH_SHORT).show()
+                        val errorBody = response.errorBody()?.string()
+                        Toast.makeText(this@ModifyPasswordActivity, "Invalid code or error: $errorBody", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -169,6 +180,10 @@ class ModifyPasswordActivity : AppCompatActivity() {
         codeText = findViewById(R.id.codeText)
         newPasswordReText= findViewById(R.id.newPasswordReText)
         inputNewRePassword = findViewById(R.id.inputNewRePassword)
+        oldPasswordInputLayout = findViewById(R.id.oldPasswordInputLayout)
+        newPasswordInputLayout = findViewById(R.id.newPasswordInputLayout)
+        newPasswordReInputLayout = findViewById(R.id.newPasswordReInputLayout)
+        codeInputLayout = findViewById(R.id.codeInputLayout)
 
     }
 

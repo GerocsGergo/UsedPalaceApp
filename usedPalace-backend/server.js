@@ -1257,8 +1257,11 @@ app.post('/request-user-email-change', async (req, res) => {  //create request Ã
             });
         }
 		
-		if (!validator.isEmail(newEmail)) {
-			return res.status(400).json({ error: 'Invalid email address.' });
+		if (!validator.isEmail(newEmail.trim())) {
+			return res.status(400).json({
+                success: false,
+                message: 'Invalid email address.'
+            });
 		}
 		
 		const [existingUser] = await connection.promise().query(
@@ -1277,7 +1280,7 @@ app.post('/request-user-email-change', async (req, res) => {  //create request Ã
         const code = await generateUniqueCode2();
 
         const insertQuery = `
-            INSERT INTO EmailChangeRequests (Uid, NewEmail, Code)
+            INSERT INTO EmailChangeRequests (Uid, NewEmail, VerifyToken)
             VALUES (?, ?, ?)
         `;
         await connection.promise().query(insertQuery, [userId, newEmail, code]);
@@ -1329,7 +1332,7 @@ app.put('/confirm-user-email-change', async (req, res) => {
         }
 
         const [rows] = await connection.promise().query(
-            'SELECT NewEmail, Code FROM EmailChangeRequests WHERE Uid = ? ORDER BY RequestedAt DESC LIMIT 1',
+            'SELECT NewEmail, VerifyToken FROM EmailChangeRequests WHERE Uid = ? ORDER BY CreatedAt DESC LIMIT 1',
             [userId]
         );
 
@@ -1340,9 +1343,9 @@ app.put('/confirm-user-email-change', async (req, res) => {
             });
         }
 
-        const { NewEmail, Code: storedCode } = rows[0];
+        const request = rows[0];
 
-        if (storedCode !== code) {
+        if (request.VerifyToken !== code) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid verification code'
@@ -1351,7 +1354,7 @@ app.put('/confirm-user-email-change', async (req, res) => {
 
         await connection.promise().query(
             'UPDATE Users SET Email = ? WHERE Uid = ?',
-            [NewEmail, userId]
+            [request.NewEmail, userId]
         );
 
         await connection.promise().query(
@@ -1424,7 +1427,7 @@ app.post('/request-password-change', async (req, res) => {
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
         const insertQuery = `
-            INSERT INTO PasswordChangeRequests (Uid, NewPassword, Code)
+            INSERT INTO PasswordChangeRequests (Uid, NewPassword, VerifyToken)
             VALUES (?, ?, ?)
         `;
         await connection.promise().query(insertQuery, [userId, hashedNewPassword, code]);
@@ -1459,7 +1462,7 @@ app.put('/confirm-password-change', async (req, res) => {
 		    console.log('Received conformation request for password change from:', userId);
 		
         const [rows] = await connection.promise().query(
-            'SELECT NewPassword, Code FROM PasswordChangeRequests WHERE Uid = ? ORDER BY RequestedAt DESC LIMIT 1',
+            'SELECT NewPassword, VerifyToken FROM PasswordChangeRequests WHERE Uid = ? ORDER BY CreatedAt DESC LIMIT 1',
             [userId]
         );
 
@@ -1469,7 +1472,7 @@ app.put('/confirm-password-change', async (req, res) => {
 
         const request = rows[0];
 
-        if (request.Code !== code) {
+        if (request.VerifyToken !== code) {
             return res.status(400).json({ message: 'Invalid verification code' });
         }
 

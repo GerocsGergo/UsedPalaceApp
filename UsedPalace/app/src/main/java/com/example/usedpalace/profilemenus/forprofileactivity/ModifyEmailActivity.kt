@@ -2,6 +2,7 @@ package com.example.usedpalace.profilemenus.forprofileactivity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -17,6 +18,7 @@ import com.example.usedpalace.profilemenus.ProfileActivity
 import com.example.usedpalace.requests.ChangeEmailRequest
 import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeOrDeleteRequest
 import com.example.usedpalace.responses.ApiResponseGeneric
+import com.google.android.material.textfield.TextInputLayout
 import network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
@@ -33,6 +35,9 @@ class ModifyEmailActivity : AppCompatActivity() {
     private lateinit var buttonCancel: Button
     private lateinit var newEmailText: TextView
     private lateinit var codeText: TextView
+
+    private lateinit var emailInputLayout: TextInputLayout
+    private lateinit var codeInputLayout: TextInputLayout
 
     private lateinit var apiService: ApiService
 
@@ -61,6 +66,8 @@ class ModifyEmailActivity : AppCompatActivity() {
         inputCode = findViewById(R.id.inputCode)
         newEmailText = findViewById(R.id.newEmailText)
         codeText = findViewById(R.id.codeText)
+        emailInputLayout = findViewById(R.id.emailInputLayout)
+        codeInputLayout = findViewById(R.id.codeInputLayout)
 
     }
 
@@ -103,6 +110,7 @@ class ModifyEmailActivity : AppCompatActivity() {
     }
 
     private fun changeEmailRequest(email: String){
+
         val request = ChangeEmailRequest(UserSession.getUserId()!!, email)
         apiService.requestEmailChange(request).enqueue(object : Callback<ApiResponseGeneric> {
             override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>
@@ -112,12 +120,15 @@ class ModifyEmailActivity : AppCompatActivity() {
                     newEmailText.visibility = View.GONE
                     inputNewEmail.visibility = View.GONE
                     buttonRequest.visibility = View.GONE
+                    emailInputLayout.visibility = View.GONE
 
+                    codeInputLayout.visibility = View.VISIBLE
                     codeText.visibility = View.VISIBLE
                     inputCode.visibility = View.VISIBLE
                     buttonModify.visibility = View.VISIBLE
                 } else {
-                    Toast.makeText(this@ModifyEmailActivity, "Failed to request email change.", Toast.LENGTH_SHORT).show()
+                    val errorBody = response.errorBody()?.string()
+                    Toast.makeText(this@ModifyEmailActivity, "Failed to request email change: $errorBody", Toast.LENGTH_SHORT).show()
                 }
             }
 

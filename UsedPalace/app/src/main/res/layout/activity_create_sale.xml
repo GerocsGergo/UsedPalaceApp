@@ -53,7 +53,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
-            <!--TODO Center the add buttons-->
             <ImageView
                 android:id="@+id/image1"
                 android:layout_width="80dp"

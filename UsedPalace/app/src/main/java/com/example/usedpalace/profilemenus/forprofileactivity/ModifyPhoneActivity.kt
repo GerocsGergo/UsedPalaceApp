@@ -17,6 +17,7 @@ import com.example.usedpalace.profilemenus.ProfileActivity
 import com.example.usedpalace.requests.ChangePhoneNumberRequest
 import com.example.usedpalace.requests.ConfirmPhoneNumberChangeRequest
 import com.example.usedpalace.responses.ApiResponseGeneric
+import com.google.android.material.textfield.TextInputLayout
 import network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
@@ -33,6 +34,8 @@ class ModifyPhoneActivity : AppCompatActivity() {
     private lateinit var buttonCancel: Button
     private lateinit var passwordText: TextView
     private lateinit var phoneNumberText: TextView
+    private lateinit var passwordInputLayout: TextInputLayout
+    private lateinit var phoneNumberInputLayout: TextInputLayout
 
     private lateinit var apiService: ApiService
 
@@ -97,7 +100,9 @@ class ModifyPhoneActivity : AppCompatActivity() {
                     inputPassword.visibility = View.GONE
                     buttonRequest.visibility = View.GONE
                     passwordText.visibility = View.GONE
+                    passwordInputLayout.visibility = View.GONE
 
+                    phoneNumberInputLayout.visibility = View.VISIBLE
                     phoneNumberText.visibility = View.VISIBLE
                     inputPhoneNumber.visibility = View.VISIBLE
                     buttonModify.visibility = View.VISIBLE
@@ -126,9 +131,10 @@ class ModifyPhoneActivity : AppCompatActivity() {
                     Toast.makeText(this@ModifyPhoneActivity, "Phone number changed successfully!", Toast.LENGTH_SHORT).show()
                     val intent = Intent(this@ModifyPhoneActivity, ProfileActivity::class.java)
                     startActivity(intent)
-                    finishAffinity() //cleareli a backstacket elv
+                    finishAffinity()
                 } else {
-                    Toast.makeText(this@ModifyPhoneActivity, "Invalid phone number or error.", Toast.LENGTH_SHORT).show()
+                    val errorBody = response.errorBody()?.string()
+                    Toast.makeText(this@ModifyPhoneActivity, "Invalid phone number or error: $errorBody", Toast.LENGTH_SHORT).show()
 
                 }
             }
@@ -152,6 +158,9 @@ class ModifyPhoneActivity : AppCompatActivity() {
         inputPhoneNumber = findViewById(R.id.inputPhoneNumber)
         passwordText = findViewById(R.id.passwordText)
         phoneNumberText = findViewById(R.id.phoneNumberText)
+
+        passwordInputLayout = findViewById(R.id.passwordInputLayout)
+        phoneNumberInputLayout = findViewById(R.id.phoneNumberInputLayout)
 
     }
 

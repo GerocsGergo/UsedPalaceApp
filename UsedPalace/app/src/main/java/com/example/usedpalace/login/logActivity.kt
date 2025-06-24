@@ -18,6 +18,7 @@ import com.example.usedpalace.UserSession
 import com.example.usedpalace.requests.NewLogin
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
 import com.example.usedpalace.responses.ResponseMessageWithUser
+import com.google.android.material.textfield.TextInputLayout
 import network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
@@ -53,9 +54,11 @@ class LogActivity : AppCompatActivity() {
         var token = prefs.getString("token", null)
 
         val inputEmail = findViewById<EditText>(R.id.inputEmail)
+        val inputEmailLayout = findViewById<TextInputLayout>(R.id.emailInputLayout)
         val textEmail = findViewById<TextView>(R.id.email)
 
         val inputPassword = findViewById<EditText>(R.id.inputPassword)
+        val inputPasswordLayout = findViewById<TextInputLayout>(R.id.passwordInputLayout)
         val textPassword = findViewById<TextView>(R.id.password)
 
         val welcomeText = findViewById<TextView>(R.id.welcomeText)
@@ -91,8 +94,10 @@ class LogActivity : AppCompatActivity() {
                         btnLogin.visibility = View.GONE
                         textPassword.visibility = View.GONE
                         inputPassword.visibility = View.GONE
+                        inputPasswordLayout.visibility = View.GONE
                         textEmail.visibility = View.GONE
                         inputEmail.visibility = View.GONE
+                        inputEmailLayout.visibility = View.GONE
                         btnForget.visibility = View.GONE
                         btnReg.visibility = View.GONE
                     } else {
@@ -106,6 +111,8 @@ class LogActivity : AppCompatActivity() {
                         btnLogin.visibility = View.VISIBLE
                         textPassword.visibility = View.VISIBLE
                         inputPassword.visibility = View.VISIBLE
+                        inputPasswordLayout.visibility = View.VISIBLE
+                        inputEmailLayout.visibility = View.VISIBLE
                         textEmail.visibility = View.VISIBLE
                         inputEmail.visibility = View.VISIBLE
                         val editor = prefs.edit()

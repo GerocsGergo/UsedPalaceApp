@@ -1,71 +1,69 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-             android:layout_width="match_parent"
-             android:layout_height="100dp"
-    android:layout_marginTop="10dp"
-    android:layout_marginBottom="10dp"
-    android:layout_marginStart="10dp"
-    android:layout_marginEnd="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="16dp"
+    app:strokeColor="@color/colorOutline"
+    app:strokeWidth="1dp"
     android:clickable="true"
     android:focusable="true">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@color/light_blue_A200"
-        android:clickable="false"
-        android:focusable="false">
+        android:padding="12dp">
 
-            <ImageView
-                android:id="@+id/image1"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:clickable="false"
-                android:focusable="false"
-                android:scaleType="centerCrop"
-                app:srcCompat="@drawable/baseline_warning_amber_40" />
+        <ImageView
+            android:id="@+id/image1"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="ProductImage"
+            app:srcCompat="@drawable/baseline_warning_amber_40"
+            android:clipToOutline="true"
+            android:outlineProvider="background"
+            android:elevation="4dp"
+            android:layout_marginEnd="12dp"/>
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:clickable="false"
-            android:focusable="false"
-            >
-
+            android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/profile_name"
+                style="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="profileName"
                 android:maxLines="1"
-                android:clickable="false"
-                android:focusable="false"
-                android:textSize="20sp"/>
+                android:text="Profile Name"
+                android:textColor="@color/colorText"/>
 
             <TextView
                 android:id="@+id/product_name"
+                style="@style/TextAppearance.Material3.BodyLarge"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="productName"
                 android:maxLines="1"
-                android:clickable="false"
-                android:focusable="false"
-                android:textSize="20sp"/>
+                android:text="Product Name"
+                android:textColor="@color/colorText"
+                android:layout_marginTop="4dp"/>
 
             <TextView
                 android:id="@+id/last_message_date"
+                style="@style/TextAppearance.Material3.BodySmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="date"
                 android:maxLines="1"
-                />
+                android:text="2024-06-22"
+                android:textColor="@color/colorText"
+                android:layout_marginTop="6dp"/>
         </LinearLayout>
+
     </LinearLayout>
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

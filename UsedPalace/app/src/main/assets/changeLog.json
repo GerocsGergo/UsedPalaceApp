@@ -84,6 +84,14 @@
         "Remade some menus, to look better"
       ]
     }
+  ,
+    {
+      "version": "0.8.0",
+      "changes": [
+        "Remade more menus, to look better",
+        "Bug fixes"
+      ]
+    }
   ]
 }
 

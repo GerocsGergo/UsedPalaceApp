@@ -154,6 +154,10 @@ class MessagesFragment : Fragment() {
                                     .error(R.drawable.baseline_error_24)
                                     .into(imageView)
                                 containerLayout?.addView(itemView)
+
+                                itemView.setOnClickListener {
+                                    onProductClick(chat.chatId, username)
+                                }
                             } else {
                                 Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
                             }

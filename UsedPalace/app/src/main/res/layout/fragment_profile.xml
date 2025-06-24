@@ -1,154 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EBD7D7"
+    android:background="@color/colorBackground"
     tools:context=".fragments.ProfileFragment">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        >
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/textView"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Profil"
-            android:textSize="40sp"
-            android:textAlignment="center"
-            />
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center_horizontal">
 
-        <Button
-            android:id="@+id/profile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/baseline_person_40"
-            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
-            android:textSize="30sp"
-            android:text="Profil"
-            android:textAlignment="textStart"
-            app:cornerRadius="0dp"
+            <!-- Profil szekció -->
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Profil"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorText"
+                android:layout_marginBottom="16dp" />
 
-            />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/profile"
+                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Profil"
+                android:layout_marginBottom="12dp" />
 
-        <!--TODO itt lehet létrehozni eladást-->
-        <Button
-            android:id="@+id/createSale"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/baseline_add_40"
-            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
-            android:textSize="30sp"
-            android:text="Ajánlat létrehozása"
-            android:textAlignment="textStart"
-            app:cornerRadius="0dp"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/createSale"
+                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ajánlat létrehozása"
+                android:layout_marginBottom="12dp" />
 
-            />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/ownSales"
+                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Eladásaid"
+                android:layout_marginBottom="24dp" />
 
-        <!--TODO itt lesznek az eladások listázva-->
-        <Button
-            android:id="@+id/ownSales"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/baseline_note_40"
-            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
-            android:textSize="30sp"
-            android:text="Eladásaid"
-            android:textAlignment="textStart"
-            app:cornerRadius="0dp"
+            <!-- Segítség szekció -->
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Segítség"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorText"
+                android:layout_marginBottom="16dp" />
 
-            />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/help"
+                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Súgó"
+                android:layout_marginBottom="12dp" />
 
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Segítség"
-            android:textSize="40sp"
-            android:textAlignment="center"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/settings"
+                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Beállítások"
+                android:visibility="gone"
 
-        <!--TODO sugó?-->
-        <Button
-            android:id="@+id/help"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/baseline_question_mark_40"
-            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
-            android:textSize="30sp"
-            android:text="Súgó"
-            android:textAlignment="textStart"
-            app:cornerRadius="0dp"
+                android:layout_marginBottom="12dp" />
 
-            />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/support"
+                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Elérhetőségeink"
+                android:layout_marginBottom="24dp" />
 
-        <!--TODO settings-->
-        <Button
-            android:id="@+id/settings"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/baseline_settings_40"
-            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
-            android:textSize="30sp"
-            android:text="Beállítások"
-            android:textAlignment="textStart"
-            app:cornerRadius="0dp"
+            <!-- Egyéb szekció -->
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Egyéb"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorText"
+                android:layout_marginBottom="16dp" />
 
-            />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/about"
+                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="A UsedPalace-ről"
+                android:layout_marginBottom="12dp" />
 
-        <Button
-            android:id="@+id/support"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/baseline_contact_support_40"
-            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
-            android:textSize="30sp"
-            android:text="Elérhetőségeink"
-            android:textAlignment="textStart"
-            app:cornerRadius="0dp"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/contacts"
+                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Információk"
+                android:layout_marginBottom="12dp" />
 
-            />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Egyéb"
-            android:textSize="40sp"
-            android:textAlignment="center"/>
-
-        <!--TODO a usedPalace-ről (történet vagy valami)-->
-        <Button
-            android:id="@+id/about"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/baseline_info_outline_40"
-            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
-            android:textSize="30sp"
-            android:text="A UsedPalace-ről"
-            android:textAlignment="textStart"
-            app:cornerRadius="0dp"
-
-            />
-
-        <Button
-            android:id="@+id/contacts"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/baseline_chat_40"
-            android:drawableRight="@drawable/baseline_keyboard_arrow_right_40"
-            android:textSize="30sp"
-            android:text="Információk"
-            android:textAlignment="textStart"
-            app:cornerRadius="0dp"
-
-            />
-    </LinearLayout>
-    </ScrollView>
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

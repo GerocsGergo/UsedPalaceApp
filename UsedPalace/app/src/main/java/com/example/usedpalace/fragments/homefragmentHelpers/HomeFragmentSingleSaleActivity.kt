@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.viewpager2.widget.ViewPager2
 import com.example.usedpalace.R
 import com.example.usedpalace.SaleWithEverything
 import com.example.usedpalace.UserSession
@@ -33,11 +34,7 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
     private var buyerId: Int = -1
 
     // Views
-    private lateinit var productImage: ImageView
-    private lateinit var image2: ImageView
-    private lateinit var image3: ImageView
-    private lateinit var image4: ImageView
-    private lateinit var image5: ImageView
+    private lateinit var imageSlider: ViewPager2
     private lateinit var productTitle: TextView
     private lateinit var productPrice: TextView
     private lateinit var productDescription: TextView
@@ -153,11 +150,7 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
 
 
     private fun initializeViews() {
-        productImage = findViewById(R.id.productImage)
-        image2 = findViewById(R.id.image2)
-        image3 = findViewById(R.id.image3)
-        image4 = findViewById(R.id.image4)
-        image5 = findViewById(R.id.image5)
+        imageSlider = findViewById(R.id.imageSlider)
         productTitle = findViewById(R.id.productLabel)
         productPrice = findViewById(R.id.productPrice)
         productDescription = findViewById(R.id.productDescription)
@@ -214,21 +207,18 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
         productPrice.text = "${sale.Cost} Ft"
         productDescription.text = sale.Description
 
-        loadImage(productImage, sale.SaleFolder, "image1.jpg")
-        loadImage(image2, sale.SaleFolder, "image2.jpg")
-        loadImage(image3, sale.SaleFolder, "image3.jpg")
-        loadImage(image4, sale.SaleFolder, "image4.jpg")
-        loadImage(image5, sale.SaleFolder, "image5.jpg")
+        val imageUrls = mutableListOf(
+            "http://10.0.2.2:3000/${sale.SaleFolder}/image1.jpg",
+            "http://10.0.2.2:3000/${sale.SaleFolder}/image2.jpg",
+            "http://10.0.2.2:3000/${sale.SaleFolder}/image3.jpg",
+            "http://10.0.2.2:3000/${sale.SaleFolder}/image4.jpg",
+            "http://10.0.2.2:3000/${sale.SaleFolder}/image5.jpg"
+        )
+
+        val adapter = ImageSliderAdapter(this, imageUrls)
+        imageSlider.adapter = adapter
     }
 
-    private fun loadImage(imageView: ImageView, saleFolder: String, imageName: String) {
-        val imageUrl = "http://10.0.2.2:3000/$saleFolder/$imageName"
-        Picasso.get()
-            .load(imageUrl)
-            .placeholder(R.drawable.baseline_loading_24)
-            .error(R.drawable.baseline_error_24)
-            .into(imageView)
-    }
 
     private fun showErrorMessage(message: String) {
         mainLayout.removeAllViews()

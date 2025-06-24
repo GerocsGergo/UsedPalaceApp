@@ -21,12 +21,12 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <ImageView
-                android:id="@+id/productImage"
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/imageSlider"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:scaleType="centerCrop"
-                android:contentDescription="Product image"/>
+                android:layout_height="250dp"
+                android:layout_marginBottom="16dp"
+                />
 
             <TextView
                 android:id="@+id/productLabel"
@@ -51,82 +51,38 @@
                 android:layout_marginTop="16dp"
                 android:textSize="16sp"/>
 
-            <LinearLayout
-                android:id="@+id/imageGridContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:id="@+id/image2"
-                        android:layout_width="0dp"
-                        android:layout_height="150dp"
-                        android:layout_weight="1"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/click_to_change"/>
-
-                    <ImageView
-                        android:id="@+id/image3"
-                        android:layout_width="0dp"
-                        android:layout_height="150dp"
-                        android:layout_weight="1"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/click_to_change"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp">
-
-                    <ImageView
-                        android:id="@+id/image4"
-                        android:layout_width="0dp"
-                        android:layout_height="150dp"
-                        android:layout_weight="1"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/click_to_change"/>
-
-                    <ImageView
-                        android:id="@+id/image5"
-                        android:layout_width="0dp"
-                        android:layout_height="150dp"
-                        android:layout_weight="1"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/click_to_change"/>
-                </LinearLayout>
-            </LinearLayout>
-
         </LinearLayout>
     </ScrollView>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/buttonContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.Material3.Button.UsedPalace"
             android:id="@+id/messageButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Message the seller"
-            android:layout_marginBottom="8dp"/>
+            android:layout_width="0dp"
+            android:layout_height="55dp"
+            android:textSize="18sp"
+            android:text="Üzenet küldése"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.Material3.Button.UsedPalace"
             android:id="@+id/backButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Back"/>
-    </LinearLayout>
+            android:layout_width="0dp"
+            android:layout_height="55dp"
+            android:textSize="18sp"
+            android:text="Vissza"
+            app:layout_constraintTop_toBottomOf="@id/messageButton"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

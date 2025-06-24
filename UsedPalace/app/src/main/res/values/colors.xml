@@ -9,8 +9,22 @@
     <color name="black_overlay">#66000000</color>
 
     <color name="colorPrimary">#4ABC4B</color>
+    <color name="colorPrimaryRipple">#334ABC4B</color>
     <color name="colorBackground">#F5F5F5</color>
+    <color name="colorBackgroundDelete">#FA3636</color>
     <color name="colorText">#000000</color>
     <color name="colorTextButton">#F5F5F5</color>
+    <color name="colorOutline">#33000000</color>
+
+    <color name="colorTextReceivedName">#000000</color>
+    <color name="colorBackgroundMessageReceived">#C0C0C0</color>
+    <color name="colorTextMessageReceived">#000000</color>
+
+    <color name="colorTextMessageSent">#ffffff</color>
+    <color name="colorBackgroundMessageSent">#4ABC4B</color>
+
+    <color name="colorTextMessageDate">#C0C0C0</color>
+
+
 
 </resources>
