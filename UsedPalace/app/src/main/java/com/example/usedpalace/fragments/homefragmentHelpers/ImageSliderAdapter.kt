@@ -10,7 +10,7 @@ import com.squareup.picasso.Picasso
 
 class ImageSliderAdapter(
     private val context: Context,
-    private val imageUrls: MutableList<String> // fontos, hogy MutableList legyen
+    private val imageUrls: MutableList<String>
 ) : RecyclerView.Adapter<ImageSliderAdapter.ImageViewHolder>() {
 
     class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

@@ -92,6 +92,14 @@
         "Bug fixes"
       ]
     }
+  ,
+    {
+      "version": "0.9.0",
+      "changes": [
+        "Remade more and more menus, to look better",
+        "Bug fixes"
+      ]
+    }
   ]
 }
 
