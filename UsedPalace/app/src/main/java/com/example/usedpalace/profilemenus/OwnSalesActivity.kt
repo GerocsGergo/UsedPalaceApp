@@ -18,7 +18,7 @@ import com.example.usedpalace.requests.DeleteSaleRequest
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.profilemenus.forownsalesactivity.ModifySaleActivity
 import com.example.usedpalace.R
-import com.example.usedpalace.SaleWithSid
+import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.profilemenus.forownsalesactivity.OpenSaleActivity

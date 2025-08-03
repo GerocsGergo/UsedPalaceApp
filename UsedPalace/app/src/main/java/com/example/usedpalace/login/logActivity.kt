@@ -1,6 +1,7 @@
 package com.example.usedpalace.login
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -14,20 +15,45 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
+import com.example.usedpalace.RetrofitClientNoAuth
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.requests.NewLogin
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
+import com.example.usedpalace.responses.ResponseMessage
 import com.example.usedpalace.responses.ResponseMessageWithUser
 import com.google.android.material.textfield.TextInputLayout
 import network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 
 class LogActivity : AppCompatActivity() {
+
+    private lateinit var apiServiceNoAuth: ApiService
+    private lateinit var apiServiceAuth: ApiService
+    private lateinit var prefs: SharedPreferences
+    private var token: String? = null
+    private lateinit var deviceInfo: String
+
+    private lateinit var inputEmail: EditText
+    private lateinit var inputEmailLayout :TextInputLayout
+    private lateinit var textEmail :TextView
+
+    private lateinit var inputPassword :EditText
+    private lateinit var inputPasswordLayout :TextInputLayout
+    private lateinit var textPassword :TextView
+
+    private lateinit var welcomeText :TextView
+
+    private lateinit var btnLogin :Button
+    private lateinit var btnOpenMainMenu :Button
+    private lateinit var btnLogout :Button
+    private lateinit var btnForget :Button
+    private lateinit var btnReg :Button
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -38,39 +64,13 @@ class LogActivity : AppCompatActivity() {
             insets
         }
 
+        setupViews()
+        initialize()
+        setupClickListeners()
 
-
-        // Initialize Retrofit
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/") // Use 10.0.2.2 for localhost in Android emulator
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        // Create an instance of the API service
-        val apiService = retrofit.create(ApiService::class.java)
-
-
-        var prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
-        var token = prefs.getString("token", null)
-
-        val inputEmail = findViewById<EditText>(R.id.inputEmail)
-        val inputEmailLayout = findViewById<TextInputLayout>(R.id.emailInputLayout)
-        val textEmail = findViewById<TextView>(R.id.email)
-
-        val inputPassword = findViewById<EditText>(R.id.inputPassword)
-        val inputPasswordLayout = findViewById<TextInputLayout>(R.id.passwordInputLayout)
-        val textPassword = findViewById<TextView>(R.id.password)
-
-        val welcomeText = findViewById<TextView>(R.id.welcomeText)
-
-        val btnLogin = findViewById<Button>(R.id.buttonLogin)
-        val btnOpenMainMenu = findViewById<Button>(R.id.buttonOpenMainMenu)
-        val btnLogout =  findViewById<Button>(R.id.buttonLogout)
-        val btnForget =  findViewById<Button>(R.id.buttonForget)
-        val btnReg =  findViewById<Button>(R.id.buttonReg)
 
         if (token != null) {
-            apiService.verifyToken("Bearer $token").enqueue(object : Callback<ResponseForLoginTokenExpiration> {
+            apiServiceAuth.verifyToken("Bearer $token").enqueue(object : Callback<ResponseForLoginTokenExpiration> {
                 override fun onResponse(call: Call<ResponseForLoginTokenExpiration>, response: Response<ResponseForLoginTokenExpiration>) {
                     if (response.isSuccessful) {
                         Log.d("JWTCheck", "Token is valid")
@@ -119,9 +119,8 @@ class LogActivity : AppCompatActivity() {
                         editor.clear()
                         editor.apply()
 
-                        val intent = Intent(this@LogActivity, LogActivity::class.java)
-                        startActivity(intent)
-                        finish()
+                        clearSessionAndGoToLogin()
+
                     }
                 }
                 override fun onFailure(call: Call<ResponseForLoginTokenExpiration>, t: Throwable) {
@@ -130,6 +129,12 @@ class LogActivity : AppCompatActivity() {
             })
         }
 
+
+
+    }
+
+
+    private fun setupClickListeners() {
         btnReg.setOnClickListener {
             val intent = Intent(this, RegActivity::class.java)
             startActivity(intent)
@@ -147,19 +152,30 @@ class LogActivity : AppCompatActivity() {
         }
 
         btnLogout.setOnClickListener {
-            prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
-            val editor = prefs.edit()
-            editor.clear()
-            editor.apply()
-            UserSession.clear()
+            val token = prefs.getString("token", null)
+            if (token != null) {
+                apiServiceAuth.logoutUser("Bearer $token").enqueue(object : Callback<ResponseMessage> {
+                    override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
+                        if (response.isSuccessful) {
+                            Toast.makeText(this@LogActivity, response.body()?.message ?: "Sikeres kijelentkezés", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this@LogActivity, "Kijelentkezés sikertelen", Toast.LENGTH_SHORT).show()
+                        }
+                        // Minden esetben töröljük a helyi adatokat és session-t
+                        clearSessionAndGoToLogin()
+                    }
 
-            // Open login screen again
-            val intent = Intent(this@LogActivity, LogActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK  //clear the backstack
+                    override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
+                        Toast.makeText(this@LogActivity, "Hálózati hiba a kijelentkezéskor: ${t.message}", Toast.LENGTH_SHORT).show()
+                        clearSessionAndGoToLogin()
+                    }
+                })
+            } else {
+                clearSessionAndGoToLogin()
             }
-            startActivity(intent)
-            finish()
         }
+
+
 
 
         btnLogin.setOnClickListener {
@@ -174,11 +190,12 @@ class LogActivity : AppCompatActivity() {
 
             val newLogin = NewLogin(
                 email = email,
-                password = password
+                password = password,
+                deviceInfo = deviceInfo
             )
 
             // Send the login request to the server
-            apiService.loginUser(newLogin).enqueue(object : Callback<ResponseMessageWithUser> {
+            apiServiceNoAuth.loginUser(newLogin).enqueue(object : Callback<ResponseMessageWithUser> {
                 override fun onResponse(call: Call<ResponseMessageWithUser>, response: Response<ResponseMessageWithUser>) {
                     if (response.isSuccessful) {
                         val message = response.body()?.message
@@ -228,6 +245,47 @@ class LogActivity : AppCompatActivity() {
                 }
             })
         }
-
     }
+
+
+    private fun setupViews() {
+         inputEmail = findViewById(R.id.inputEmail)
+         inputEmailLayout = findViewById(R.id.emailInputLayout)
+         textEmail = findViewById(R.id.email)
+
+         inputPassword = findViewById(R.id.inputPassword)
+         inputPasswordLayout = findViewById(R.id.passwordInputLayout)
+         textPassword = findViewById(R.id.password)
+
+         welcomeText = findViewById(R.id.welcomeText)
+
+         btnLogin = findViewById(R.id.buttonLogin)
+         btnOpenMainMenu = findViewById(R.id.buttonOpenMainMenu)
+         btnLogout =  findViewById(R.id.buttonLogout)
+         btnForget =  findViewById(R.id.buttonForget)
+         btnReg =  findViewById(R.id.buttonReg)
+    }
+
+    private fun initialize() {
+        prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        token = prefs.getString("token", null)
+        deviceInfo = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} (Android ${android.os.Build.VERSION.RELEASE})"
+        RetrofitClient.init(applicationContext)
+        apiServiceNoAuth = RetrofitClientNoAuth.apiService
+        apiServiceAuth = RetrofitClient.apiService
+    }
+
+    private fun clearSessionAndGoToLogin() {
+        val editor = prefs.edit()
+        editor.clear()
+        editor.apply()
+        UserSession.clear()
+        val intent = Intent(this@LogActivity, LogActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
+    }
+
+
 }

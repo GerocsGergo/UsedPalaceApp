@@ -1,4 +1,4 @@
-package com.example.usedpalace
+package com.example.usedpalace.dataClasses
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -13,6 +13,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import com.example.usedpalace.R
 import com.example.usedpalace.requests.CreateSaleRequest
 import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.responses.ResponseMessage

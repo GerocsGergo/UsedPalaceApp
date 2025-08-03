@@ -17,8 +17,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
-import com.example.usedpalace.SaleManagerMethod
-import com.example.usedpalace.SaleWithEverything
+import com.example.usedpalace.dataClasses.SaleManagerMethod
+import com.example.usedpalace.dataClasses.SaleWithEverything
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.requests.ModifySaleRequest
 import com.example.usedpalace.requests.SearchRequestID

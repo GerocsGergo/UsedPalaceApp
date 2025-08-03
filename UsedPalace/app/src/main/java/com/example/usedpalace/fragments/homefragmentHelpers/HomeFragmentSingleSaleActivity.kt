@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -12,12 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.usedpalace.R
-import com.example.usedpalace.SaleWithEverything
+import com.example.usedpalace.dataClasses.SaleWithEverything
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.fragments.messagesHelpers.ChatActivity
 import com.example.usedpalace.fragments.messagesHelpers.Requests.InitiateChatRequest
 import com.example.usedpalace.requests.SearchRequestID
-import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

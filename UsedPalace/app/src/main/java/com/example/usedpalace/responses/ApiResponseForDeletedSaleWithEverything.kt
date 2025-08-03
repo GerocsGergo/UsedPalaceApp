@@ -1,6 +1,6 @@
 package com.example.usedpalace.responses
 
-import com.example.usedpalace.DeletedSaleWithEverything
+import com.example.usedpalace.dataClasses.DeletedSaleWithEverything
 import com.google.gson.annotations.SerializedName
 
 data class ApiResponseForDeletedSaleWithEverything(

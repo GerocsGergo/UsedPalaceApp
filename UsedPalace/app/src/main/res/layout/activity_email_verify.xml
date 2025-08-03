@@ -10,6 +10,7 @@
     tools:context=".login.EmailVerifyActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/mainLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -82,7 +83,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:hint="Írd be a 6 jegyű kódot"
-                android:inputType="number"
+                android:inputType="text"
                 android:maxLength="6"
                 android:textColor="@color/colorText"
                 android:textSize="16sp" />

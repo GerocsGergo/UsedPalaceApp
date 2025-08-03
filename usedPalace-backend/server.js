@@ -35,6 +35,37 @@ connection.connect((err) => {
     console.log('Connected to MySQL database!');
 });
 
+//Token ellenőrző
+const authenticateToken = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token provided' });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    // ellenőrizheted a sessiont is adatbázisból
+    const [sessions] = await connection.promise().query(
+      'SELECT * FROM Sessions WHERE Token = ? AND ExpiresAt > NOW()',
+      [token]
+    );
+
+    if (sessions.length === 0) {
+      return res.status(401).json({ error: 'Invalid or expired session' });
+    }
+
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+};
+
+//Token ellenőrző használata
+//app.get('/protected-data', authenticateToken, (req, res) => {
+  //res.json({ data: 'secret', userId: req.user.id });
+//});
+
+
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -67,7 +98,7 @@ app.post('/forgot-password', async (req, res) => {
         const { email, phoneNumber } = req.body;
         console.log('Received forgot-password request:', req.body);
 		
-		if (!email && !phoneNumber){
+		if (!email || !phoneNumber){
 		return res.status(400).json({ error: 'Somefields are empty!' });
 		}
 		
@@ -125,7 +156,7 @@ app.post('/reset-password', async (req, res) => {
         const { email, code, newPassword } = req.body;
         console.log('Received reset-password request:', email);
 		
-		if (!email && !newPassword){
+		if (!email || !newPassword){
 		return res.status(400).json({ error: 'Somefields are empty!' });
 		}
 		
@@ -171,12 +202,12 @@ app.post('/login', async (req, res) => {
     
     try {
 	
-		const { email, password } = req.body;
+		const { email, password, deviceInfo } = req.body;
 		console.log('Received login request:', email);
 		
-		if (!password && !phoneNumber){
-		return res.status(400).json({ error: 'Somefields are empty!' });
-		}
+		if (!email || !password || !deviceInfo) {
+        return res.status(400).json({ error: 'Some data is missing' });
+    }
 		
 		if (!validator.isEmail(email)) {
         return res.status(400).json({ error: 'Invalid email address.' });
@@ -201,7 +232,15 @@ app.post('/login', async (req, res) => {
         }
 
         const token = jwt.sign({ id: user.Uid }, JWT_SECRET, { expiresIn: '7d' }); //10s for testing 7d for production
+		
+		const createdAt = new Date();
+        const expiresAt = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 * 24 * 60 * 60 * 1000 = 7d for production // 
 
+		await connection.promise().query(
+            'INSERT INTO Sessions (UserId, Token, DeviceInfo, CreatedAt, ExpiresAt) VALUES (?, ?, ?, ?, ?)',
+            [user.Uid, token, deviceInfo || 'Unknown', createdAt, expiresAt]
+        );
+		
         const safeUserData = {
             id: user.Uid,
             name: user.Fullname
@@ -220,7 +259,7 @@ app.post('/login', async (req, res) => {
 });
 
 //Check if login token is expired
-app.get('/verify-token', (req, res) => {
+app.get('/verify-token', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
@@ -229,6 +268,17 @@ app.get('/verify-token', (req, res) => {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
+		
+		// Session ellenőrzés
+        const [sessions] = await connection.promise().query(
+            'SELECT * FROM Sessions WHERE Token = ? AND ExpiresAt > NOW()',
+            [token]
+        );
+
+        if (sessions.length === 0) {
+            return res.status(401).json({ error: 'Invalid or expired session' });
+        }
+		
         res.json({ valid: true, user: decoded });
     } catch (err) {
         if (err.name === 'TokenExpiredError') {
@@ -239,16 +289,34 @@ app.get('/verify-token', (req, res) => {
     }
 });
 
+// logout endpoint
+app.delete('/logout', authenticateToken , async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+        return res.status(400).json({ error: 'No token provided' });
+    }
+
+    try {
+        await connection.promise().query('DELETE FROM Sessions WHERE Token = ?', [token]);
+        res.json({ message: 'Logout successful' });
+
+    } catch (err) {
+        console.error('Error in /logout:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // API to register a new user
 app.post('/register', async (req, res) => {
     const { fullname, email, password, phoneNumber } = req.body;
 	console.log('Received registration request:', email);
 	
-	if (!fullname && !email && !password && !phoneNumber){
+	if (!fullname || !email || !password || !phoneNumber){
 		return res.status(500).json({ error: 'Somefields are empty!' });
 	}
 	
-	if (fullname.trim().length < 2 && fullname.trim().length > 50) {
+	if (fullname.trim().length < 2 || fullname.trim().length > 50) {
         return res.status(400).json({ error: 'Fullname must be between 2-50 characters.' });
     }
 	
@@ -396,7 +464,7 @@ app.post('/verify-email', async (req, res) => {
 
 //End points for sales
 //fetch sales data
-app.get('/getSales', (req, res) => {
+app.get('/getSales', authenticateToken , (req, res) => {
     const query = 'SELECT * FROM Sales';
     connection.query(query, (err, results) => {
         if (err) {
@@ -408,7 +476,7 @@ app.get('/getSales', (req, res) => {
     });
 });
 
-app.post('/search-sales-withSID', async (req, res) => {
+app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
     try {
 		
         const { searchParam } = req.body;
@@ -451,7 +519,7 @@ app.post('/search-sales-withSID', async (req, res) => {
     }
 });
 
-app.post('/search-deletedSales-withSID', async (req, res) => {
+app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) => {
     try {
 		
         const { searchParam } = req.body;
@@ -494,7 +562,7 @@ app.post('/search-deletedSales-withSID', async (req, res) => {
     }
 });
 
-app.post('/search-sales-withSaleName', async (req, res) => {
+app.post('/search-sales-withSaleName', authenticateToken , async (req, res) => {
     try {
         const { searchParam } = req.body;
         console.log('Received search request:', searchParam);
@@ -529,7 +597,7 @@ app.post('/search-sales-withSaleName', async (req, res) => {
     }
 });
 
-app.post('/search-salesID', async (req, res) => {
+app.post('/search-salesID', authenticateToken , async (req, res) => {
     try {
         const { searchParam } = req.body;
         console.log('Received search request:', searchParam);
@@ -564,7 +632,7 @@ app.post('/search-salesID', async (req, res) => {
 });
 
 
-app.post('/create-sale', (req, res) =>  {
+app.post('/create-sale', authenticateToken , (req, res) =>  {
     try {
         const { name, description, cost, bigCategory, smallCategory, userId } = req.body;
 
@@ -620,7 +688,7 @@ app.post('/create-sale', (req, res) =>  {
 });
 
 //modify sale endpoint
-app.put('/modify-sale', async (req, res) => {
+app.put('/modify-sale', authenticateToken , async (req, res) => {
     try {
         const { saleId, name, description, cost, bigCategory, smallCategory, userId } = req.body;
         
@@ -680,7 +748,7 @@ app.put('/modify-sale', async (req, res) => {
 });	
 
 //Delete sale end point
-app.delete('/delete-sale', async (req, res) => {
+app.delete('/delete-sale', authenticateToken , async (req, res) => {
     try {
         const { saleId, userId } = req.body;
 		console.log('Received sale deletion request: ', userId);
@@ -760,7 +828,7 @@ app.delete('/delete-sale', async (req, res) => {
 //Image Uploader and stuff for it
 
 //Delete single image
-app.post('/delete-single-image', async (req, res) => {
+app.post('/delete-single-image', authenticateToken , async (req, res) => {
     try {
         const { saleFolder, imageIndex } = req.body;
         
@@ -794,7 +862,7 @@ app.post('/delete-single-image', async (req, res) => {
 });
 
 //Get images for modify
-app.post('/get-images-with-saleId', async (req, res) => {
+app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
     try {
         const { searchParam } = req.body;
         
@@ -936,7 +1004,7 @@ app.use((err, req, res, next) => {
 
 //For the chat part
 // Get or create chat between users for a specific sale
-app.post('/initiate-chat', async (req, res) => {
+app.post('/initiate-chat', authenticateToken , async (req, res) => {
     try {
         const { sellerId, buyerId, saleId } = req.body;
 		console.log('Received initiate chat request for sale: ', saleId);
@@ -1000,7 +1068,7 @@ app.post('/initiate-chat', async (req, res) => {
 });
 
 //Load all chats for user
-app.post('/load-user-chats', async (req, res) => {
+app.post('/load-user-chats', authenticateToken , async (req, res) => {
     try {
         const { userId } = req.body;
         console.log('Received load chats request for user: ', userId);
@@ -1033,7 +1101,7 @@ app.post('/load-user-chats', async (req, res) => {
 });
 
 //Search Username
-app.post('/search-username', async (req, res) => {
+app.post('/search-username', authenticateToken , async (req, res) => {
     try {
         const { searchParam } = req.body;
            console.log('Received search username request: ', searchParam);
@@ -1088,7 +1156,7 @@ app.post('/search-username', async (req, res) => {
 });
 
 // Get chat messages by chat ID
-app.post('/get-chat-messages', async (req, res) => {
+app.post('/get-chat-messages', authenticateToken , async (req, res) => {
     try {
         const { searchParam } = req.body;
 		
@@ -1120,7 +1188,7 @@ app.post('/get-chat-messages', async (req, res) => {
 });
 
 // Send a new message
-app.post('/send-message', async (req, res) => {
+app.post('/send-message', authenticateToken , async (req, res) => {
     try {
         const { chatId, senderId, content } = req.body;
 		console.log('Received message send request: ', senderId);
@@ -1166,7 +1234,7 @@ app.post('/send-message', async (req, res) => {
 
 //PROFILban modifyok és delete
 //modify phonenumber
-app.put('/modify-user-phone', async (req, res) => {
+app.put('/modify-user-phone', authenticateToken , async (req, res) => {
 	try{
 		const { phoneNumber, userId } = req.body //06204445566
 		
@@ -1244,7 +1312,7 @@ app.put('/modify-user-phone', async (req, res) => {
 
 
 //modify Email
-app.post('/request-user-email-change', async (req, res) => {  //create request és send email
+app.post('/request-user-email-change', authenticateToken , async (req, res) => {  //create request és send email
     try {
 
         const { userId, newEmail } = req.body;
@@ -1318,7 +1386,7 @@ app.post('/request-user-email-change', async (req, res) => {  //create request �
 });
 
 
-app.put('/confirm-user-email-change', async (req, res) => {
+app.put('/confirm-user-email-change', authenticateToken , async (req, res) => {
     try {
         const { userId, code } = req.body;
 		
@@ -1332,7 +1400,7 @@ app.put('/confirm-user-email-change', async (req, res) => {
         }
 
         const [rows] = await connection.promise().query(
-            'SELECT NewEmail, VerifyToken FROM EmailChangeRequests WHERE Uid = ? ORDER BY CreatedAt DESC LIMIT 1',
+            'SELECT NewEmail, VerifyToken, CreatedAt FROM EmailChangeRequests WHERE Uid = ? ORDER BY CreatedAt DESC LIMIT 1',
             [userId]
         );
 
@@ -1344,6 +1412,14 @@ app.put('/confirm-user-email-change', async (req, res) => {
         }
 
         const request = rows[0];
+		
+		const createdAt = new Date(request.CreatedAt);
+		const now = new Date();
+		const diffMinutes = (now - createdAt) / 100 / 60; //ez 10 perc
+
+		if (diffMinutes > 10) {
+			return res.status(400).json({ message: 'Verification code expired' });
+		}
 
         if (request.VerifyToken !== code) {
             return res.status(400).json({
@@ -1380,7 +1456,7 @@ app.put('/confirm-user-email-change', async (req, res) => {
 
 
 //modify password
-app.post('/request-password-change', async (req, res) => {
+app.post('/request-password-change', authenticateToken , async (req, res) => {
     try {
         const { userId, oldPassword, newPassword } = req.body;
 		
@@ -1455,14 +1531,14 @@ app.post('/request-password-change', async (req, res) => {
 
 
 
-app.put('/confirm-password-change', async (req, res) => {
+app.put('/confirm-password-change', authenticateToken , async (req, res) => {
     try {
 		
         const { userId, code } = req.body;
 		    console.log('Received conformation request for password change from:', userId);
 		
         const [rows] = await connection.promise().query(
-            'SELECT NewPassword, VerifyToken FROM PasswordChangeRequests WHERE Uid = ? ORDER BY CreatedAt DESC LIMIT 1',
+            'SELECT NewPassword, VerifyToken, CreatedAt FROM PasswordChangeRequests WHERE Uid = ? ORDER BY CreatedAt DESC LIMIT 1',
             [userId]
         );
 
@@ -1471,7 +1547,14 @@ app.put('/confirm-password-change', async (req, res) => {
         }
 
         const request = rows[0];
+		
+		const createdAt = new Date(request.CreatedAt);
+		const now = new Date();
+		const diffMinutes = (now - createdAt) / 100 / 60; //ez 10 perc
 
+		if (diffMinutes > 10) {
+			return res.status(400).json({ message: 'Verification code expired' });
+		}
         if (request.VerifyToken !== code) {
             return res.status(400).json({ message: 'Invalid verification code' });
         }
@@ -1497,7 +1580,7 @@ app.put('/confirm-password-change', async (req, res) => {
 
 
 
-app.post('/request-phoneNumber-change', async (req, res) => {
+app.post('/request-phoneNumber-change', authenticateToken , async (req, res) => {
     try {
         const { userId, password } = req.body;
 
@@ -1542,7 +1625,7 @@ app.post('/request-phoneNumber-change', async (req, res) => {
     }
 });
 
-app.put('/confirm-phoneNumber-change', async (req, res) => {
+app.put('/confirm-phoneNumber-change', authenticateToken , async (req, res) => {
     try {
         const { userId, phoneNumber } = req.body;
         console.log('Received confirmation request for phone number change from:', userId);
@@ -1596,7 +1679,7 @@ app.put('/confirm-phoneNumber-change', async (req, res) => {
 
 //delete account
 
-app.post('/request-delete-user', async (req, res) => {
+app.post('/request-delete-user', authenticateToken , async (req, res) => {
 	try {
 		const { userId } = req.body;
 		console.log('Received deletion request for user: ', userId);
@@ -1647,7 +1730,7 @@ app.post('/request-delete-user', async (req, res) => {
 	}
 });
 
-app.post('/confirm-delete-user', async (req, res) => {
+app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 	try {
 		const { userId, password, email, code } = req.body;
 		console.log('Received deletion confirm request for user: ', userId);
@@ -1661,7 +1744,7 @@ app.post('/confirm-delete-user', async (req, res) => {
 		
 		//Code validation
 		const [rows] = await connection.promise().query(
-            'SELECT Code FROM DeleteAccountRequests WHERE Uid = ? ORDER BY CreatedAt DESC LIMIT 1',
+            'SELECT Code, CreatedAt FROM DeleteAccountRequests WHERE Uid = ? ORDER BY CreatedAt DESC LIMIT 1',
             [userId]
         );
 		
@@ -1670,7 +1753,15 @@ app.post('/confirm-delete-user', async (req, res) => {
         }
 
         const request = rows[0];
+		
+		const createdAt = new Date(request.CreatedAt);
+		const now = new Date();
+		const diffMinutes = (now - createdAt) / 100 / 60; //ez 10 perc
 
+		if (diffMinutes > 10) {
+			return res.status(400).json({ message: 'Verification code expired' });
+		}
+		
         if (request.Code !== code) {
             return res.status(400).json({ message: 'Invalid verification code' });
         }

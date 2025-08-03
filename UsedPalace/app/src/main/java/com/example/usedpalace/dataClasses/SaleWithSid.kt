@@ -1,4 +1,4 @@
-package com.example.usedpalace
+package com.example.usedpalace.dataClasses
 
 import android.os.Parcel
 import android.os.Parcelable

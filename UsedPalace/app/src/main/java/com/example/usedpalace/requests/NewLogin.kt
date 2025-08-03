@@ -2,5 +2,6 @@ package com.example.usedpalace.requests
 
 data class NewLogin(
     val email: String,
-    val password: String
+    val password: String,
+    val deviceInfo: String
 )

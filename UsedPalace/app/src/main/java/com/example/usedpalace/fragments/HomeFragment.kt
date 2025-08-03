@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SearchView
@@ -14,7 +13,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.usedpalace.R
-import com.example.usedpalace.SaleWithSid
+import com.example.usedpalace.RetrofitClient
+import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.fragments.homefragmentHelpers.HomeFragmentSingleSaleActivity
 import com.example.usedpalace.requests.SearchRequestName
 import com.squareup.picasso.Picasso
@@ -29,40 +29,21 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class HomeFragment : Fragment() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-
-        }
-
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_home, container, false)
-
-        // Find the container inside the ScrollView
         val containerLayout = view.findViewById<LinearLayout>(R.id.productList)
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/") // Use 10.0.2.2 for localhost in Android emulator
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        val apiService = RetrofitClient.apiService
 
-        val apiService = retrofit.create(ApiService::class.java)
-
-
-        // Fetch data from the API
         fetchSalesData(apiService, containerLayout, inflater)
 
         val clearButton = view.findViewById<Button>(R.id.clearSearchButton)
         val exampleText = view.findViewById<TextView>(R.id.forExample)
-
-
         val searchView = view.findViewById<SearchView>(R.id.searchBar)
+
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 if (query.isNotEmpty()) {
@@ -72,22 +53,18 @@ class HomeFragment : Fragment() {
 
                     clearButton.visibility = View.VISIBLE
                     exampleText.visibility = View.GONE
-
-                }else if (query.trim().isEmpty()) {
+                } else if (query.trim().isEmpty()) {
                     Toast.makeText(context, "Please enter a search term", Toast.LENGTH_SHORT).show()
                     return true
                 }
                 return true
             }
 
-
-
             override fun onQueryTextChange(newText: String): Boolean {
-                //TODO realtime search? (ahogy irja a felhasz dobja ki a cuccokat)
+                //TODO realtime search?
                 return false
             }
         })
-
 
         clearButton.setOnClickListener {
             searchView.setQuery("", false)

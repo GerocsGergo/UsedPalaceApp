@@ -1,4 +1,4 @@
-package com.example.usedpalace
+package com.example.usedpalace.dataClasses
 
 import com.google.gson.annotations.SerializedName
 

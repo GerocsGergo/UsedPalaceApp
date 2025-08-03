@@ -17,7 +17,7 @@ import com.example.usedpalace.requests.ResetPasswordRequest
 import com.example.usedpalace.responses.ResponseMessage
 import com.example.usedpalace.responses.ResponseMessageWithFolder
 import com.example.usedpalace.responses.ResponseMessageWithUser
-import com.example.usedpalace.SaleWithSid
+import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.fragments.messagesHelpers.responses.ChatListResponse
 import com.example.usedpalace.fragments.messagesHelpers.Requests.InitiateChatRequest
 import com.example.usedpalace.fragments.messagesHelpers.responses.InitiateChatResponse
@@ -58,6 +58,10 @@ interface ApiService {
 
     @POST("login")
     fun loginUser(@Body user: NewLogin): Call<ResponseMessageWithUser>
+
+    @DELETE("logout")
+    fun logoutUser(@Header("Authorization") authHeader: String): Call<ResponseMessage>
+
 
     @GET("verify-token")
     fun verifyToken(@Header("Authorization") authHeader: String): Call<ResponseForLoginTokenExpiration>

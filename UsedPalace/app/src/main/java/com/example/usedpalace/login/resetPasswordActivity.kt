@@ -1,5 +1,6 @@
 package com.example.usedpalace.login
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -9,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.R
+import com.example.usedpalace.profilemenus.ProfileActivity
 import com.example.usedpalace.requests.ResetPasswordRequest
 import com.example.usedpalace.responses.ResponseMessage
 import network.ApiService
@@ -70,7 +72,9 @@ class ResetPasswordActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
                         Toast.makeText(this@ResetPasswordActivity, "Password reset successfully", Toast.LENGTH_SHORT).show()
-                        finish() // Close the activity
+                        val intent = Intent(this@ResetPasswordActivity, LogActivity::class.java)
+                        startActivity(intent)
+                        finishAffinity() //close and clear backstack
                     } else {
                         val errorBody = response.errorBody()?.string()
                         Toast.makeText(this@ResetPasswordActivity, "Failed: $errorBody", Toast.LENGTH_SHORT).show()
