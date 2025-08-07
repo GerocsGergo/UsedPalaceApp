@@ -1,6 +1,7 @@
 package com.example.usedpalace.login
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -10,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
+import com.example.usedpalace.RetrofitClientNoAuth
 import com.example.usedpalace.profilemenus.ProfileActivity
 import com.example.usedpalace.requests.ResetPasswordRequest
 import com.example.usedpalace.responses.ResponseMessage
@@ -21,6 +24,16 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class ResetPasswordActivity : AppCompatActivity() {
+    private lateinit var apiServiceNoAuth: ApiService
+    private lateinit var prefs: SharedPreferences
+
+    private lateinit var inputCode: EditText
+    private lateinit var inputNewPassword: EditText
+    private lateinit var inputConfirmPassword: EditText
+
+    private lateinit var buttonResetPassword :Button
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -31,29 +44,18 @@ class ResetPasswordActivity : AppCompatActivity() {
             insets
         }
 
+        setupViews()
+        initialize()
+        setupClickListeners()
 
-        // Get the email from the previous activity
-        val email = intent.getStringExtra("email") ?: ""
+    }
 
-        // Initialize Retrofit
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/") // Use 10.0.2.2 for localhost in Android emulator
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        val apiService = retrofit.create(ApiService::class.java)
-
-        // Find views
-        val inputCode = findViewById<EditText>(R.id.inputCode)
-        val inputNewPassword = findViewById<EditText>(R.id.inputPassword)
-        val inputConfirmPassword = findViewById<EditText>(R.id.inputRePassword)
-        val buttonResetPassword = findViewById<Button>(R.id.buttonSubmit)
-
-        // Handle "Reset Password" button click
+    private fun setupClickListeners() {
         buttonResetPassword.setOnClickListener {
             val code = inputCode.text.toString().trim()
             val newPassword = inputNewPassword.text.toString().trim()
             val confirmPassword = inputConfirmPassword.text.toString().trim()
+            val email = intent.getStringExtra("email") ?: ""
 
             // Validate inputs
             if (code.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
@@ -68,7 +70,7 @@ class ResetPasswordActivity : AppCompatActivity() {
 
             // Send request to the server
             val request = ResetPasswordRequest(email = email, code = code, newPassword = newPassword)
-            apiService.resetPassword(request).enqueue(object : Callback<ResponseMessage> {
+            apiServiceNoAuth.resetPassword(request).enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
                         Toast.makeText(this@ResetPasswordActivity, "Password reset successfully", Toast.LENGTH_SHORT).show()
@@ -86,7 +88,18 @@ class ResetPasswordActivity : AppCompatActivity() {
                 }
             })
         }
+    }
+    private fun setupViews() {
 
+        inputCode = findViewById(R.id.inputCode)
+        inputNewPassword = findViewById(R.id.inputPassword)
+        inputConfirmPassword = findViewById(R.id.inputRePassword)
+        buttonResetPassword = findViewById(R.id.buttonSubmit)
+    }
 
+    private fun initialize() {
+        prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(applicationContext)
+        apiServiceNoAuth = RetrofitClientNoAuth.apiService
     }
 }

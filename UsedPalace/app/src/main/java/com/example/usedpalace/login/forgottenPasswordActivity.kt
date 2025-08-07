@@ -1,6 +1,7 @@
 package com.example.usedpalace.login
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -10,7 +11,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
+import com.example.usedpalace.RetrofitClientNoAuth
 import com.example.usedpalace.requests.ForgotPasswordRequest
+import com.example.usedpalace.requests.ResetPasswordRequest
 import com.example.usedpalace.responses.ResponseMessage
 import network.ApiService
 import retrofit2.Call
@@ -20,6 +24,16 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class ForgottenPasswordActivity : AppCompatActivity() {
+    private lateinit var apiServiceNoAuth: ApiService
+    private lateinit var prefs: SharedPreferences
+
+    private lateinit var inputEmail: EditText
+    private lateinit var inputPhoneNumber: EditText
+
+    private lateinit var buttonBack :Button
+    private lateinit var buttonSendCode :Button
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -30,24 +44,18 @@ class ForgottenPasswordActivity : AppCompatActivity() {
             insets
         }
 
-        val buttonBack: Button = findViewById(R.id.buttonBack)
+        setupViews()
+        initialize()
+        setupClickListeners()
+
+    }
+
+
+    private fun setupClickListeners() {
         buttonBack.setOnClickListener {
             val intent = Intent(this, LogActivity::class.java)
             startActivity(intent)
         }
-
-        // Initialize Retrofit
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/") // Use 10.0.2.2 for localhost in Android emulator
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        val apiService = retrofit.create(ApiService::class.java)
-
-        // Find views
-        val inputEmail = findViewById<EditText>(R.id.inputEmail)
-        val inputPhoneNumber = findViewById<EditText>(R.id.inputPhoneNumber)
-        val buttonSendCode = findViewById<Button>(R.id.buttonSubmit)
 
         // Handle "Send Code" button click
         buttonSendCode.setOnClickListener {
@@ -62,7 +70,7 @@ class ForgottenPasswordActivity : AppCompatActivity() {
 
             // Send request to the server
             val request = ForgotPasswordRequest(email = email, phoneNumber = phoneNumber)
-            apiService.forgotPassword(request).enqueue(object : Callback<ResponseMessage> {
+            apiServiceNoAuth.forgotPassword(request).enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
                         Toast.makeText(this@ForgottenPasswordActivity, "Reset code sent to your email", Toast.LENGTH_SHORT).show()
@@ -83,6 +91,21 @@ class ForgottenPasswordActivity : AppCompatActivity() {
                 }
             })
         }
+    }
 
+    private fun setupViews() {
+
+        inputEmail = findViewById(R.id.inputEmail)
+        inputPhoneNumber = findViewById(R.id.inputPhoneNumber)
+        buttonSendCode = findViewById(R.id.buttonSubmit)
+
+
+        buttonBack = findViewById(R.id.buttonBack)
+    }
+
+    private fun initialize() {
+        prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(applicationContext)
+        apiServiceNoAuth = RetrofitClientNoAuth.apiService
     }
 }

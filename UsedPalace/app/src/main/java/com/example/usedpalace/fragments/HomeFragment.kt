@@ -78,7 +78,6 @@ class HomeFragment : Fragment() {
         return view
     }
 
-    //TODO retrofit
 
     private fun fetchSalesDataSearch(
         apiService: ApiService,
