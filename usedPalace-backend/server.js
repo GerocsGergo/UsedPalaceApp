@@ -10,6 +10,7 @@ const { v4: uuidv4 } = require('uuid'); //uuid library Generates unique identifi
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
+const WebSocket = require('ws');
 
 
 require('dotenv').config();
@@ -34,6 +35,8 @@ connection.connect((err) => {
     if (err) throw err;
     console.log('Connected to MySQL database!');
 });
+
+
 
 //Token ellenőrző
 const authenticateToken = async (req, res, next) => {

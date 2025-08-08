@@ -53,6 +53,8 @@ class LogActivity : AppCompatActivity() {
     private lateinit var btnForget :Button
     private lateinit var btnReg :Button
 
+    private lateinit var buttonTest :Button
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -245,6 +247,12 @@ class LogActivity : AppCompatActivity() {
                 }
             })
         }
+
+
+        buttonTest.setOnClickListener {
+            //val intent = Intent(this, chatTest::class.java)
+            //startActivity(intent)
+        }
     }
 
 
@@ -264,6 +272,8 @@ class LogActivity : AppCompatActivity() {
          btnLogout =  findViewById(R.id.buttonLogout)
          btnForget =  findViewById(R.id.buttonForget)
          btnReg =  findViewById(R.id.buttonReg)
+
+        buttonTest = findViewById(R.id.buttontest)
     }
 
     private fun initialize() {
