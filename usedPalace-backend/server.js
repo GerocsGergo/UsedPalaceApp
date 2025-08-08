@@ -1427,6 +1427,17 @@ app.put('/confirm-user-email-change', authenticateToken , async (req, res) => {
                 message: 'Invalid verification code'
             });
         }
+		
+		const [activeSessions] = await connection.promise().query(
+			`SELECT COUNT(*) AS count FROM sessions WHERE UserId = ? AND ExpiresAt > NOW()`,
+			[userId]
+		);
+
+		if (activeSessions[0].count > 1) {
+			return res.status(400).json({
+				error: 'More than 1 active session.'
+			});
+		}
 
         await connection.promise().query(
             'UPDATE Users SET Email = ? WHERE Uid = ?',
@@ -1558,6 +1569,17 @@ app.put('/confirm-password-change', authenticateToken , async (req, res) => {
         if (request.VerifyToken !== code) {
             return res.status(400).json({ message: 'Invalid verification code' });
         }
+		
+		const [activeSessions] = await connection.promise().query(
+			`SELECT COUNT(*) AS count FROM sessions WHERE UserId = ? AND ExpiresAt > NOW()`,
+			[userId]
+		);
+
+		if (activeSessions[0].count > 1) {
+			return res.status(400).json({
+				error: 'More than 1 active session.'
+			});
+		}
 
         //Use the stored hashed password directly
         await connection.promise().query(
@@ -1642,6 +1664,17 @@ app.put('/confirm-phoneNumber-change', authenticateToken , async (req, res) => {
 		if (!phoneRegex.test(phoneNumber)) {
 			return res.status(400).json({
 				message: "Phone number format invalid."
+			});
+		}
+		
+		const [activeSessions] = await connection.promise().query(
+			`SELECT COUNT(*) AS count FROM sessions WHERE UserId = ? AND ExpiresAt > NOW()`,
+			[userId]
+		);
+
+		if (activeSessions[0].count > 1) {
+			return res.status(400).json({
+				error: 'More than 1 active session.'
 			});
 		}
 
@@ -1781,6 +1814,17 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).json({ error: 'Invalid password' });
         }
+		
+		const [activeSessions] = await connection.promise().query(
+			`SELECT COUNT(*) AS count FROM sessions WHERE UserId = ? AND ExpiresAt > NOW()`,
+			[userId]
+		);
+
+		if (activeSessions[0].count > 1) {
+			return res.status(400).json({
+				error: 'More than 1 active session.'
+			});
+		}
 
 		//End
 		

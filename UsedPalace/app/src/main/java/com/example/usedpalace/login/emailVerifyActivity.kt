@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -31,7 +32,7 @@ class EmailVerifyActivity : AppCompatActivity() {
 
     private lateinit var inputCode: TextInputEditText
     private lateinit var buttonVerifyEmail: Button
-    private lateinit var mainLayout: ConstraintLayout
+    private lateinit var mainLayout: ScrollView
 
     private var code: String = "null"
     private var email: String? = "null"
