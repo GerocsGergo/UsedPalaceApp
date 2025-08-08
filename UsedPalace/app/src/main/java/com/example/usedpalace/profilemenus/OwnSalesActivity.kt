@@ -1,6 +1,7 @@
 package com.example.usedpalace.profilemenus
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,12 +13,15 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.viewpager2.widget.ViewPager2
 import com.example.usedpalace.requests.DeleteSaleRequest
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.profilemenus.forownsalesactivity.ModifySaleActivity
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.UserSession
@@ -31,6 +35,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class OwnSalesActivity : AppCompatActivity() {
+    private lateinit var apiService: ApiService
+    private lateinit var prefs: SharedPreferences
+
+    private lateinit var containerLayout: LinearLayout
+    private lateinit var buttonBack: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -40,24 +50,31 @@ class OwnSalesActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val buttonBack: Button = findViewById(R.id.buttonBack)
+
+        setupViews()
+        setupClickListeners()
+
+
+        initialize()
+        fetchSalesDataSearch(apiService, containerLayout)
+    }
+    private fun setupViews(){
+        buttonBack = findViewById(R.id.buttonBack)
+        containerLayout = findViewById(R.id.container)
+    }
+
+    private fun setupClickListeners(){
         buttonBack.setOnClickListener {
             navigateBackToProfile()
 
         }
-
-        val containerLayout = findViewById<LinearLayout>(R.id.container)
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/") // Use 10.0.2.2 for localhost in Android emulator
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        val apiService = retrofit.create(ApiService::class.java)
-
-        fetchSalesDataSearch(apiService, containerLayout)
     }
 
-
+    private fun initialize() {
+        prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(applicationContext)
+        apiService = RetrofitClient.apiService
+    }
 
     //TODO search for ID not product name OR FOR USER NAME?
     //Functions from HomeFragment.kt, but modified

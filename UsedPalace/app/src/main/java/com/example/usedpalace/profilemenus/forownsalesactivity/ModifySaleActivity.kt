@@ -1,6 +1,7 @@
 package com.example.usedpalace.profilemenus.forownsalesactivity
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -17,9 +18,14 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleManagerMethod
 import com.example.usedpalace.dataClasses.SaleWithEverything
 import com.example.usedpalace.UserSession
+import com.example.usedpalace.profilemenus.forprofileactivity.DeleteAccountActivity
+import com.example.usedpalace.profilemenus.forprofileactivity.ModifyEmailActivity
+import com.example.usedpalace.profilemenus.forprofileactivity.ModifyPasswordActivity
+import com.example.usedpalace.profilemenus.forprofileactivity.ModifyPhoneActivity
 import com.example.usedpalace.requests.ModifySaleRequest
 import com.example.usedpalace.requests.SearchRequestID
 import com.squareup.picasso.Picasso
@@ -35,6 +41,7 @@ class ModifySaleActivity : AppCompatActivity() {
 
     private lateinit var saleManagerMethod: SaleManagerMethod
     private lateinit var apiService: ApiService
+    private lateinit var prefs: SharedPreferences
     private var saleId: Int = -1
     private lateinit var imageUrl1: String
     private lateinit var imageUrl2: String
@@ -86,24 +93,29 @@ class ModifySaleActivity : AppCompatActivity() {
         }
 
 
-        // Initialize dependencies
-        apiService = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+        setupRetrofit()
         saleManagerMethod = SaleManagerMethod(this, apiService)
 
         setupUI()
         setupClickListeners()
+        setupViewItems()
+
+        fetchSalesDataSearch(apiService, saleId)
+
+    }
+
+    private fun setupViewItems(){
         imageView1 = findViewById(R.id.image1)
         imageView2 = findViewById(R.id.image2)
         imageView3 = findViewById(R.id.image3)
         imageView4 = findViewById(R.id.image4)
         imageView5 = findViewById(R.id.image5)
+    }
 
-        fetchSalesDataSearch(apiService, saleId)
-
+    private fun setupRetrofit(){
+        prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(applicationContext)
+        apiService = RetrofitClient.apiService
     }
 
     private fun getImageViewIndex(index: Int): ImageView = when(index) {

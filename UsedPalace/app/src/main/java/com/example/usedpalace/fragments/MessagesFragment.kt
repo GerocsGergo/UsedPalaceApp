@@ -1,6 +1,7 @@
 package com.example.usedpalace.fragments
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.inputmethodservice.AbstractInputMethodService.AbstractInputMethodImpl
 import android.os.Bundle
 import android.util.Log
@@ -12,8 +13,10 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import androidx.fragment.app.Fragment
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.fragments.messagesHelpers.ChatActivity
 import com.example.usedpalace.fragments.messagesHelpers.ChatHelper
@@ -32,6 +35,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MessagesFragment : Fragment() {
     private lateinit var apiService: ApiService
+    private lateinit var prefs: SharedPreferences
     private var userId: Int = -1
 
     private lateinit var allChats: Button
@@ -51,25 +55,25 @@ class MessagesFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_messages, container, false)
         val containerLayout = view.findViewById<LinearLayout>(R.id.container)
 
-        setupRetrofit()
-
-        allChats = view.findViewById(R.id.allChats)
-        deletedChats = view.findViewById(R.id.deletedChats)
-        activeChats  = view.findViewById(R.id.activeChats)
-
+        setupViews(view)
+        initialize()
         setupClickListeners(apiService, containerLayout, inflater)
         fetchChats(apiService, containerLayout, inflater, "activeChats")
 
         return view
     }
 
+    private fun setupViews(view: View) {
+        allChats = view.findViewById(R.id.allChats)
+        deletedChats = view.findViewById(R.id.deletedChats)
+        activeChats  = view.findViewById(R.id.activeChats)
+    }
 
-    private fun setupRetrofit() {
-        apiService = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+
+    private fun initialize() {
+        prefs = requireContext().getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(requireContext().applicationContext)
+        apiService = RetrofitClient.apiService
     }
 
     private fun setupClickListeners(apiService: ApiService, containerLayout: LinearLayout?, inflater: LayoutInflater) {

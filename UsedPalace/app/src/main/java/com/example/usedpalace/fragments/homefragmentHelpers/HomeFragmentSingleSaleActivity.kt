@@ -1,6 +1,7 @@
 package com.example.usedpalace.fragments.homefragmentHelpers
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -11,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
+import com.example.usedpalace.RetrofitClientNoAuth
 import com.example.usedpalace.dataClasses.SaleWithEverything
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.fragments.messagesHelpers.ChatActivity
@@ -27,6 +30,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class HomeFragmentSingleSaleActivity : AppCompatActivity() {
 
     private lateinit var apiService: ApiService
+    private lateinit var prefs: SharedPreferences
     private var saleId: Int = -1
     private var sellerId: Int = -1
     private var buyerId: Int = -1
@@ -48,7 +52,7 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         initializeViews()
-        setupRetrofit()
+        initialize()
         getIntentData()
 
         if (saleId != -1) {
@@ -158,12 +162,10 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
         messageButton = findViewById(R.id.messageButton)
     }
 
-    private fun setupRetrofit() {
-        apiService = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+    private fun initialize() {
+        prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(applicationContext)
+        apiService = RetrofitClient.apiService
     }
 
     private fun getIntentData() {

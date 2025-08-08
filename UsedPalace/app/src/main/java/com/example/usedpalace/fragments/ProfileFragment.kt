@@ -18,6 +18,14 @@ import com.example.usedpalace.profilemenus.SettingsActivity
 import com.example.usedpalace.profilemenus.SupportActivity
 
 class ProfileFragment : Fragment() {
+    private lateinit var buttonProfile: Button
+    private lateinit var buttonCreateSale: Button
+    private lateinit var buttonOwnSales: Button
+    private lateinit var buttonHelp: Button
+    private lateinit var buttonSettings: Button
+    private lateinit var buttonSupport: Button
+    private lateinit var buttonAbout: Button
+    private lateinit var buttonContacts: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,15 +40,26 @@ class ProfileFragment : Fragment() {
         // Inflate the layout for this fragment
         val view =  inflater.inflate(R.layout.fragment_profile, container, false)
 
-        val buttonProfile: Button = view.findViewById(R.id.profile)
-        val buttonCreateSale: Button = view.findViewById(R.id.createSale)
-        val buttonOwnSales: Button = view.findViewById(R.id.ownSales)
-        val buttonHelp: Button = view.findViewById(R.id.help)
-        val buttonSettings: Button = view.findViewById(R.id.settings)
-        val buttonSupport: Button = view.findViewById(R.id.support)
-        val buttonAbout: Button = view.findViewById(R.id.about)
-        val buttonContacts: Button = view.findViewById(R.id.contacts)
+        setupViews(view)
+        setupClickListeners()
 
+
+        return view
+    }
+
+    private fun setupViews(view: View) {
+
+        buttonProfile = view.findViewById(R.id.profile)
+        buttonCreateSale = view.findViewById(R.id.createSale)
+        buttonOwnSales = view.findViewById(R.id.ownSales)
+        buttonHelp = view.findViewById(R.id.help)
+        buttonSettings = view.findViewById(R.id.settings)
+        buttonSupport = view.findViewById(R.id.support)
+        buttonAbout = view.findViewById(R.id.about)
+        buttonContacts = view.findViewById(R.id.contacts)
+    }
+
+    private fun setupClickListeners() {
         buttonProfile.setOnClickListener {
             startActivity(Intent(requireActivity(), ProfileActivity::class.java))
         }
@@ -66,8 +85,6 @@ class ProfileFragment : Fragment() {
         buttonContacts.setOnClickListener {
             startActivity(Intent(requireActivity(), InformationActivity::class.java))
         }
-
-        return view
     }
 
 }

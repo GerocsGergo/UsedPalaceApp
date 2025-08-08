@@ -1,5 +1,6 @@
 package com.example.usedpalace.profilemenus.forownsalesactivity
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -8,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithEverything
 import com.example.usedpalace.fragments.homefragmentHelpers.ImageSliderAdapter
 import com.example.usedpalace.requests.SearchRequestID
@@ -22,6 +24,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class OpenSaleActivity : AppCompatActivity() {
 
     private lateinit var apiService: ApiService
+    private lateinit var prefs: SharedPreferences
     private var saleId: Int = -1
 
     // Views
@@ -66,11 +69,9 @@ class OpenSaleActivity : AppCompatActivity() {
     }
 
     private fun setupRetrofit() {
-        apiService = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+        prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(applicationContext)
+        apiService = RetrofitClient.apiService
     }
 
     private fun getIntentData() {

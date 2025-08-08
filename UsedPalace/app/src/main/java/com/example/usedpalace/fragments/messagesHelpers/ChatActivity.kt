@@ -1,5 +1,6 @@
 package com.example.usedpalace.fragments.messagesHelpers
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -21,6 +22,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.fragments.messagesHelpers.Requests.SendMessageRequest
 import com.example.usedpalace.requests.SearchRequestID
@@ -38,6 +40,7 @@ import java.util.Date
 class ChatActivity : AppCompatActivity() {
 
     private lateinit var apiService: ApiService
+    private lateinit var prefs: SharedPreferences
     //private lateinit var webSocketClient: ChatWebSocketClient
 
     private var chatId: Int = -1
@@ -255,11 +258,9 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun setupRetrofit() {
-        apiService = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+        prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(applicationContext)
+        apiService = RetrofitClient.apiService
     }
 
     private fun getIntentData() {

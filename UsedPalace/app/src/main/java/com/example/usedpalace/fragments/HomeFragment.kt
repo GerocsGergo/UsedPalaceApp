@@ -1,16 +1,19 @@
 package com.example.usedpalace.fragments
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import androidx.fragment.app.Fragment
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
@@ -28,22 +31,56 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 
 class HomeFragment : Fragment() {
+    private lateinit var apiService: ApiService
+    private lateinit var prefs: SharedPreferences
+
+    private lateinit var containerLayout: LinearLayout
+
+    private lateinit var exampleText: TextView
+
+    private lateinit var searchView: SearchView
+
+    private lateinit var clearButton :Button
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
-        val containerLayout = view.findViewById<LinearLayout>(R.id.productList)
 
-        val apiService = RetrofitClient.apiService
+        setupViews(view)
+        initialize()
+        setupClickListeners(inflater)
 
+        //val containerLayout = view.findViewById<LinearLayout>(R.id.productList)
         fetchSalesData(apiService, containerLayout, inflater)
 
-        val clearButton = view.findViewById<Button>(R.id.clearSearchButton)
-        val exampleText = view.findViewById<TextView>(R.id.forExample)
-        val searchView = view.findViewById<SearchView>(R.id.searchBar)
+        //val clearButton = view.findViewById<Button>(R.id.clearSearchButton)
+        //val exampleText = view.findViewById<TextView>(R.id.forExample)
+        //val searchView = view.findViewById<SearchView>(R.id.searchBar)
 
+
+
+
+
+        return view
+    }
+
+    private fun setupViews(view: View) {
+        containerLayout = view.findViewById(R.id.productList)
+        clearButton = view.findViewById(R.id.clearSearchButton)
+        exampleText = view.findViewById(R.id.forExample)
+        searchView = view.findViewById(R.id.searchBar)
+    }
+
+    private fun initialize() {
+        prefs = requireContext().getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(requireContext().applicationContext)
+        apiService = RetrofitClient.apiService
+    }
+
+    private fun setupClickListeners(inflater: LayoutInflater) {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 if (query.isNotEmpty()) {
@@ -74,8 +111,6 @@ class HomeFragment : Fragment() {
             clearButton.visibility = View.GONE
             exampleText.visibility = View.VISIBLE
         }
-
-        return view
     }
 
 

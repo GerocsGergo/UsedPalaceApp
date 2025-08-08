@@ -1,6 +1,7 @@
 package com.example.usedpalace.profilemenus
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
@@ -9,6 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.profilemenus.forprofileactivity.DeleteAccountActivity
 import com.example.usedpalace.profilemenus.forprofileactivity.ModifyEmailActivity
 import com.example.usedpalace.profilemenus.forprofileactivity.ModifyPasswordActivity
@@ -26,6 +28,7 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var buttonDeleteUser: Button
 
     private lateinit var apiService: ApiService
+    private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,12 +92,9 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setupRetrofit(){
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        apiService = retrofit.create(ApiService::class.java)
+        prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(applicationContext)
+        apiService = RetrofitClient.apiService
     }
 
     private fun navigateBackToProfile() {

@@ -1,6 +1,7 @@
 package com.example.usedpalace.profilemenus
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
@@ -14,6 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
+import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleManagerMethod
 import com.example.usedpalace.UserSession
 import network.ApiService
@@ -24,6 +26,7 @@ class CreateSaleActivity : AppCompatActivity() {
 
     private lateinit var saleManagerMethod: SaleManagerMethod
     private lateinit var apiService: ApiService
+    private lateinit var prefs: SharedPreferences
 
     // Image URIs
     private val imageUris = mutableListOf<Uri?>().apply {
@@ -74,16 +77,17 @@ class CreateSaleActivity : AppCompatActivity() {
             insets
         }
 
-        // Initialize dependencies
-        apiService = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:3000/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+        initialize()
         saleManagerMethod = SaleManagerMethod(this, apiService)
 
         setupUI()
         setupClickListeners()
+    }
+
+    private fun initialize() {
+        prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(applicationContext)
+        apiService = RetrofitClient.apiService
     }
 
     private fun setupUI() {
