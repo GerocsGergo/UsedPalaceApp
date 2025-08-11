@@ -144,6 +144,13 @@ class LogActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        buttonVerifyEmail.setOnClickListener {
+            Log.d("LoginActivity", "Email verify button clicked")
+            Toast.makeText(this, "Email verify clicked", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, EmailVerifyActivity::class.java)
+            startActivity(intent)
+        }
+
         btnForget.setOnClickListener {
             val intent = Intent(this, ForgottenPasswordActivity::class.java)
             startActivity(intent)
@@ -178,18 +185,6 @@ class LogActivity : AppCompatActivity() {
                 clearSessionAndGoToLogin()
             }
         }
-
-
-
-        buttonVerifyEmail.setOnClickListener {
-            Log.d("LoginActivity", "Email verify button clicked")
-            Toast.makeText(this, "Email verify clicked", Toast.LENGTH_SHORT).show()
-            val intent = Intent(this, EmailVerifyActivity::class.java)
-            startActivity(intent)
-        }
-
-
-
 
         btnLogin.setOnClickListener {
             val email = inputEmail.text.toString().trim()

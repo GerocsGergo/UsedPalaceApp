@@ -49,12 +49,12 @@ class ChatActivity : AppCompatActivity() {
             insets
         }
 
+        setupWebSocket()
         setupRetrofit()
         initializeViews()
         getIntentData()
         setupToolbar(toolbarUsername)
         initializeMessages()
-        setupWebSocket()
         setupSendButton()
     }
 
@@ -114,27 +114,9 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun initializeMessages() {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = apiService.getChatMessages(SearchRequestID(chatId))
-                if (response.success) {
-                    val messages = response.data
-                    withContext(Dispatchers.Main) {
-                        messageAdapter.updateMessages(messages)
-                        messagesRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        showErrorMessage("Failed to load messages: ${response.message}")
-                    }
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    showErrorMessage("Network error: ${e.message}")
-                }
-            }
-        }
+        webSocketClient.requestMessages()
     }
+
 
     private fun setupWebSocket() {
         webSocketClient = ChatWebSocketClient(chatId,
@@ -144,11 +126,18 @@ class ChatActivity : AppCompatActivity() {
                     messagesRecyclerView.smoothScrollToPosition(messageAdapter.itemCount - 1)
                 }
             },
+            onMessagesReceived = { messages ->
+                runOnUiThread {
+                    messageAdapter.updateMessages(messages)
+                    messagesRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
+                }
+            },
             onError = { error ->
                 runOnUiThread {
                     Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
                 }
-            })
+            }
+        )
         webSocketClient.connect()
     }
 

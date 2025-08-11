@@ -69,8 +69,8 @@ interface ApiService {
     @POST("forgot-password")
     fun forgotPassword(@Body request: ForgotPasswordRequest): Call<ResponseMessage>
 
-    @POST("reset-password")
-    fun resetPassword(@Body request: ResetPasswordRequest): Call<ResponseMessage>
+    @POST("confirm-forgot-password")
+    fun confirmPasswordReset(@Body request: ResetPasswordRequest): Call<ResponseMessage>
 
     @POST("send-verify-email")
     fun sendVerifyEmail(@Body request: EmailVerificationRequest): Call<ResponseMessage>
@@ -127,12 +127,6 @@ interface ApiService {
 
     @POST("search-username")
     suspend fun searchUsername(@Body request: SearchRequestID): UsernameResponse
-
-    @POST("get-chat-messages")
-    suspend fun getChatMessages(@Body request: SearchRequestID): ChatResponse
-
-    @POST("send-message")
-    suspend fun sendMessage(@Body request: SendMessageRequest): MessageResponse
 
 
     //Profil menu

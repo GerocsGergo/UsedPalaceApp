@@ -67,7 +67,7 @@ class ResetPasswordActivity : AppCompatActivity() {
 
             // Send request to the server
             val request = ResetPasswordRequest(email = email, code = code, newPassword = newPassword)
-            apiServiceNoAuth.resetPassword(request).enqueue(object : Callback<ResponseMessage> {
+            apiServiceNoAuth.confirmPasswordReset(request).enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
                         Toast.makeText(this@ResetPasswordActivity, "Password reset successfully", Toast.LENGTH_SHORT).show()

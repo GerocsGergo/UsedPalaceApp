@@ -84,9 +84,13 @@ const generateUniqueCode = async () => {
     let isUnique = false;
 
     while (!isUnique) {
+        // 6 jegyű véletlen szám
         code = Math.floor(100000 + Math.random() * 900000).toString();
-        const query = 'SELECT * FROM Users WHERE ForgetToken = ?';
+
+        // Új tábla ellenőrzése
+        const query = 'SELECT * FROM ForgotPasswordRequests WHERE VerifyToken = ?';
         const [results] = await connection.promise().query(query, [code]);
+
         if (results.length === 0) {
             isUnique = true;
         }
@@ -95,44 +99,48 @@ const generateUniqueCode = async () => {
     return code;
 };
 
-// Request password reset
+// Request forgot password
 app.post('/forgot-password', async (req, res) => {
     try {
         const { email, phoneNumber } = req.body;
-        console.log('Received forgot-password request:', req.body);
-		
-		if (!email || !phoneNumber){
-		return res.status(400).json({ error: 'Somefields are empty!' });
-		}
-		
-		if (!validator.isEmail(email)) {
-        return res.status(400).json({ error: 'Invalid email address.' });
-		}
-		
-		if (phoneNumber.trim().length != 11) {
-        return res.status(400).json({ error: 'Phone number format invalid.' });
-		}
-	
-		const phoneRegex = /^06\d{9}$/;
-		if (!phoneRegex.test(phoneNumber)) {
-			return res.status(400).json({
-			message: "Phone number format invalid."
-			});
-		}
 
-        const query = 'SELECT * FROM Users WHERE Email = ? AND PhoneNumber = ?';
-        const [results] = await connection.promise().query(query, [email, phoneNumber]);
+        if (!email || !phoneNumber) {
+            return res.status(400).json({ error: 'Some fields are empty!' });
+        }
 
-        if (results.length === 0) {
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email address.' });
+        }
+
+        if (phoneNumber.trim().length !== 11) {
+            return res.status(400).json({ error: 'Phone number format invalid.' });
+        }
+
+        const phoneRegex = /^06\d{9}$/;
+        if (!phoneRegex.test(phoneNumber)) {
+            return res.status(400).json({ error: 'Phone number format invalid.' });
+        }
+
+        // Find user
+        const [users] = await connection.promise().query(
+            'SELECT * FROM Users WHERE Email = ? AND PhoneNumber = ?',
+            [email, phoneNumber]
+        );
+
+        if (users.length === 0) {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const user = results[0];
-        const code = await generateUniqueCode();
+        const user = users[0];
+        const code = await generateUniqueCode(); // Pl. random 6 számjegy
 
-        const updateQuery = 'UPDATE Users SET ForgetToken = ? WHERE Uid = ?';
-        await connection.promise().query(updateQuery, [code, user.Uid]);
+        // Insert into ForgotPasswordRequests
+        await connection.promise().query(
+            'INSERT INTO ForgotPasswordRequests (Uid, VerifyToken) VALUES (?, ?)',
+            [user.Uid, code]
+        );
 
+        // Send email
         const mailOptions = {
             from: 'filmbeadando2024@gmail.com',
             to: email,
@@ -140,60 +148,76 @@ app.post('/forgot-password', async (req, res) => {
             text: `Your password reset code is: ${code}`
         };
 
-        transporter.sendMail(mailOptions, (err, info) => {
+        transporter.sendMail(mailOptions, (err) => {
             if (err) {
                 console.error('Error sending email:', err);
                 return res.status(500).json({ error: 'Failed to send email' });
             }
             res.json({ message: 'Reset code sent to your email' });
         });
+
     } catch (err) {
         console.error('Error in /forgot-password:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// Reset password
-app.post('/reset-password', async (req, res) => {
+
+// Confirm forgot password
+app.post('/confirm-forgot-password', async (req, res) => {
     try {
         const { email, code, newPassword } = req.body;
-        console.log('Received reset-password request:', email);
-		
-		if (!email || !newPassword){
-		return res.status(400).json({ error: 'Somefields are empty!' });
-		}
-		
-		if (!validator.isEmail(email)) {
-        return res.status(400).json({ error: 'Invalid email address.' });
-		}
-		
-		if (newPassword.trim().length < 8) {
-			return res.status(400).json({ error: 'Password must be atleast 8 characters.' });
-		}
-	
-		const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-		if (!passwordRegex.test(newPassword)) {
-			return res.status(400).json({ 
-				error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
-			});
-		}
 
-        const query = 'SELECT * FROM Users WHERE Email = ? AND ForgetToken = ?';
-        const [results] = await connection.promise().query(query, [email, code]);
+        if (!email || !code || !newPassword) {
+            return res.status(400).json({ error: 'Some fields are empty!' });
+        }
+
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email address.' });
+        }
+
+        if (newPassword.trim().length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({
+                error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+            });
+        }
+
+        // Find request and user
+        const [results] = await connection.promise().query(`
+            SELECT u.Uid FROM Users u
+            JOIN ForgotPasswordRequests fpr ON u.Uid = fpr.Uid
+            WHERE u.Email = ? AND fpr.VerifyToken = ?`,
+            [email, code]
+        );
 
         if (results.length === 0) {
             return res.status(400).json({ error: 'Invalid or expired code' });
         }
 
-        const user = results[0];
+        const userId = results[0].Uid;
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        const updateQuery = 'UPDATE Users SET PassHashed = ?, ForgetToken = NULL WHERE Uid = ?';
-        await connection.promise().query(updateQuery, [hashedPassword, user.Uid]);
+        // Update password
+        await connection.promise().query(
+            'UPDATE Users SET PassHashed = ? WHERE Uid = ?',
+            [hashedPassword, userId]
+        );
+
+        // Delete request row
+        await connection.promise().query(
+            'DELETE FROM ForgotPasswordRequests WHERE Uid = ?',
+            [userId]
+        );
 
         res.json({ message: 'Password reset successfully' });
+
     } catch (err) {
-        console.error('Error in /reset-password:', err);
+        console.error('Error in /confirm-forgot-password:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -398,64 +422,98 @@ const generateUniqueCode2 = async () => {
 };
 
 
-// Send Verification email
+// Send Verification Email
 app.post('/send-verify-email', async (req, res) => {
     try {
         const { email } = req.body;
         console.log('Received send-verify-email request:', email);
-		
-		if (!validator.isEmail(email)) {
-			return res.status(400).json({ error: 'Invalid email address.' });
-		}
-     
-        const code = await generateUniqueCode2();
-    
-        const updateQuery = 'UPDATE Users SET VerifyToken = ? WHERE Email = ?';
-        await connection.promise().query(updateQuery, [code, email]);
- 
+
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email address.' });
+        }
+
+        // Check if user exists
+        const [users] = await connection.promise().query(
+            'SELECT Uid FROM Users WHERE Email = ?',
+            [email]
+        );
+        if (users.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userId = users[0].Uid;
+
+        // Generate token
+        const code = await generateUniqueCode();
+
+        // Insert into VerifyEmailRequests
+        await connection.promise().query(
+            'INSERT INTO VerifyEmailRequests (Uid, VerifyToken) VALUES (?, ?)',
+            [userId, code]
+        );
+
+        // Send email
         const mailOptions = {
             from: 'filmbeadando2024@gmail.com',
             to: email,
-            subject: 'Email verification UsedPalace',
+            subject: 'Email verification - UsedPalace',
             text: `Your email verification code is: ${code}`
         };
 
-        transporter.sendMail(mailOptions, (err, info) => {
+        transporter.sendMail(mailOptions, (err) => {
             if (err) {
                 console.error('Error sending email:', err);
                 return res.status(500).json({ error: 'Failed to send email' });
             }
             res.json({ message: 'Verification code sent to your email' });
         });
+
     } catch (err) {
         console.error('Error in /send-verify-email:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
+
 // Verify Email
 app.post('/verify-email', async (req, res) => {
     try {
         const { email, code } = req.body;
         console.log('Received verify-email request:', email);
-		
-		if (!validator.isEmail(email)) {
-			return res.status(400).json({ error: 'Invalid email address.' });
-		}
 
-        const query = 'SELECT * FROM Users WHERE Email = ? AND VerifyToken = ?';
-        const [results] = await connection.promise().query(query, [email, code]);
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email address.' });
+        }
+
+        // Find user + matching token
+        const [results] = await connection.promise().query(`
+            SELECT u.Uid 
+            FROM Users u
+            JOIN VerifyEmailRequests ver ON u.Uid = ver.Uid
+            WHERE u.Email = ? AND ver.VerifyToken = ?`,
+            [email, code]
+        );
 
         if (results.length === 0) {
             return res.status(400).json({ error: 'Invalid or expired verification code' });
         }
 
-        const user = results[0];
+        const userId = results[0].Uid;
 
-        const updateQuery = 'UPDATE Users SET Verified = TRUE, VerifyToken = NULL WHERE Uid = ?';
-        await connection.promise().query(updateQuery, [user.Uid]);
+        // Update user verified status
+        await connection.promise().query(
+            'UPDATE Users SET Verified = TRUE WHERE Uid = ?',
+            [userId]
+        );
+
+        // Delete the verification request
+        await connection.promise().query(
+            'DELETE FROM VerifyEmailRequests WHERE Uid = ?',
+            [userId]
+        );
 
         res.json({ message: 'Email verified successfully' });
+
     } catch (err) {
         console.error('Error in /verify-email:', err);
         res.status(500).json({ error: 'Internal server error' });
@@ -896,30 +954,6 @@ app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
     }
 });
 
-// Configure storage for uploaded files
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const saleFolder = req.body.saleFolder;
-        if (!saleFolder) {
-            return cb(new Error('Sale folder is required'));
-        }
-        
-        const uploadDir = path.join('sales', saleFolder);
-        
-        // Create directory if it doesn't exist
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const imageIndex = req.body.imageIndex || '1';
-        const ext = path.extname(file.originalname) || '.jpg';
-        const filename = `image${imageIndex}${ext}`;
-        cb(null, filename);
-    }
-});
 
 // File filter to only accept images
 const fileFilter = (req, file, cb) => {
@@ -930,57 +964,64 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-// Initialize multer with configuration
-const upload = multer({ 
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB file size limit
+
+const MAX_IMAGES = 5; // max feltölthető képek száma
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const saleFolder = req.body.saleFolder;
+        if (!saleFolder) return cb(new Error('Sale folder is required'));
+        
+        const uploadDir = path.join('sales', saleFolder);
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        // Generáljunk egyedi nevet, pl. időbélyeg + eredeti kiterjesztés
+        const ext = path.extname(file.originalname);
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, `image-${uniqueSuffix}${ext}`);
     }
 });
 
-app.post('/image-uploader', upload.single('image'), async (req, res) => {
+
+// Initialize multer with configuration
+const upload = multer({
+    storage,
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) cb(null, true);
+        else cb(new Error('Only image files are allowed!'), false);
+    },
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB/file
+});
+
+app.post('/upload-images', authenticateToken, upload.array('images', MAX_IMAGES), (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                message: "No file uploaded or invalid file type"
-            });
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ success: false, message: 'No images uploaded' });
         }
 
-        const { saleFolder, imageIndex } = req.body;
-        
-        if (!saleFolder) {
-            // Clean up the uploaded file if there's an error
-            fs.unlinkSync(req.file.path);
-            return res.status(400).json({
-                success: false,
-                message: "Sale folder is required"
-            });
+        if (req.files.length > MAX_IMAGES) {
+            // Ez elvileg multer már lekezeli, de extra biztonság
+            return res.status(400).json({ success: false, message: `Maximum ${MAX_IMAGES} images allowed` });
         }
+
+        // Visszaadjuk a feltöltött képek nevét és elérési útját
+        const uploadedFiles = req.files.map(file => ({
+            filename: file.filename,
+            path: file.path
+        }));
 
         res.json({
             success: true,
-            message: "Image uploaded successfully",
-            filename: req.file.filename,
-            path: req.file.path,
-            saleFolder: saleFolder,
-            imageIndex: imageIndex
+            message: 'Images uploaded successfully',
+            files: uploadedFiles
         });
 
-    } catch (err) {
-        console.error('Error in /image-uploader:', err);
-        
-        // Clean up any uploaded file if error occurred
-        if (req.file?.path && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
-        
-        res.status(500).json({
-            success: false,
-            message: "Server error during image upload",
-            error: err.message
-        });
+    } catch (error) {
+        console.error('Error uploading images:', error);
+        res.status(500).json({ success: false, message: 'Server error during image upload' });
     }
 });
 
@@ -1384,7 +1425,7 @@ app.post('/request-user-email-change', authenticateToken , async (req, res) => {
         }
 	
 
-        const code = await generateUniqueCode2();
+        const code = await generateUniqueCode();
 
         const insertQuery = `
             INSERT INTO EmailChangeRequests (Uid, NewEmail, VerifyToken)
@@ -1548,7 +1589,7 @@ app.post('/request-password-change', authenticateToken , async (req, res) => {
 				return res.status(400).json({ message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.' });
 		}
 
-        const code = await generateUniqueCode2();
+        const code = await generateUniqueCode();
 
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
@@ -1772,7 +1813,7 @@ app.post('/request-delete-user', authenticateToken , async (req, res) => {
 		
 		const user = results[0];
 		
-		const code = await generateUniqueCode2();
+		const code = await generateUniqueCode();
 		
 		const insertQuery = `
             INSERT INTO DeleteAccountRequests  (Uid, Code)
@@ -1907,4 +1948,6 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
+
+
 

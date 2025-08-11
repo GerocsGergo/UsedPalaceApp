@@ -19,13 +19,9 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
-import com.example.usedpalace.dataClasses.SaleManagerMethod
+import com.example.usedpalace.SaleManagerMethod
 import com.example.usedpalace.dataClasses.SaleWithEverything
 import com.example.usedpalace.UserSession
-import com.example.usedpalace.profilemenus.forprofileactivity.DeleteAccountActivity
-import com.example.usedpalace.profilemenus.forprofileactivity.ModifyEmailActivity
-import com.example.usedpalace.profilemenus.forprofileactivity.ModifyPasswordActivity
-import com.example.usedpalace.profilemenus.forprofileactivity.ModifyPhoneActivity
 import com.example.usedpalace.requests.ModifySaleRequest
 import com.example.usedpalace.requests.SearchRequestID
 import com.squareup.picasso.Picasso
@@ -34,8 +30,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import network.ApiService
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class ModifySaleActivity : AppCompatActivity() {
 

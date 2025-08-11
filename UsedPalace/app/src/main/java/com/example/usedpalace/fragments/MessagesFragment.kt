@@ -41,6 +41,7 @@ class MessagesFragment : Fragment() {
     private lateinit var allChats: Button
     private lateinit var deletedChats: Button
     private lateinit var activeChats: Button
+    private val baseImageUrl = "http://10.224.83.75:3000"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,7 +151,9 @@ class MessagesFragment : Fragment() {
                                 itemView.findViewById<TextView>(R.id.product_name).text = activeSale.data.Name
 
                                 val folderName = activeSale.data.SaleFolder
-                                val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
+                                //val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
+                                val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
+
                                 val imageView: ImageView = itemView.findViewById(R.id.image1)
                                 Picasso.get()
                                     .load(imageUrl)
@@ -222,7 +225,9 @@ class MessagesFragment : Fragment() {
                             itemView.findViewById<TextView>(R.id.product_name).text = sale.data.Name
 
                             val folderName = sale.data.SaleFolder
-                            val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
+                            //val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
+                            val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
+
                             val imageView: ImageView = itemView.findViewById(R.id.image1)
                             Picasso.get()
                                 .load(imageUrl)
@@ -292,7 +297,9 @@ class MessagesFragment : Fragment() {
                             itemView.findViewById<TextView>(R.id.product_name).text = sale.data.Name
 
                             val folderName = sale.data.SaleFolder
-                            val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
+                            //val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
+                            val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
+
                             val imageView: ImageView = itemView.findViewById(R.id.image1)
                             Picasso.get()
                                 .load(imageUrl)

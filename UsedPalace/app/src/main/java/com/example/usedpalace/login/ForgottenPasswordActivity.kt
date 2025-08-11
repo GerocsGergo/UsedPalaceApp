@@ -59,6 +59,11 @@ class ForgottenPasswordActivity : AppCompatActivity() {
             val email = inputEmail.text.toString().trim()
             val phoneNumber = inputPhoneNumber.text.toString().trim()
 
+            if (!phoneNumber.matches(Regex("^06\\d{9}$"))) {
+                Toast.makeText(this, "Invalid phone number format", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             // Validate inputs
             if (email.isEmpty() || phoneNumber.isEmpty()) {
                 Toast.makeText(this, "Please enter both email and phone number", Toast.LENGTH_SHORT).show()

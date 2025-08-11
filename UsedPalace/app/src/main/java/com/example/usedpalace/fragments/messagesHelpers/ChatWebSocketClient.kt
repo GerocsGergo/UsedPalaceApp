@@ -9,6 +9,7 @@ import org.json.JSONObject
 class ChatWebSocketClient(
     private val chatId: Int,
     private val onMessageReceived: (MessageWithEverything) -> Unit,
+    private val onMessagesReceived: (List<MessageWithEverything>) -> Unit,
     private val onError: (String) -> Unit
 ) : WebSocketListener() {
 
@@ -17,7 +18,10 @@ class ChatWebSocketClient(
 
     fun connect() {
         val request = Request.Builder()
-            .url("ws://yourserver:8080") // cseréld a saját websocket URL-re
+            //.url("ws://10.0.2.2:8080")
+            .url("ws://10.224.83.75:8080")
+
+            // cseréld a saját websocket URL-re
             .build()
         webSocket = client.newWebSocket(request, this)
 
@@ -39,23 +43,50 @@ class ChatWebSocketClient(
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
-        // parse JSON üzenet a szervertől, például új üzenet érkezett
         try {
             val json = JSONObject(text)
-            if (json.getString("type") == "new-message") {
-                val message = MessageWithEverything(
-                    messageId = json.getInt("messageId"),
-                    chatId = json.getInt("chatId"),
-                    senderId = json.getInt("senderId"),
-                    content = json.getString("content"),
-                    sentAt = json.getString("sentAt")
-                )
-                onMessageReceived(message)
+            when (val type = json.getString("type")) {
+                "new-message" -> {
+                    val message = MessageWithEverything(
+                        messageId = json.getInt("messageId"),
+                        chatId = json.getInt("chatId"),
+                        senderId = json.getInt("senderId"),
+                        content = json.getString("content"),
+                        sentAt = json.getString("sentAt")
+                    )
+                    onMessageReceived(message)
+                }
+                "chat-messages" -> {
+                    // Ez a teljes chat üzenet lista
+                    val messagesJsonArray = json.getJSONArray("messages")
+                    val messagesList = mutableListOf<MessageWithEverything>()
+
+                    for (i in 0 until messagesJsonArray.length()) {
+                        val msgObj = messagesJsonArray.getJSONObject(i)
+                        val message = MessageWithEverything(
+                            messageId = msgObj.getInt("MessageID"),
+                            chatId = msgObj.getInt("ChatID"),
+                            senderId = msgObj.getInt("SenderID"),
+                            content = msgObj.getString("Content"),
+                            sentAt = msgObj.getString("SentAt")
+                        )
+                        messagesList.add(message)
+                    }
+
+                    // Egy külön callback-et vagy az onMessageReceived-t is használhatod, ha átírod,
+                    // vagy például készíthetsz egy új callback-et az összes üzenet kezelésére.
+
+                    onMessagesReceived(messagesList)
+                }
+                else -> {
+                    // Egyéb esetek (info, error stb.)
+                }
             }
         } catch (e: Exception) {
             onError("Invalid message format: ${e.message}")
         }
     }
+
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: okhttp3.Response?) {
         onError("WebSocket failure: ${t.message}")
@@ -65,4 +96,10 @@ class ChatWebSocketClient(
         webSocket.close(1000, "Closing")
         client.dispatcher.executorService.shutdown()
     }
+
+    fun requestMessages() {
+        val msgJson = """{"type":"get-messages", "chatId":$chatId}"""
+        webSocket.send(msgJson)
+    }
+
 }

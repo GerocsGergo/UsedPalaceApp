@@ -3,6 +3,8 @@ package com.example.usedpalace.login
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.ScrollView
 import android.widget.TextView
@@ -11,12 +13,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.RetrofitClientNoAuth
+import com.example.usedpalace.UserSession
 import com.example.usedpalace.requests.EmailVerificationWithCodeRequest
 import com.example.usedpalace.responses.ResponseMessage
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
@@ -28,7 +33,12 @@ class EmailVerifyActivity : AppCompatActivity() {
 
     private lateinit var inputCode: TextInputEditText
     private lateinit var buttonVerifyEmail: Button
+    private lateinit var bactToLogin: Button
     private lateinit var mainLayout: ScrollView
+
+    private lateinit var inputEmail: TextInputEditText
+    private lateinit var inputEmailLayout: TextInputLayout
+    private lateinit var emailLabel: TextView
 
     private var code: String = "null"
     private var email: String? = "null"
@@ -84,20 +94,38 @@ class EmailVerifyActivity : AppCompatActivity() {
         mainLayout = findViewById(R.id.main)
         inputCode = findViewById(R.id.inputCode)
         buttonVerifyEmail = findViewById(R.id.buttonSubmit)
+        inputEmail = findViewById(R.id.inputEmail)
+        inputEmailLayout = findViewById(R.id.inputEmailLayout)
+        emailLabel = findViewById(R.id.emailLabel)
+        bactToLogin = findViewById(R.id.buttonBackToLogin)
     }
 
     private fun getIntentData() {
         email = intent.getStringExtra("email") ?: ""
 
-        if (email.isNullOrEmpty()){
-            showErrorMessage("Could not get email")
-            finish()
+        if (email.isNullOrEmpty()) {
+            emailLabel.visibility = View.VISIBLE
+            inputEmailLayout.visibility = View.VISIBLE
         }
     }
 
     private fun setupButtons() {
         buttonVerifyEmail.setOnClickListener {
-            email?.let { it1 -> verifyEmail(it1) }
+            if (email.isNullOrEmpty()) {
+                email = inputEmail.text.toString().trim()
+            }
+
+            if (email.isNullOrEmpty()) {
+                Toast.makeText(this, "Kérjük, add meg az email címet", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            email?.let { verifyEmail(it) }
+        }
+
+        bactToLogin.setOnClickListener {
+            val intent = Intent(this, LogActivity::class.java)
+            startActivity(intent)
         }
     }
 

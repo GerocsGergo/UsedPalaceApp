@@ -33,6 +33,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class HomeFragment : Fragment() {
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
+    private val baseImageUrl = "http://10.224.83.75:3000"
 
     private lateinit var containerLayout: LinearLayout
 
@@ -176,7 +177,9 @@ class HomeFragment : Fragment() {
                 itemView.findViewById<TextView>(R.id.productPrice).text = "${sale.Cost} Ft"
                 itemView.findViewById<TextView>(R.id.productDescription).text = sale.Description
 
-                val imageUrl = "http://10.0.2.2:3000/${sale.SaleFolder}/image1.jpg"
+                //val imageUrl = "http://10.0.2.2:3000/${sale.SaleFolder}/image1.jpg"
+                val imageUrl = "$baseImageUrl/${sale.SaleFolder}/image1.jpg" // Adjust the image path
+
                 val imageView: ImageView = itemView.findViewById(R.id.productImage)
                 Picasso.get()
                     .load(imageUrl)
@@ -213,7 +216,8 @@ class HomeFragment : Fragment() {
                         itemView.findViewById<TextView>(R.id.productDescription).text = sale.Description
 
                         // Load the first image from the SaleFolder
-                        val imageUrl = "http://10.0.2.2:3000/${sale.SaleFolder}/image1.jpg" // Adjust the image path
+                        //val imageUrl = "http://10.0.2.2:3000/${sale.SaleFolder}/image1.jpg"
+                        val imageUrl = "$baseImageUrl/${sale.SaleFolder}/image1.jpg" // Adjust the image path
                         val itemImageView = itemView.findViewById<ImageView>(R.id.productImage) //.setImageBitmap(myBitmap)
 
                         Picasso.get()

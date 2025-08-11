@@ -1,4 +1,4 @@
-package com.example.usedpalace.dataClasses
+package com.example.usedpalace
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -13,11 +13,8 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
-import com.example.usedpalace.R
-import com.example.usedpalace.requests.CreateSaleRequest
 import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.responses.ResponseMessage
-import com.example.usedpalace.responses.ResponseMessageWithFolder
 import network.ApiService
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -116,49 +113,7 @@ class SaleManagerMethod(private val context: Context, private val apiService: Ap
     //endregion
 
     //region Image Upload
-    // Modify the uploadSaleImages method
-    fun uploadSaleImages(saleFolder: String, vararg imageViews: ImageView) {
-        imageViews.forEachIndexed { index, imageView ->
-            when {
-                imageView.tag is Uri -> {
-                    // Upload selected image
-                    uploadSingleImage(saleFolder, imageView, index + 1)
-                }
-                isDefaultImage(imageView) -> {
-                    // Upload default image for unselected slots
-//                   uploadDefaultImage(saleFolder, index + 1)
-                }
-                else -> {
-                    // Fallback - upload default image
-//                    uploadDefaultImage(saleFolder, index + 1)
-                }
-            }
-        }
-    }
 
-    private fun uploadDefaultImage(saleFolder: String, imageIndex: Int) {
-        try {
-            val defaultDrawable = ContextCompat.getDrawable(context, R.drawable.click_to_change)
-            defaultDrawable?.let { drawable ->
-                val bitmap = (drawable as BitmapDrawable).bitmap
-                val file = createTempImageFile("default_$imageIndex", bitmap)
-                file?.let { uploadImageFile(saleFolder, it, imageIndex) }
-            }
-        } catch (e: Exception) {
-            Log.e("Upload", "Default image upload failed", e)
-        }
-    }
-
-    private fun uploadSingleImage(saleFolder: String, imageView: ImageView, imageIndex: Int) {
-        try {
-            when {
-                imageView.tag is Uri -> uploadImageUri(saleFolder, imageView.tag as Uri, imageIndex)
-                imageView.drawable != null -> uploadImageDrawable(saleFolder, imageView.drawable, imageIndex)
-            }
-        } catch (e: Exception) {
-            Log.e("SaleManager", "Image upload failed: ${e.message}")
-        }
-    }
 
     private fun uploadImageUri(saleFolder: String, uri: Uri, imageIndex: Int) {
         context.contentResolver.openInputStream(uri)?.use { stream ->
@@ -255,43 +210,6 @@ class SaleManagerMethod(private val context: Context, private val apiService: Ap
                 Log.e("ImageDelete", "Error deleting image: ${e.message}")
             }
         }
-    }
-
-    //region Sale Operations
-    fun createSale(
-        name: String,
-        description: String,
-        cost: Int,
-        bigCategory: String,
-        smallCategory: String?,
-        userId: Int,
-        callback: (Result<ResponseMessageWithFolder>) -> Unit
-    ) {
-        val request = CreateSaleRequest(
-            name = name,
-            description = description,
-            cost = cost,
-            bigCategory = bigCategory,
-            smallCategory = smallCategory,
-            userId = userId
-        )
-
-        apiService.createSale(request).enqueue(
-            object : Callback<ResponseMessageWithFolder> {
-                override fun onResponse(
-                    call: Call<ResponseMessageWithFolder>,
-                    response: Response<ResponseMessageWithFolder>
-                ) {
-                    response.body()?.let {
-                        callback(Result.success(it))
-                    } ?: callback(Result.failure(Exception("Empty response")))
-                }
-
-                override fun onFailure(call: Call<ResponseMessageWithFolder>, t: Throwable) {
-                    callback(Result.failure(t))
-                }
-            }
-        )
     }
 
 
