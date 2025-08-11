@@ -1158,82 +1158,118 @@ app.post('/search-username', authenticateToken , async (req, res) => {
     }
 });
 
-// Get chat messages by chat ID
-app.post('/get-chat-messages', authenticateToken , async (req, res) => {
+//WEBSOCKET SEND AND GET MESSAGE
+
+const wss = new WebSocket.Server({ port: 8080 });
+
+const chatClients = {}; // { chatId: [ws1, ws2] }
+
+wss.on('connection', (ws) => {
+  ws.on('message', async (msg) => {
+    let data;
     try {
-        const { searchParam } = req.body;
-		
-        if (!searchParam) {
-            return res.status(400).json({
-                success: false,
-                message: "Chat ID is required",
-                data: []
-            });
-        }
-
-        const query = 'SELECT * FROM Messages WHERE ChatID = ? ORDER BY SentAt ASC';
-        const [results] = await connection.promise().query(query, [searchParam]);
-
-        res.json({
-            success: true,
-            message: results.length ? "Messages found" : "No messages found",
-            data: results
-        });
-
-    } catch (err) {
-        console.error('Error getting chat messages:', err);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Failed to get messages: ' + err.message,
-            data: []
-        });
+      data = JSON.parse(msg);
+    } catch {
+      ws.send(JSON.stringify({ type: 'error', message: 'Invalid JSON' }));
+      return;
     }
-});
 
-// Send a new message
-app.post('/send-message', authenticateToken , async (req, res) => {
-    try {
-        const { chatId, senderId, content } = req.body;
-		console.log('Received message send request: ', senderId);
+    if (data.type === 'join-chat') {
+      const chatId = data.chatId;
+      if (!chatClients[chatId]) chatClients[chatId] = [];
+      chatClients[chatId].push(ws);
+      ws.chatId = chatId;
+      ws.send(JSON.stringify({ type: 'info', message: `Joined chat ${chatId}` }));
+      return;
+    }
 
-        if (!chatId || !senderId || !content) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing required fields (chatId, senderId, content)"
-            });
-        }
+    if (data.type === 'send-message') {
+      const { chatId, senderId, content } = data;
+      if (!chatId || !senderId || !content) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Missing fields' }));
+        return;
+      }
 
+      try {
         const [result] = await connection.promise().query(
-            'INSERT INTO Messages (ChatID, SenderID, Content) VALUES (?, ?, ?)',
-            [chatId, senderId, content]
+          'INSERT INTO Messages (ChatID, SenderID, Content) VALUES (?, ?, ?)',
+          [chatId, senderId, content]
         );
-
         await connection.promise().query(
-            'UPDATE Chats SET LastMessageAt = CURRENT_TIMESTAMP WHERE ChatID = ?',
-            [chatId]
+          'UPDATE Chats SET LastMessageAt = CURRENT_TIMESTAMP WHERE ChatID = ?',
+          [chatId]
         );
-		
-		const [messageRow] = await connection.promise().query(
-			'SELECT SentAt FROM Messages WHERE MessageID = ? LIMIT 1',
-			[result.insertId]
-		);
 
+        const [messageRow] = await connection.promise().query(
+          'SELECT MessageID, SentAt FROM Messages WHERE MessageID = ? LIMIT 1',
+          [result.insertId]
+        );
 
-        res.json({ 
-            success: true, 
-            message: "Message sent successfully",
-            messageId: result.insertId,
-			sentAt: messageRow[0].SentAt
+        const outgoingMsg = {
+          type: 'new-message',
+          chatId,
+          messageId: result.insertId,
+          senderId,
+          content,
+          sentAt: messageRow[0].SentAt
+        };
+
+        // Küldd el az összes kliensnek, akik csatlakoztak ehhez a chathez
+        (chatClients[chatId] || []).forEach(clientWs => {
+          if (clientWs.readyState === WebSocket.OPEN) {
+            clientWs.send(JSON.stringify(outgoingMsg));
+          }
         });
-
-    } catch (err) {
-        console.error('Error sending message:', err);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Failed to send message: ' + err.message
-        });
+      } catch (err) {
+        ws.send(JSON.stringify({ type: 'error', message: 'DB error: ' + err.message }));
+      }
+      return;
     }
+
+    if (data.type === 'get-messages') {
+      const chatId = data.chatId;
+      if (!chatId) {
+        ws.send(JSON.stringify({ type: 'error', message: 'chatId is required' }));
+        return;
+      }
+      try {
+        const [messages] = await connection.promise().query(
+          'SELECT * FROM Messages WHERE ChatID = ? ORDER BY SentAt ASC',
+          [chatId]
+        );
+        ws.send(JSON.stringify({ type: 'chat-messages', chatId, messages }));
+      } catch (err) {
+        ws.send(JSON.stringify({ type: 'error', message: 'DB error: ' + err.message }));
+      }
+      return;
+    }
+
+    ws.send(JSON.stringify({ type: 'error', message: 'Unknown message type' }));
+  });
+
+  ws.on('close', () => {
+    // Töröld a ws-t a chatClients listából
+    if (ws.chatId && chatClients[ws.chatId]) {
+      chatClients[ws.chatId] = chatClients[ws.chatId].filter(c => c !== ws);
+      if (chatClients[ws.chatId].length === 0) {
+        delete chatClients[ws.chatId];
+      }
+    }
+  });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //PROFILban modifyok és delete
 //modify phonenumber

@@ -3,30 +3,23 @@ package com.example.usedpalace.login
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.RetrofitClientNoAuth
-import com.example.usedpalace.UserSession
 import com.example.usedpalace.requests.EmailVerificationRequest
 import com.example.usedpalace.requests.RegUser
 import com.example.usedpalace.responses.ResponseMessage
-import com.google.android.material.textfield.TextInputLayout
 import network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class RegActivity : AppCompatActivity(){
 

@@ -53,7 +53,7 @@ class LogActivity : AppCompatActivity() {
     private lateinit var btnForget :Button
     private lateinit var btnReg :Button
 
-    private lateinit var buttonTest :Button
+    private lateinit var buttonVerifyEmail :Button
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,6 +102,7 @@ class LogActivity : AppCompatActivity() {
                         inputEmailLayout.visibility = View.GONE
                         btnForget.visibility = View.GONE
                         btnReg.visibility = View.GONE
+                        buttonVerifyEmail.visibility = View.GONE
                     } else {
                         Log.d("JWTCheck", "Token is invalid or expired")
                         // No token: show login inputs
@@ -117,6 +118,7 @@ class LogActivity : AppCompatActivity() {
                         inputEmailLayout.visibility = View.VISIBLE
                         textEmail.visibility = View.VISIBLE
                         inputEmail.visibility = View.VISIBLE
+                        buttonVerifyEmail.visibility = View.VISIBLE
                         val editor = prefs.edit()
                         editor.clear()
                         editor.apply()
@@ -175,6 +177,15 @@ class LogActivity : AppCompatActivity() {
             } else {
                 clearSessionAndGoToLogin()
             }
+        }
+
+
+
+        buttonVerifyEmail.setOnClickListener {
+            Log.d("LoginActivity", "Email verify button clicked")
+            Toast.makeText(this, "Email verify clicked", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, EmailVerifyActivity::class.java)
+            startActivity(intent)
         }
 
 
@@ -248,11 +259,6 @@ class LogActivity : AppCompatActivity() {
             })
         }
 
-
-        buttonTest.setOnClickListener {
-            //val intent = Intent(this, chatTest::class.java)
-            //startActivity(intent)
-        }
     }
 
 
@@ -273,7 +279,7 @@ class LogActivity : AppCompatActivity() {
          btnForget =  findViewById(R.id.buttonForget)
          btnReg =  findViewById(R.id.buttonReg)
 
-        buttonTest = findViewById(R.id.buttontest)
+        buttonVerifyEmail = findViewById(R.id.buttonEmailVerification)
     }
 
     private fun initialize() {

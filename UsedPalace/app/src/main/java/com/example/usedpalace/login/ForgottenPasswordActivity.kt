@@ -14,14 +14,11 @@ import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.RetrofitClientNoAuth
 import com.example.usedpalace.requests.ForgotPasswordRequest
-import com.example.usedpalace.requests.ResetPasswordRequest
 import com.example.usedpalace.responses.ResponseMessage
 import network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class ForgottenPasswordActivity : AppCompatActivity() {
     private lateinit var apiServiceNoAuth: ApiService
