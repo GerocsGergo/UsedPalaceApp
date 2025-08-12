@@ -34,11 +34,16 @@ import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeOrDeleteReque
 import com.example.usedpalace.requests.ConfirmPhoneNumberChangeRequest
 import com.example.usedpalace.requests.DeleteAccountRequest
 import com.example.usedpalace.requests.DeleteSingleImageRequest
+import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
+import com.example.usedpalace.requests.UploadSaleImagesRequest
 import com.example.usedpalace.responses.ApiResponseForDeletedSaleWithEverything
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
+import com.example.usedpalace.responses.ResponseGetImages
+import com.example.usedpalace.responses.ResponseUpload
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -99,10 +104,17 @@ interface ApiService {
     fun createSale(@Body request: CreateSaleRequest): Call<ResponseMessageWithFolder>
 
     @Multipart
-    @POST("image-uploader")
-    fun uploadImage( @Part saleFolder: MultipartBody.Part,
-                     @Part imageIndex: MultipartBody.Part,
-                     @Part image: MultipartBody.Part): Call<ResponseMessage>
+    @POST("/upload-sale-images")
+    suspend fun uploadSaleImages(
+        @Part("saleFolder") saleFolder: RequestBody,
+        @Part images: List<MultipartBody.Part>
+    ): ResponseUpload
+
+    @POST("/get-sale-images")
+    suspend fun getSaleImages(
+        @Body request: GetSaleImagesRequest
+    ): ResponseGetImages
+
 
 
     @HTTP(method = "DELETE", path = "delete-sale", hasBody = true)
@@ -154,7 +166,7 @@ interface ApiService {
     @POST("confirm-delete-user")
     fun confirmDeleteUser(@Body request: ConfirmDeleteAccount): Call<ApiResponseGeneric>
 
-
+    abstract fun uploadImage(saleFolderPart: MultipartBody.Part, imageIndexPart: MultipartBody.Part, imagePart: MultipartBody.Part): Any
 
 
 }

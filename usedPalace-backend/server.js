@@ -21,7 +21,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 app.use(express.json());
 
 // Serve static files (e.g., images)
-app.use(express.static('sales'));
+//app.use(express.static('sales'));
+app.use('/sales', express.static('sales'));
+
 
 // MySQL connection
 const connection = mysql.createConnection({
@@ -954,76 +956,59 @@ app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
     }
 });
 
-
-// File filter to only accept images
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-    } else {
-        cb(new Error('Only image files are allowed!'), false);
-    }
-};
-
-
-const MAX_IMAGES = 5; // max feltölthető képek száma
-
+// Dinamikus tárolási útvonal
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const saleFolder = req.body.saleFolder;
-        if (!saleFolder) return cb(new Error('Sale folder is required'));
-        
-        const uploadDir = path.join('sales', saleFolder);
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-        
-        cb(null, uploadDir);
+        const folderPath = path.join('sales', saleFolder);
+        if (!fs.existsSync(folderPath)) {
+            return cb(new Error('Sale folder does not exist'), null);
+        }
+        cb(null, folderPath);
     },
     filename: (req, file, cb) => {
-        // Generáljunk egyedi nevet, pl. időbélyeg + eredeti kiterjesztés
-        const ext = path.extname(file.originalname);
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, `image-${uniqueSuffix}${ext}`);
+        cb(null, Date.now() + '-' + file.originalname);
     }
 });
 
+const upload = multer({ storage: storage });
 
-// Initialize multer with configuration
-const upload = multer({
-    storage,
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) cb(null, true);
-        else cb(new Error('Only image files are allowed!'), false);
-    },
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB/file
+app.post('/upload-sale-images', authenticateToken, upload.array('images', 10), (req, res) => {
+    const files = req.files.map(file => file.filename);
+    res.json({
+        success: true,
+        message: 'Images uploaded successfully',
+        files: files
+    });
 });
 
-app.post('/upload-images', authenticateToken, upload.array('images', MAX_IMAGES), (req, res) => {
-    try {
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ success: false, message: 'No images uploaded' });
-        }
 
-        if (req.files.length > MAX_IMAGES) {
-            // Ez elvileg multer már lekezeli, de extra biztonság
-            return res.status(400).json({ success: false, message: `Maximum ${MAX_IMAGES} images allowed` });
-        }
+app.post('/get-sale-images', async (req, res) => {
+	const { sid } = req.body;
 
-        // Visszaadjuk a feltöltött képek nevét és elérési útját
-        const uploadedFiles = req.files.map(file => ({
-            filename: file.filename,
-            path: file.path
-        }));
+    const [results] = await connection.promise().query(
+        'SELECT SaleFolder FROM Sales WHERE Sid = ?', [sid]
+    );
 
-        res.json({
-            success: true,
-            message: 'Images uploaded successfully',
-            files: uploadedFiles
-        });
-
-    } catch (error) {
-        console.error('Error uploading images:', error);
-        res.status(500).json({ success: false, message: 'Server error during image upload' });
+    if (results.length === 0) {
+        return res.status(404).json({ success: false, message: 'Sale not found' });
     }
+
+    const saleFolder = results[0].SaleFolder;
+    const folderPath = path.join('sales', saleFolder);
+
+    if (!fs.existsSync(folderPath)) {
+        return res.json({ success: true, images: [] });
+    }
+
+    const files = fs.readdirSync(folderPath);
+    const imageUrls = files.map(file => `${req.protocol}://${req.get('host')}/sales/${saleFolder}/${file}`);
+	//const imageUrls = files.map(file => `http://10.224.83.75:3000/sales/${saleFolder}/${file}`);
+
+    res.json({ success: true, images: imageUrls });
 });
+
+
 
 // Error handling middleware for multer
 app.use((err, req, res, next) => {
@@ -1042,6 +1027,21 @@ app.use((err, req, res, next) => {
     }
     next();
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

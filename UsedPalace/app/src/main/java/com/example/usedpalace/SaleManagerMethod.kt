@@ -117,24 +117,18 @@ class SaleManagerMethod(private val context: Context, private val apiService: Ap
 
     //region Image Upload
     // Modify the uploadSaleImages method
-    fun uploadSaleImages(saleFolder: String, vararg imageViews: ImageView) {
-        imageViews.forEachIndexed { index, imageView ->
-            when {
-                imageView.tag is Uri -> {
-                    // Upload selected image
-                    uploadSingleImage(saleFolder, imageView, index + 1)
-                }
-                isDefaultImage(imageView) -> {
-                    // Upload default image for unselected slots
-//                   uploadDefaultImage(saleFolder, index + 1)
-                }
-                else -> {
-                    // Fallback - upload default image
-//                    uploadDefaultImage(saleFolder, index + 1)
-                }
+    fun uploadSaleImages(saleFolder: String, vararg imageUris: Uri?) {
+        imageUris.forEachIndexed { index, uri ->
+            if (uri != null) {
+                // Upload selected image
+                uploadImageUri(saleFolder, uri, index + 1)
+            } else {
+                // Upload default or fallback image
+                // uploadDefaultImage(saleFolder, index + 1)
             }
         }
     }
+
 
     private fun uploadDefaultImage(saleFolder: String, imageIndex: Int) {
         try {
@@ -184,20 +178,20 @@ class SaleManagerMethod(private val context: Context, private val apiService: Ap
         val saleFolderPart = MultipartBody.Part.createFormData("saleFolder", saleFolder)
         val imageIndexPart = MultipartBody.Part.createFormData("imageIndex", imageIndex.toString())
 
-        apiService.uploadImage(saleFolderPart, imageIndexPart, imagePart).enqueue(
-            object : Callback<ResponseMessage> {
-                override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
-                    file.delete()
-                    if (!response.isSuccessful) {
-                        Log.e("SaleManager", "Upload failed: ${response.errorBody()?.string()}")
-                    }
-                }
-                override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-                    file.delete()
-                    Log.e("SaleManager", "Upload error: ${t.message}")
-                }
-            }
-        )
+//        apiService.uploadImage(saleFolderPart, imageIndexPart, imagePart).enqueue(
+//            object : Callback<ResponseMessage> {
+//                override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
+//                    file.delete()
+//                    if (!response.isSuccessful) {
+//                        Log.e("SaleManager", "Upload failed: ${response.errorBody()?.string()}")
+//                    }
+//                }
+//                override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
+//                    file.delete()
+//                    Log.e("SaleManager", "Upload error: ${t.message}")
+//                }
+//            }
+//        )
     }
 
     fun isDefaultImage(imageView: ImageView): Boolean {

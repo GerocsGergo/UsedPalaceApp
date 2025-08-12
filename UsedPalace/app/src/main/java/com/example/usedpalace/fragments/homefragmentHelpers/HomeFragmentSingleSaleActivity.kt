@@ -13,19 +13,17 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
-import com.example.usedpalace.RetrofitClientNoAuth
 import com.example.usedpalace.dataClasses.SaleWithEverything
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.fragments.messagesHelpers.ChatActivity
 import com.example.usedpalace.fragments.messagesHelpers.Requests.InitiateChatRequest
+import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SearchRequestID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import network.ApiService
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class HomeFragmentSingleSaleActivity : AppCompatActivity() {
 
@@ -181,6 +179,32 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
         }
     }
 
+    private fun fetchSaleImages(sid: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Feltételezem, hogy van egy endpoint, ami képeket ad vissza egy eladáshoz
+                // Ha nincs, használhatod az apiService.getSaleImages ha van hasonló metódusod, mint a HomeFragmentben
+
+                val imageResponse = apiService.getSaleImages(GetSaleImagesRequest(sid))
+                withContext(Dispatchers.Main) {
+                    if (imageResponse.success && !imageResponse.images.isNullOrEmpty()) {
+                        val imageUrls = imageResponse.images
+                        val adapter = ImageSliderAdapter(this@HomeFragmentSingleSaleActivity, imageUrls)
+                        imageSlider.adapter = adapter
+                    } else {
+                        // Ha nincs kép, adj egy default képet vagy üzenetet
+                        val adapter = ImageSliderAdapter(this@HomeFragmentSingleSaleActivity, listOf())
+                        imageSlider.adapter = adapter
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showErrorMessage("Failed to load images: ${e.localizedMessage}")
+                }
+            }
+        }
+    }
+
     private fun fetchSaleData() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -207,17 +231,10 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
         productPrice.text = "${sale.Cost} Ft"
         productDescription.text = sale.Description
 
-        val imageUrls = mutableListOf(
-            "http://10.0.2.2:3000/${sale.SaleFolder}/image1.jpg",
-            "http://10.0.2.2:3000/${sale.SaleFolder}/image2.jpg",
-            "http://10.0.2.2:3000/${sale.SaleFolder}/image3.jpg",
-            "http://10.0.2.2:3000/${sale.SaleFolder}/image4.jpg",
-            "http://10.0.2.2:3000/${sale.SaleFolder}/image5.jpg"
-        )
-
-        val adapter = ImageSliderAdapter(this, imageUrls)
-        imageSlider.adapter = adapter
+        // Itt hívjuk meg az API-t a képek lekérésére a SaleFolder alapján
+        fetchSaleImages(saleId)
     }
+
 
 
     private fun showErrorMessage(message: String) {

@@ -10,7 +10,7 @@ import com.squareup.picasso.Picasso
 
 class ImageSliderAdapter(
     private val context: Context,
-    private val imageUrls: MutableList<String>
+    private val imageUrls: List<String>
 ) : RecyclerView.Adapter<ImageSliderAdapter.ImageViewHolder>() {
 
     class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -35,14 +35,15 @@ class ImageSliderAdapter(
 
                 override fun onError(e: java.lang.Exception?) {
                     // Ha hiba van, távolítsuk el a listából, és értesítsük az adaptert
-                    val adapterPosition = holder.adapterPosition
-                    if (adapterPosition != RecyclerView.NO_POSITION) {
-                        // Fontos: UI thread-en hívjuk a notify-t
-                        (holder.itemView.context as? android.app.Activity)?.runOnUiThread {
-                            imageUrls.removeAt(adapterPosition)
-                            notifyItemRemoved(adapterPosition)
-                        }
-                    }
+//                    val adapterPosition = holder.adapterPosition
+//                    if (adapterPosition != RecyclerView.NO_POSITION) {
+//                        // Fontos: UI thread-en hívjuk a notify-t
+//                        (holder.itemView.context as? android.app.Activity)?.runOnUiThread {
+//                            imageUrls.removeAt(adapterPosition)
+//                            notifyItemRemoved(adapterPosition)
+//                        }
+//                    }
+                    holder.imageView.setImageResource(R.drawable.baseline_error_24)
                 }
             })
     }

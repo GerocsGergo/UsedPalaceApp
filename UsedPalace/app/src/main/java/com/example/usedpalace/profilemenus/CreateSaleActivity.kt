@@ -1,26 +1,34 @@
 package com.example.usedpalace.profilemenus
 
+import android.content.ContentResolver
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.webkit.MimeTypeMap
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleManagerMethod
 import com.example.usedpalace.UserSession
+import com.example.usedpalace.profilemenus.forownsalesactivity.ImageAdapter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import network.ApiService
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class CreateSaleActivity : AppCompatActivity() {
 
@@ -28,49 +36,19 @@ class CreateSaleActivity : AppCompatActivity() {
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
 
-    // Image URIs
-    private val imageUris = mutableListOf<Uri?>().apply {
-        repeat(5) { add(null) }
-    }
+    private val imageUris = mutableListOf<Uri?>()
+    private lateinit var imageAdapter: ImageAdapter
 
-    // Image contracts
-    private val imageContracts = listOf(
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri?.let {
-                imageUris[0] = it
-                findViewById<ImageView>(R.id.image1).setImageURI(it)
-            }
-        },
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri?.let {
-                imageUris[1] = it
-                findViewById<ImageView>(R.id.image2).setImageURI(it)
-            }
-        },
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri?.let {
-                imageUris[2] = it
-                findViewById<ImageView>(R.id.image3).setImageURI(it)
-            }
-        },
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri?.let {
-                imageUris[3] = it
-                findViewById<ImageView>(R.id.image4).setImageURI(it)
-            }
-        },
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri?.let {
-                imageUris[4] = it
-                findViewById<ImageView>(R.id.image5).setImageURI(it)
-            }
-        }
-    )
+    companion object {
+        private const val REQUEST_CODE_PICK_IMAGES = 1001
+        private const val MAX_IMAGES = 5
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_create_sale)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -91,7 +69,25 @@ class CreateSaleActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        // Setup spinners
+        imageUris.clear()
+        imageAdapter = ImageAdapter(imageUris) { position ->
+            imageUris.removeAt(position)
+            imageAdapter.notifyDataSetChanged()
+        }
+
+        val recyclerView = findViewById<RecyclerView>(R.id.imageRecyclerView)
+        recyclerView.adapter = imageAdapter
+        recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
+        findViewById<Button>(R.id.btnAddImage).setOnClickListener {
+            if (imageUris.size >= MAX_IMAGES) {
+                Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            pickImages()
+        }
+
+        // Spinner beállítás (ahogy korábban)
         saleManagerMethod.setupCategorySpinners(
             findViewById(R.id.mainCategory),
             findViewById(R.id.subCategory)
@@ -100,11 +96,42 @@ class CreateSaleActivity : AppCompatActivity() {
                 saleManagerMethod.updateSubcategories(position, findViewById(R.id.subCategory))
             }
         }
+    }
 
-        // Setup image click listeners
-        listOf(R.id.image1, R.id.image2, R.id.image3, R.id.image4, R.id.image5).forEachIndexed { index, resId ->
-            findViewById<ImageView>(resId).setOnClickListener {
-                imageContracts[index].launch("image/*")
+    private fun pickImages() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "image/*"
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        }
+
+        startActivityForResult(intent, REQUEST_CODE_PICK_IMAGES)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_PICK_IMAGES && resultCode == RESULT_OK) {
+            data?.let { intentData ->
+                val clipData = intentData.clipData
+                val allowedToAdd = MAX_IMAGES - imageUris.size
+                if (clipData != null) {
+                    // Több kép kiválasztva
+                    val count = clipData.itemCount
+                    val limit = if (count > allowedToAdd) allowedToAdd else count
+                    for (i in 0 until limit) {
+                        val imageUri = clipData.getItemAt(i).uri
+                        imageUris.add(imageUri)
+                    }
+                } else {
+                    // Egy kép kiválasztva
+                    intentData.data?.let { uri ->
+                        if (allowedToAdd > 0) {
+                            imageUris.add(uri)
+                        } else {
+                            Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+                imageAdapter.notifyDataSetChanged()
             }
         }
     }
@@ -113,7 +140,6 @@ class CreateSaleActivity : AppCompatActivity() {
         findViewById<Button>(R.id.buttonBack).setOnClickListener {
             navigateBackToProfile()
         }
-
         findViewById<Button>(R.id.createSale).setOnClickListener {
             createSale()
         }
@@ -145,7 +171,6 @@ class CreateSaleActivity : AppCompatActivity() {
             ) { result ->
                 runOnUiThread {
                     result.onSuccess { response ->
-                        // Upload images after successful sale creation
                         uploadImages(response.saleFolder!!)
                         Toast.makeText(this, "Sale created successfully!", Toast.LENGTH_SHORT).show()
                         clearForm()
@@ -161,35 +186,112 @@ class CreateSaleActivity : AppCompatActivity() {
     }
 
     private fun uploadImages(saleFolder: String) {
-        val imageViews = listOf(
-            findViewById<ImageView>(R.id.image1),
-            findViewById(R.id.image2),
-            findViewById(R.id.image3),
-            findViewById(R.id.image4),
-            findViewById(R.id.image5)
-        )
+        if (imageUris.isEmpty()) return
 
-        // Set URI tags for selected images
-        imageViews.forEachIndexed { index, imageView ->
-            imageUris.getOrNull(index)?.let { uri ->
-                imageView.tag = uri
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // text form field
+                val saleFolderBody = saleFolder.toRequestBody("text/plain".toMediaTypeOrNull())
+
+                // Build MultipartBody.Part list sequentially (suspend-safe)
+                val imageParts = mutableListOf<MultipartBody.Part>()
+                for (uri in imageUris) {
+                    uri?.let {
+                        val part = uriToMultipart(it, "images")
+                        part?.let { imageParts.add(it) }
+                    }
+                }
+
+                if (imageParts.isEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@CreateSaleActivity, "Nincs feltölthető kép", Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
+
+                // API call: egyetlen hívásban az összes képpel
+                val response = apiService.uploadSaleImages(saleFolderBody, imageParts)
+
+                withContext(Dispatchers.Main) {
+                    if (response.success) {
+                        Toast.makeText(this@CreateSaleActivity, "Images uploaded successfully", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@CreateSaleActivity, "Image upload failed: ${response.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@CreateSaleActivity, "Error uploading images: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
         }
-
-        // Upload all images (selected or default)
-        saleManagerMethod.uploadSaleImages(saleFolder, *imageViews.toTypedArray())
     }
+
+    private suspend fun uriToMultipart(uri: Uri, key: String): MultipartBody.Part? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val inputStream = contentResolver.openInputStream(uri) ?: return@withContext null
+                val bytes = inputStream.readBytes()
+                inputStream.close()
+
+                val mimeType = getMimeType(uri) ?: "image/*"
+                val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+
+                // getFileName kell hogy legyen kiterjesztéssel
+                val fileName = getFileName(uri) ?: "upload_${System.currentTimeMillis()}.jpg"
+                MultipartBody.Part.createFormData(key, fileName, requestBody)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+    }
+
+
+
+    private fun getMimeType(uri: Uri): String? {
+        val contentResolver: ContentResolver = contentResolver
+        return if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
+            contentResolver.getType(uri)
+        } else {
+            val fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri.toString())
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension.lowercase())
+        }
+    }
+
+
+
+    private fun getFileName(uri: Uri): String? {
+        var result: String? = null
+        if (uri.scheme == "content") {
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val index = it.getColumnIndex("_display_name")
+                    if (index != -1) {
+                        result = it.getString(index)
+                    }
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.path
+            val cut = result?.lastIndexOf('/')
+            if (cut != null && cut != -1) {
+                result = result?.substring(cut + 1)
+            }
+        }
+        return result
+    }
+
+
 
     private fun clearForm() {
         findViewById<EditText>(R.id.inputSaleName).text.clear()
         findViewById<EditText>(R.id.inputDesc).text.clear()
         findViewById<EditText>(R.id.inputCost).text.clear()
-
-        // Clear images
-        listOf(R.id.image1, R.id.image2, R.id.image3, R.id.image4, R.id.image5).forEach { resId ->
-            findViewById<ImageView>(resId).setImageResource(R.drawable.baseline_add_24)
-        }
-        imageUris.fill(null)
+        imageUris.clear()
+        imageAdapter.notifyDataSetChanged()
     }
 
     private fun navigateBackToProfile() {
@@ -200,6 +302,4 @@ class CreateSaleActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
-
-
 }

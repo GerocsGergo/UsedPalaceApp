@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import com.example.usedpalace.R
 import com.example.usedpalace.profilemenus.AboutActivity
+import com.example.usedpalace.profilemenus.CreateSaleActivity
 import com.example.usedpalace.profilemenus.InformationActivity
 import com.example.usedpalace.profilemenus.HelpActivity
 import com.example.usedpalace.profilemenus.OwnSalesActivity

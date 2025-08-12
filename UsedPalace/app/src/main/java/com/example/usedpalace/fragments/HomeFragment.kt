@@ -3,6 +3,7 @@ package com.example.usedpalace.fragments
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +20,7 @@ import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.fragments.homefragmentHelpers.HomeFragmentSingleSaleActivity
+import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +35,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 class HomeFragment : Fragment() {
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
-    private val baseImageUrl = "http://10.224.83.75:3000"
+    private val baseImageUrl = "http://10.224.83.75:3000/sales"
+
+    //private val baseImageUrl = "http://10.0.2.2:3000"
+
 
     private lateinit var containerLayout: LinearLayout
 
@@ -54,16 +59,7 @@ class HomeFragment : Fragment() {
         initialize()
         setupClickListeners(inflater)
 
-        //val containerLayout = view.findViewById<LinearLayout>(R.id.productList)
         fetchSalesData(apiService, containerLayout, inflater)
-
-        //val clearButton = view.findViewById<Button>(R.id.clearSearchButton)
-        //val exampleText = view.findViewById<TextView>(R.id.forExample)
-        //val searchView = view.findViewById<SearchView>(R.id.searchBar)
-
-
-
-
 
         return view
     }
@@ -177,70 +173,109 @@ class HomeFragment : Fragment() {
                 itemView.findViewById<TextView>(R.id.productPrice).text = "${sale.Cost} Ft"
                 itemView.findViewById<TextView>(R.id.productDescription).text = sale.Description
 
-                //val imageUrl = "http://10.0.2.2:3000/${sale.SaleFolder}/image1.jpg"
-                val imageUrl = "$baseImageUrl/${sale.SaleFolder}/image1.jpg" // Adjust the image path
+                val imageView: ImageView = itemView.findViewById(R.id.productImage) // <<< Ezt hozzá kell tenni
 
-                val imageView: ImageView = itemView.findViewById(R.id.productImage)
-                Picasso.get()
-                    .load(imageUrl)
-                    .placeholder(R.drawable.baseline_loading_24)
-                    .error(R.drawable.baseline_error_24)
-                    .into(imageView)
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val imageResponse = apiService.getSaleImages(GetSaleImagesRequest(sale.Sid))
+                        withContext(Dispatchers.Main) {
+                            if (imageResponse.success) {
+                                val images = imageResponse.images ?: emptyList()
+                                if (images.isNotEmpty()) {
+                                    Picasso.get()
+                                        .load(images.first()) // az első képet betöltöd
+                                        .placeholder(R.drawable.baseline_loading_24)
+                                        .error(R.drawable.baseline_error_24)
+                                        .into(imageView)
+                                } else {
+                                    imageView.setImageResource(R.drawable.baseline_eye_40) // nincs kép
+                                }
+                            } else {
+                                imageView.setImageResource(R.drawable.baseline_info_outline_40)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            imageView.setImageResource(R.drawable.baseline_home_filled_24)
+                        }
+                    }
+                }
 
                 containerLayout?.addView(itemView)
 
-                //Add event listener
                 itemView.setOnClickListener {
                     onProductClick(sale)
                 }
             }
+
         }
     }
 
-    private fun fetchSalesData(apiService: ApiService, containerLayout: LinearLayout?, inflater: LayoutInflater) {
+    private fun fetchSalesData(
+        apiService: ApiService,
+        containerLayout: LinearLayout?,
+        inflater: LayoutInflater
+    ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Fetch sales data from the API
                 val sales = apiService.getSales()
 
-                // Update the UI on the main thread
                 withContext(Dispatchers.Main) {
-                    for (sale in sales) {
-                        // Inflate the item layout
-                        val itemView = inflater.inflate(R.layout.item_fragment_single_sale, containerLayout, false)
+                    containerLayout?.removeAllViews()
 
-                        // Populate the views with data
+                    if (sales.isEmpty()) {
+                        showNoProductsMessage(containerLayout, inflater, "No products found")
+                        return@withContext
+                    }
+
+                    for (sale in sales) {
+                        val itemView = inflater.inflate(R.layout.item_fragment_single_sale, containerLayout, false)
                         itemView.findViewById<TextView>(R.id.productLabel).text = sale.Name
-                        val costForView = "${sale.Cost} Ft"
-                        itemView.findViewById<TextView>(R.id.productPrice).text = costForView
+                        itemView.findViewById<TextView>(R.id.productPrice).text = "${sale.Cost} Ft"
                         itemView.findViewById<TextView>(R.id.productDescription).text = sale.Description
 
-                        // Load the first image from the SaleFolder
-                        //val imageUrl = "http://10.0.2.2:3000/${sale.SaleFolder}/image1.jpg"
-                        val imageUrl = "$baseImageUrl/${sale.SaleFolder}/image1.jpg" // Adjust the image path
-                        val itemImageView = itemView.findViewById<ImageView>(R.id.productImage) //.setImageBitmap(myBitmap)
+                        val imageView = itemView.findViewById<ImageView>(R.id.productImage)
 
-                        Picasso.get()
-                            .load(imageUrl)
-                            .placeholder(R.drawable.baseline_loading_24) // Placeholder image while loading
-                            .error(R.drawable.baseline_error_24) // Error image if loading fails
-                            .into(itemImageView)
+                        try {
+                            val request = GetSaleImagesRequest(sale.Sid)
+                            val imageResponse = apiService.getSaleImages(request)
 
+                            withContext(Dispatchers.Main) {
+                                if (imageResponse.success && !imageResponse.images.isNullOrEmpty()) {
+                                    val imageUrl = imageResponse.images.first()
+                                    Picasso.get()
+                                        .load(imageUrl)
+                                        .placeholder(R.drawable.baseline_loading_24)
+                                        .error(R.drawable.baseline_error_24)
+                                        .into(imageView)
+                                } else {
+                                    imageView.setImageResource(R.drawable.baseline_eye_40)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.d("HomeFragment", "Error fetching images: ${e.message}")
+                            withContext(Dispatchers.Main) {
+                                imageView.setImageResource(R.drawable.baseline_home_filled_24)
+                            }
+                        }
 
-                        // Add the inflated view to the container
                         containerLayout?.addView(itemView)
 
-                        //Add event listener
                         itemView.setOnClickListener {
                             onProductClick(sale)
                         }
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    showNoProductsMessage(containerLayout, inflater, "Connection error")
+                }
             }
         }
     }
+
+
+
 
     private fun onProductClick(sale: SaleWithSid) {
         val saleId = sale.Sid
