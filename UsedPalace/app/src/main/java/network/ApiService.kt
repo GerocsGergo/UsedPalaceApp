@@ -22,9 +22,6 @@ import com.example.usedpalace.fragments.messagesHelpers.responses.ChatListRespon
 import com.example.usedpalace.fragments.messagesHelpers.Requests.InitiateChatRequest
 import com.example.usedpalace.fragments.messagesHelpers.responses.InitiateChatResponse
 import com.example.usedpalace.fragments.messagesHelpers.Requests.SearchChatRequest
-import com.example.usedpalace.fragments.messagesHelpers.Requests.SendMessageRequest
-import com.example.usedpalace.fragments.messagesHelpers.responses.ChatResponse
-import com.example.usedpalace.fragments.messagesHelpers.responses.MessageResponse
 import com.example.usedpalace.fragments.messagesHelpers.responses.UsernameResponse
 import com.example.usedpalace.requests.ChangeEmailRequest
 import com.example.usedpalace.requests.ChangePasswordRequest
@@ -37,7 +34,6 @@ import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
-import com.example.usedpalace.requests.UploadSaleImagesRequest
 import com.example.usedpalace.responses.ApiResponseForDeletedSaleWithEverything
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
 import com.example.usedpalace.responses.ResponseGetImages
@@ -45,6 +41,7 @@ import com.example.usedpalace.responses.ResponseUpload
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET

@@ -22,6 +22,7 @@ import com.example.usedpalace.fragments.messagesHelpers.ChatActivity
 import com.example.usedpalace.fragments.messagesHelpers.ChatHelper
 import com.example.usedpalace.fragments.messagesHelpers.ChatItem
 import com.example.usedpalace.fragments.messagesHelpers.Requests.SearchChatRequest
+import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SearchRequestID
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
@@ -79,15 +80,21 @@ class MessagesFragment : Fragment() {
 
     private fun setupClickListeners(apiService: ApiService, containerLayout: LinearLayout?, inflater: LayoutInflater) {
         allChats.setOnClickListener {
+            allChats.isEnabled = false
             fetchChats(apiService, containerLayout, inflater, "allChats")
+            allChats.isEnabled = true
         }
 
         deletedChats.setOnClickListener {
+            deletedChats.isEnabled = false
             fetchChats(apiService, containerLayout, inflater, "deletedChats")
+            deletedChats.isEnabled = true
         }
 
         activeChats.setOnClickListener {
+            activeChats.isEnabled = false
             fetchChats(apiService, containerLayout, inflater, "activeChats")
+            activeChats.isEnabled = true
         }
     }
 
@@ -150,16 +157,43 @@ class MessagesFragment : Fragment() {
                             if (activeSale.success && activeSale.data != null && username == "Deleted User") {
                                 itemView.findViewById<TextView>(R.id.product_name).text = activeSale.data.Name
 
-                                val folderName = activeSale.data.SaleFolder
+                                //val folderName = activeSale.data.SaleFolder
                                 //val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
-                                val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
+                                //val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
+//
+                               val imageView: ImageView = itemView.findViewById(R.id.image1)
+//                                Picasso.get()
+//                                    .load(imageUrl)
+//                                    .placeholder(R.drawable.baseline_loading_24)
+//                                    .error(R.drawable.baseline_error_24)
+//                                    .into(imageView)
+                                try {
+                                    val imageResponse = apiService.getSaleImages(
+                                        GetSaleImagesRequest(chat.saleId)
+                                    )
+                                    withContext(Dispatchers.Main) {
+                                        if (imageResponse.success) {
+                                            val images = imageResponse.images ?: emptyList()
+                                            if (images.isNotEmpty()) {
+                                                Picasso.get()
+                                                    .load(images.first()) // az első képet betöltöd
+                                                    .placeholder(R.drawable.baseline_loading_24)
+                                                    .error(R.drawable.baseline_error_24)
+                                                    .into(imageView)
+                                            } else {
+                                                imageView.setImageResource(R.drawable.baseline_eye_40) // nincs kép
+                                            }
+                                        } else {
+                                            imageView.setImageResource(R.drawable.baseline_info_outline_40)
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    withContext(Dispatchers.Main) {
+                                        imageView.setImageResource(R.drawable.baseline_home_filled_24)
+                                    }
+                                }
 
-                                val imageView: ImageView = itemView.findViewById(R.id.image1)
-                                Picasso.get()
-                                    .load(imageUrl)
-                                    .placeholder(R.drawable.baseline_loading_24)
-                                    .error(R.drawable.baseline_error_24)
-                                    .into(imageView)
+
                                 containerLayout?.addView(itemView)
 
                                 itemView.setOnClickListener {
@@ -224,17 +258,43 @@ class MessagesFragment : Fragment() {
                         if (sale.success && sale.data != null) {
                             itemView.findViewById<TextView>(R.id.product_name).text = sale.data.Name
 
-                            val folderName = sale.data.SaleFolder
+                            //val folderName = sale.data.SaleFolder
                             //val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
-                            val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
-
+//                            val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
+//
                             val imageView: ImageView = itemView.findViewById(R.id.image1)
-                            Picasso.get()
-                                .load(imageUrl)
-                                .placeholder(R.drawable.baseline_loading_24)
-                                .error(R.drawable.baseline_error_24)
-                                .into(imageView)
+//                            Picasso.get()
+//                                .load(imageUrl)
+//                                .placeholder(R.drawable.baseline_loading_24)
+//                                .error(R.drawable.baseline_error_24)
+//                                .into(imageView)
 
+
+                            try {
+                                val imageResponse = apiService.getSaleImages(
+                                    GetSaleImagesRequest(chat.saleId)
+                                )
+                                withContext(Dispatchers.Main) {
+                                    if (imageResponse.success) {
+                                        val images = imageResponse.images ?: emptyList()
+                                        if (images.isNotEmpty()) {
+                                            Picasso.get()
+                                                .load(images.first()) // az első képet betöltöd
+                                                .placeholder(R.drawable.baseline_loading_24)
+                                                .error(R.drawable.baseline_error_24)
+                                                .into(imageView)
+                                        } else {
+                                            imageView.setImageResource(R.drawable.baseline_eye_40) // nincs kép
+                                        }
+                                    } else {
+                                        imageView.setImageResource(R.drawable.baseline_info_outline_40)
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                withContext(Dispatchers.Main) {
+                                    imageView.setImageResource(R.drawable.baseline_home_filled_24)
+                                }
+                            }
                             if (username != "Deleted User") {
                                 containerLayout?.addView(itemView)
                             }
@@ -296,16 +356,43 @@ class MessagesFragment : Fragment() {
                         if (sale.success && sale.data != null) {
                             itemView.findViewById<TextView>(R.id.product_name).text = sale.data.Name
 
-                            val folderName = sale.data.SaleFolder
+                            //val folderName = sale.data.SaleFolder
                             //val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
-                            val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
+                            //val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
 
                             val imageView: ImageView = itemView.findViewById(R.id.image1)
-                            Picasso.get()
-                                .load(imageUrl)
-                                .placeholder(R.drawable.baseline_loading_24)
-                                .error(R.drawable.baseline_error_24)
-                                .into(imageView)
+//                            Picasso.get()
+//                                .load(imageUrl)
+//                                .placeholder(R.drawable.baseline_loading_24)
+//                                .error(R.drawable.baseline_error_24)
+//                                .into(imageView)
+
+
+                            try {
+                                val imageResponse = apiService.getSaleImages(
+                                    GetSaleImagesRequest(chat.saleId)
+                                )
+                                withContext(Dispatchers.Main) {
+                                    if (imageResponse.success) {
+                                        val images = imageResponse.images ?: emptyList()
+                                        if (images.isNotEmpty()) {
+                                            Picasso.get()
+                                                .load(images.first()) // az első képet betöltöd
+                                                .placeholder(R.drawable.baseline_loading_24)
+                                                .error(R.drawable.baseline_error_24)
+                                                .into(imageView)
+                                        } else {
+                                            imageView.setImageResource(R.drawable.baseline_eye_40) // nincs kép
+                                        }
+                                    } else {
+                                        imageView.setImageResource(R.drawable.baseline_info_outline_40)
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                withContext(Dispatchers.Main) {
+                                    imageView.setImageResource(R.drawable.baseline_home_filled_24)
+                                }
+                            }
                         } else {
                             Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
                             itemView.findViewById<TextView>(R.id.product_name).text = "Warning! This sale has been deleted!"

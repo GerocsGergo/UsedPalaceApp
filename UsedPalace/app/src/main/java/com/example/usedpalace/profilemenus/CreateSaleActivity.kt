@@ -1,10 +1,12 @@
 package com.example.usedpalace.profilemenus
 
 import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.webkit.MimeTypeMap
 import android.widget.Button
 import android.widget.EditText
@@ -29,6 +31,9 @@ import network.ApiService
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
+import org.json.JSONObject
+
 
 class CreateSaleActivity : AppCompatActivity() {
 
@@ -190,10 +195,8 @@ class CreateSaleActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // text form field
                 val saleFolderBody = saleFolder.toRequestBody("text/plain".toMediaTypeOrNull())
 
-                // Build MultipartBody.Part list sequentially (suspend-safe)
                 val imageParts = mutableListOf<MultipartBody.Part>()
                 for (uri in imageUris) {
                     uri?.let {
@@ -209,7 +212,6 @@ class CreateSaleActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                // API call: egyetlen hívásban az összes képpel
                 val response = apiService.uploadSaleImages(saleFolderBody, imageParts)
 
                 withContext(Dispatchers.Main) {
@@ -226,6 +228,7 @@ class CreateSaleActivity : AppCompatActivity() {
             }
         }
     }
+
 
     private suspend fun uriToMultipart(uri: Uri, key: String): MultipartBody.Part? {
         return withContext(Dispatchers.IO) {
