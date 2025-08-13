@@ -2,26 +2,24 @@ package com.example.usedpalace.dataClasses
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.Log
 import android.view.View
-import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
 import com.example.usedpalace.R
 import com.example.usedpalace.requests.CreateSaleRequest
-import com.example.usedpalace.requests.DeleteSingleImageRequest
 import com.example.usedpalace.responses.ResponseMessage
 import com.example.usedpalace.responses.ResponseMessageWithFolder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import network.ApiService
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -117,139 +115,150 @@ class SaleManagerMethod(private val context: Context, private val apiService: Ap
 
     //region Image Upload
     // Modify the uploadSaleImages method
-    fun uploadSaleImages(saleFolder: String, vararg imageUris: Uri?) {
-        imageUris.forEachIndexed { index, uri ->
-            if (uri != null) {
-                // Upload selected image
-                uploadImageUri(saleFolder, uri, index + 1)
-            } else {
-                // Upload default or fallback image
-                // uploadDefaultImage(saleFolder, index + 1)
+    fun uploadSaleImages(saleFolder: String, imageFiles: List<File>) {
+        val saleFolderPart = saleFolder.toRequestBody("text/plain".toMediaTypeOrNull())
+
+        val imageParts = imageFiles.map { file ->
+            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData("images", file.name, requestFile)
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = apiService.uploadSaleImages(saleFolderPart, imageParts)
+                if (!response.success) {
+                    Log.e("SaleManager", "Upload failed: ${response.message}")
+                }
+                imageFiles.forEach { it.delete() }
+            } catch (e: Exception) {
+                Log.e("SaleManager", "Upload error: ${e.message}")
+                imageFiles.forEach { it.delete() }
             }
         }
     }
 
 
-    private fun uploadDefaultImage(saleFolder: String, imageIndex: Int) {
-        try {
-            val defaultDrawable = ContextCompat.getDrawable(context, R.drawable.click_to_change)
-            defaultDrawable?.let { drawable ->
-                val bitmap = (drawable as BitmapDrawable).bitmap
-                val file = createTempImageFile("default_$imageIndex", bitmap)
-                file?.let { uploadImageFile(saleFolder, it, imageIndex) }
-            }
-        } catch (e: Exception) {
-            Log.e("Upload", "Default image upload failed", e)
-        }
-    }
 
-    private fun uploadSingleImage(saleFolder: String, imageView: ImageView, imageIndex: Int) {
-        try {
-            when {
-                imageView.tag is Uri -> uploadImageUri(saleFolder, imageView.tag as Uri, imageIndex)
-                imageView.drawable != null -> uploadImageDrawable(saleFolder, imageView.drawable, imageIndex)
-            }
-        } catch (e: Exception) {
-            Log.e("SaleManager", "Image upload failed: ${e.message}")
-        }
-    }
+//    private fun uploadDefaultImage(saleFolder: String, imageIndex: Int) {
+//        try {
+//            val defaultDrawable = ContextCompat.getDrawable(context, R.drawable.click_to_change)
+//            defaultDrawable?.let { drawable ->
+//                val bitmap = (drawable as BitmapDrawable).bitmap
+//                val file = createTempImageFile("default_$imageIndex", bitmap)
+//                file?.let { uploadImageFile(saleFolder, it, imageIndex) }
+//            }
+//        } catch (e: Exception) {
+//            Log.e("Upload", "Default image upload failed", e)
+//        }
+//    }
+//
+//    private fun uploadSingleImage(saleFolder: String, imageView: ImageView, imageIndex: Int) {
+//        try {
+//            when {
+//                imageView.tag is Uri -> uploadImageUri(saleFolder, imageView.tag as Uri, imageIndex)
+//                imageView.drawable != null -> uploadImageDrawable(saleFolder, imageView.drawable, imageIndex)
+//            }
+//        } catch (e: Exception) {
+//            Log.e("SaleManager", "Image upload failed: ${e.message}")
+//        }
+//    }
 
-    private fun uploadImageUri(saleFolder: String, uri: Uri, imageIndex: Int) {
-        context.contentResolver.openInputStream(uri)?.use { stream ->
-            val file = createTempImageFile("upload_${System.currentTimeMillis()}", stream)
-            file?.let { uploadImageFile(saleFolder, it, imageIndex) }
-        }
-    }
+//    private fun uploadImageUri(saleFolder: String, uri: Uri, imageIndex: Int) {
+//        context.contentResolver.openInputStream(uri)?.use { stream ->
+//            val file = createTempImageFile("upload_${System.currentTimeMillis()}", stream)
+//            file?.let { uploadImageFile(saleFolder, it, imageIndex) }
+//        }
+//    }
 
-    private fun uploadImageDrawable(saleFolder: String, drawable: Drawable, imageIndex: Int) {
-        val bitmap = when (drawable) {
-            is BitmapDrawable -> drawable.bitmap
-            else -> drawable.toBitmap()
-        }
-        bitmap?.let {
-            val file = createTempImageFile("upload_${System.currentTimeMillis()}", it)
-            file?.let { uploadImageFile(saleFolder, it, imageIndex) }
-        }
-    }
+//    private fun uploadImageDrawable(saleFolder: String, drawable: Drawable, imageIndex: Int) {
+//        val bitmap = when (drawable) {
+//            is BitmapDrawable -> drawable.bitmap
+//            else -> drawable.toBitmap()
+//        }
+//        bitmap?.let {
+//            val file = createTempImageFile("upload_${System.currentTimeMillis()}", it)
+//            file?.let { uploadImageFile(saleFolder, it, imageIndex) }
+//        }
+//    }
 
-    private fun uploadImageFile(saleFolder: String, file: File, imageIndex: Int) {
-        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-        val imagePart = MultipartBody.Part.createFormData("image", file.name, requestFile)
-        val saleFolderPart = MultipartBody.Part.createFormData("saleFolder", saleFolder)
-        val imageIndexPart = MultipartBody.Part.createFormData("imageIndex", imageIndex.toString())
 
-//        apiService.uploadImage(saleFolderPart, imageIndexPart, imagePart).enqueue(
-//            object : Callback<ResponseMessage> {
-//                override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
-//                    file.delete()
-//                    if (!response.isSuccessful) {
-//                        Log.e("SaleManager", "Upload failed: ${response.errorBody()?.string()}")
+//    private fun uploadImageFile(saleFolder: String, file: File, imageIndex: Int) {
+//        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+//        val imagePart = MultipartBody.Part.createFormData("image", file.name, requestFile)
+//        val saleFolderPart = MultipartBody.Part.createFormData("saleFolder", saleFolder)
+//        val imageIndexPart = MultipartBody.Part.createFormData("imageIndex", imageIndex.toString())
+//
+//        CoroutineScope(Dispatchers.IO).launch {
+//            try {
+//                val response = apiService.uploadImage(saleFolderPart, imageIndexPart, imagePart)
+//                file.delete()
+//                if (!response.success) {
+//                    Log.e("SaleManager", "Upload failed: ${response.message}")
+//                }
+//            } catch (e: Exception) {
+//                file.delete()
+//                Log.e("SaleManager", "Upload error: ${e.message}")
+//            }
+//        }
+//    }
+
+
+//    fun isDefaultImage(imageView: ImageView): Boolean {
+//        return try {
+//            val defaultAddIcon = ContextCompat.getDrawable(context, R.drawable.baseline_add_24)
+//            imageView.drawable?.constantState?.equals(defaultAddIcon?.constantState) == true
+//        } catch (e: Exception) {
+//            false
+//        }
+//    }
+
+
+//    suspend fun uploadChangedImages(
+//        saleFolder: String,
+//        changedIndexes: Set<Int>,
+//        imageViews: List<ImageView>,
+//        imageUris: List<Uri?>
+//    ) {
+//        changedIndexes.forEach { index ->
+//            try {
+//                when {
+//                    imageViews[index].tag == "deleted" -> {
+//                        // Try to delete, but don't fail if image doesn't exist
+//                        deleteSingleImage(saleFolder, index + 1)
+//                    }
+//                    imageUris[index] != null -> {
+//                        uploadImageUri(saleFolder, imageUris[index]!!, index + 1)
 //                    }
 //                }
-//                override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-//                    file.delete()
-//                    Log.e("SaleManager", "Upload error: ${t.message}")
+//            } catch (e: Exception) {
+//                Log.e("Upload", "Failed to process image at position ${index + 1}", e)
+//                // Continue with other images even if one fails
+//            }
+//        }
+//    }
+
+//    private suspend fun deleteSingleImage(saleFolder: String, imageIndex: Int) {
+//        try {
+//            val response = apiService.deleteSingleImage(
+//                DeleteSingleImageRequest(
+//                    saleFolder = saleFolder,
+//                    imageIndex = imageIndex
+//                )
+//            )
+//
+//            if (!response.success) {
+//                // Only log as error if it's not a "not found" case
+//                if (!response.message.contains("not found", ignoreCase = true)) {
+//                    Log.e("ImageDelete", "Failed to delete image at index $imageIndex")
 //                }
 //            }
-//        )
-    }
-
-    fun isDefaultImage(imageView: ImageView): Boolean {
-        return try {
-            val defaultAddIcon = ContextCompat.getDrawable(context, R.drawable.baseline_add_24)
-            imageView.drawable?.constantState?.equals(defaultAddIcon?.constantState) == true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-
-    suspend fun uploadChangedImages(
-        saleFolder: String,
-        changedIndexes: Set<Int>,
-        imageViews: List<ImageView>,
-        imageUris: List<Uri?>
-    ) {
-        changedIndexes.forEach { index ->
-            try {
-                when {
-                    imageViews[index].tag == "deleted" -> {
-                        // Try to delete, but don't fail if image doesn't exist
-                        deleteSingleImage(saleFolder, index + 1)
-                    }
-                    imageUris[index] != null -> {
-                        uploadImageUri(saleFolder, imageUris[index]!!, index + 1)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("Upload", "Failed to process image at position ${index + 1}", e)
-                // Continue with other images even if one fails
-            }
-        }
-    }
-
-    private suspend fun deleteSingleImage(saleFolder: String, imageIndex: Int) {
-        try {
-            val response = apiService.deleteSingleImage(
-                DeleteSingleImageRequest(
-                    saleFolder = saleFolder,
-                    imageIndex = imageIndex
-                )
-            )
-
-            if (!response.success) {
-                // Only log as error if it's not a "not found" case
-                if (!response.message.contains("not found", ignoreCase = true)) {
-                    Log.e("ImageDelete", "Failed to delete image at index $imageIndex")
-                }
-            }
-        } catch (e: Exception) {
-            // Only log as error if it's not a 404
-            if ((e as? retrofit2.HttpException)?.code() != 404) {
-                Log.e("ImageDelete", "Error deleting image: ${e.message}")
-            }
-        }
-    }
+//        } catch (e: Exception) {
+//            // Only log as error if it's not a 404
+//            if ((e as? retrofit2.HttpException)?.code() != 404) {
+//                Log.e("ImageDelete", "Error deleting image: ${e.message}")
+//            }
+//        }
+//    }
 
     //region Sale Operations
     fun createSale(

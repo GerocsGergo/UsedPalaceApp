@@ -890,39 +890,44 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
 
 //Image Uploader and stuff for it
 
-//Delete single image
-app.post('/delete-single-image', authenticateToken , async (req, res) => {
+// Delete multiple images
+app.post('/delete-images', authenticateToken, async (req, res) => {
     try {
-        const { saleFolder, imageIndex } = req.body;
-        
-        if (!saleFolder || !imageIndex) {
+        const { saleFolder, imageIndexes } = req.body;
+
+        if (!saleFolder || !Array.isArray(imageIndexes) || imageIndexes.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "Both saleFolder and imageIndex are required"
+                message: "saleFolder and non-empty imageIndexes array are required"
             });
         }
 
-        const imagePath = path.join('sales', saleFolder, `image${imageIndex}.jpg`);
-        
-        if (fs.existsSync(imagePath)) {
-            fs.unlinkSync(imagePath);
-        }
-        
-        // Always return success even if file didn't exist
+        const deletedImages = [];
+
+        imageIndexes.forEach(index => {
+            const imagePath = path.join('sales', saleFolder, `image${index}.jpg`);
+            if (fs.existsSync(imagePath)) {
+                fs.unlinkSync(imagePath);
+                deletedImages.push(index);
+            }
+        });
+
         return res.json({
             success: true,
-            message: "Operation completed"
+            message: "Operation completed",
+            deletedImages // opcionális: visszaadjuk, hogy melyek törlődtek
         });
-        
+
     } catch (err) {
-        console.error('Error in /delete-single-image:', err);
-        res.status(500).json({ 
+        console.error('Error in /delete-images:', err);
+        res.status(500).json({
             success: false,
             message: 'Internal server error',
             error: err.message
         });
     }
 });
+
 
 //Get images for modify
 app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {

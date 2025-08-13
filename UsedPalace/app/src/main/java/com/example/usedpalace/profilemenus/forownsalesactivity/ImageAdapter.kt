@@ -13,7 +13,7 @@ import com.squareup.picasso.Picasso
 
 // Egyszerű Adapter a képek megjelenítéséhez RecyclerView-ban
 class ImageAdapter(
-    private val images: MutableList<Uri?>,
+    private val images: MutableList<Uri>,
     private val onDeleteClicked: (Int) -> Unit
 ) : RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
 

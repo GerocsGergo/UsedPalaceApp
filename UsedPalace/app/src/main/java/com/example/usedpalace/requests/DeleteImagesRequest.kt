@@ -1,6 +1,7 @@
 package com.example.usedpalace.requests
 
-data class DeleteSingleImageRequest(
+data class DeleteImagesRequest(
     val saleFolder: String,
-    val imageIndex: Int
+    val imageIndexes: List<Int>
 )
+

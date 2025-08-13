@@ -41,7 +41,7 @@ class CreateSaleActivity : AppCompatActivity() {
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
 
-    private val imageUris = mutableListOf<Uri?>()
+    private val imageUris = mutableListOf<Uri>()
     private lateinit var imageAdapter: ImageAdapter
 
     companion object {

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
@@ -21,15 +20,19 @@ import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.dataClasses.SaleManagerMethod
 import com.example.usedpalace.dataClasses.SaleWithEverything
-import com.example.usedpalace.profilemenus.forownsalesactivity.ImageAdapter
+import com.example.usedpalace.requests.DeleteImagesRequest
 import com.example.usedpalace.requests.ModifySaleRequest
 import com.example.usedpalace.requests.SearchRequestID
-import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import network.ApiService
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
+import org.json.JSONObject
 
 class ModifySaleActivity : AppCompatActivity() {
 
@@ -39,10 +42,11 @@ class ModifySaleActivity : AppCompatActivity() {
     private var saleId: Int = -1
     private val baseImageUrl = "http://10.224.83.75:3000/sales"
 
-    private val imageUris = mutableListOf<Uri?>()
-    private val oldImages = mutableListOf<Uri>()      // betöltött képek (szerverről)
-    private val newImages = mutableListOf<Uri>()      // újonnan hozzáadott képek
-    private val deletedImages = mutableListOf<Uri>()  // törölt képek
+    // Képkezelő listák
+    private val oldImages = mutableListOf<Uri>()      // szerverről betöltött képek
+    private val newImages = mutableListOf<Uri>()      // új képek
+    private val deletedImages = mutableListOf<Uri>()  // törlésre kijelölt képek
+    private val imageUris = mutableListOf<Uri>()      // adapter által használt kombinált lista
 
     private lateinit var imageAdapter: ImageAdapter
 
@@ -54,7 +58,7 @@ class ModifySaleActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_create_sale) // ugyanaz a layout mint CreateSaleActivity
+        setContentView(R.layout.activity_create_sale)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -86,8 +90,14 @@ class ModifySaleActivity : AppCompatActivity() {
     private fun setupUI() {
         imageUris.clear()
         imageAdapter = ImageAdapter(imageUris) { position ->
-            imageUris.removeAt(position)
-            imageAdapter.notifyDataSetChanged()
+            val removedUri = imageUris[position]
+            if (oldImages.contains(removedUri)) {
+                oldImages.remove(removedUri)
+                deletedImages.add(removedUri)
+            } else if (newImages.contains(removedUri)) {
+                newImages.remove(removedUri)
+            }
+            refreshImageList()
         }
 
         val recyclerView = findViewById<RecyclerView>(R.id.imageRecyclerView)
@@ -112,6 +122,13 @@ class ModifySaleActivity : AppCompatActivity() {
         }
     }
 
+    private fun refreshImageList() {
+        imageUris.clear()
+        imageUris.addAll(oldImages)
+        imageUris.addAll(newImages)
+        imageAdapter.notifyDataSetChanged()
+    }
+
     private fun pickImages() {
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
             type = "image/*"
@@ -131,18 +148,18 @@ class ModifySaleActivity : AppCompatActivity() {
                     val limit = if (count > allowedToAdd) allowedToAdd else count
                     for (i in 0 until limit) {
                         val imageUri = clipData.getItemAt(i).uri
-                        imageUris.add(imageUri)
+                        newImages.add(imageUri)
                     }
                 } else {
                     intentData.data?.let { uri ->
                         if (allowedToAdd > 0) {
-                            imageUris.add(uri)
+                            newImages.add(uri)
                         } else {
                             Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
-                imageAdapter.notifyDataSetChanged()
+                refreshImageList()
             }
         }
     }
@@ -182,14 +199,14 @@ class ModifySaleActivity : AppCompatActivity() {
             ?.let { "$baseImageUrl/$it" }
             ?: return
 
-        // Feltöltjük a meglévő képeket az imageUris listába
-        imageUris.clear()
+        oldImages.clear()
         for (i in 1..MAX_IMAGES) {
             val imageUrl = "$folderUrl/image$i.jpg"
-            // A Picasso-t az adapter is tudja kezelni, de itt URI-vá konvertáljuk a szerver URL-t
-            imageUris.add(Uri.parse(imageUrl))
+            oldImages.add(Uri.parse(imageUrl))
         }
-        imageAdapter.notifyDataSetChanged()
+        newImages.clear()
+        deletedImages.clear()
+        refreshImageList()
     }
 
     private fun setupClickListeners() {
@@ -234,7 +251,12 @@ class ModifySaleActivity : AppCompatActivity() {
 
                 withContext(Dispatchers.Main) {
                     if (response.success) {
-                        saleManagerMethod.uploadSaleImages(response.saleFolder!!, *imageUris.toTypedArray())
+                        // Először a törölt képeket jelzi a szerver felé (ha van)
+                        deleteSaleImages(response.saleFolder!!, deletedImages)
+
+                        // Majd az új képeket feltölti
+                        uploadImages(response.saleFolder!!, newImages)
+
                         Toast.makeText(this@ModifySaleActivity, "Sale updated successfully!", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(this@ModifySaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
@@ -247,6 +269,73 @@ class ModifySaleActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun uploadImages(saleFolder: String, uris: List<Uri>) {
+        if (uris.isEmpty()) return
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val saleFolderBody = saleFolder.toRequestBody("text/plain".toMediaTypeOrNull())
+                val imageParts = mutableListOf<MultipartBody.Part>()
+
+                for (uri in uris) {
+                    val part = uriToMultipart(uri, "images")
+                    part?.let { imageParts.add(it) }
+                }
+
+                if (imageParts.isEmpty()) return@launch
+
+                val response = apiService.uploadSaleImages(saleFolderBody, imageParts)
+
+                withContext(Dispatchers.Main) {
+                    if (response.success) {
+                        Toast.makeText(this@ModifySaleActivity, "Images uploaded successfully", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@ModifySaleActivity, "Image upload failed: ${response.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ModifySaleActivity, "Error uploading images: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private suspend fun uriToMultipart(uri: Uri, key: String): MultipartBody.Part? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val inputStream = contentResolver.openInputStream(uri) ?: return@withContext null
+                val bytes = inputStream.readBytes()
+                val mime = contentResolver.getType(uri) ?: "image/*"
+                val requestBody = bytes.toRequestBody(mime.toMediaTypeOrNull())
+                MultipartBody.Part.createFormData(key, "image.jpg", requestBody)
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    private fun deleteSaleImages(saleFolder: String, uris: List<Uri>) {
+        if (uris.isEmpty()) return
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Uri-ból az index kinyerése (image1.jpg -> 1)
+                val deletedIndexes = uris.mapNotNull { uri ->
+                    uri.lastPathSegment?.substringAfter("image")?.substringBefore(".jpg")?.toIntOrNull()
+                }
+
+                if (deletedIndexes.isNotEmpty()) {
+                    apiService.deleteImages(DeleteImagesRequest(saleFolder, deletedIndexes))
+                }
+            } catch (_: Exception) { }
+        }
+    }
+
+
+
+
+
 
     private fun navigateBackToProfile() {
         val intent = Intent(this, MainMenuActivity::class.java).apply {

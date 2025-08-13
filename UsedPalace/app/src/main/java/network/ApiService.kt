@@ -30,18 +30,18 @@ import com.example.usedpalace.requests.ConfirmDeleteAccount
 import com.example.usedpalace.requests.ConfirmEmailOrPasswordChangeOrDeleteRequest
 import com.example.usedpalace.requests.ConfirmPhoneNumberChangeRequest
 import com.example.usedpalace.requests.DeleteAccountRequest
-import com.example.usedpalace.requests.DeleteSingleImageRequest
+import com.example.usedpalace.requests.DeleteImagesRequest
 import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.responses.ApiResponseForDeletedSaleWithEverything
+import com.example.usedpalace.responses.DeleteImagesResponse
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
 import com.example.usedpalace.responses.ResponseGetImages
 import com.example.usedpalace.responses.ResponseUpload
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -123,8 +123,8 @@ interface ApiService {
     @PUT("modify-sale")
     suspend fun modifySale(@Body request: ModifySaleRequest): ResponseMessageWithFolder
 
-    @POST("delete-single-image")
-    suspend fun deleteSingleImage(@Body request: DeleteSingleImageRequest): ApiResponseGeneric
+    @POST("delete-images")
+    suspend fun deleteImages(@Body request: DeleteImagesRequest): DeleteImagesResponse
 
 
     //CHAT
@@ -163,7 +163,6 @@ interface ApiService {
     @POST("confirm-delete-user")
     fun confirmDeleteUser(@Body request: ConfirmDeleteAccount): Call<ApiResponseGeneric>
 
-    abstract fun uploadImage(saleFolderPart: MultipartBody.Part, imageIndexPart: MultipartBody.Part, imagePart: MultipartBody.Part): Any
 
 
 }
