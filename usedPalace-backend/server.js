@@ -1966,10 +1966,12 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 });
 
 
-// Start the server
+//Start the server
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
+
+
 
 
 

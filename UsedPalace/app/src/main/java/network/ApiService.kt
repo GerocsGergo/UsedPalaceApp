@@ -98,7 +98,7 @@ interface ApiService {
     suspend fun searchDeletedSalesSID(@Body request: SearchRequestID): ApiResponseForDeletedSaleWithEverything
 
     @POST("create-sale")
-    fun createSale(@Body request: CreateSaleRequest): Call<ResponseMessageWithFolder>
+    suspend fun createSale(@Body request: CreateSaleRequest): ResponseMessageWithFolder
 
     @Multipart
     @POST("/upload-sale-images")

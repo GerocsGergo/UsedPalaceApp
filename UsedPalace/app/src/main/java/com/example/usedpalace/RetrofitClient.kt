@@ -11,8 +11,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitClient {
 
     //private const val BASE_URL = "http://10.0.2.2:3000/"
-    //84.225.136.123
-    private const val BASE_URL = "http://10.224.83.75:3000/"
+    // 10.224.83.53
+    //private const val BASE_URL = "http://10.224.83.75:3000/"
+    private const val BASE_URL = "http://10.224.86.54:3000/"
+
     private lateinit var prefs: SharedPreferences
 
     fun init(context: Context) {
@@ -49,8 +51,9 @@ object RetrofitClient {
 
 object RetrofitClientNoAuth {
     //private const val BASE_URL = "http://10.0.2.2:3000/"
-
-    private const val BASE_URL = "http://10.224.83.75:3000/"
+    // 10.224.83.53
+    //private const val BASE_URL = "http://10.224.83.75:3000/"
+    private const val BASE_URL = "http://10.224.86.54:3000/"
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()

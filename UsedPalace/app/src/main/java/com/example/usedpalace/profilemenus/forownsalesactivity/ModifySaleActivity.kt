@@ -41,7 +41,8 @@ class ModifySaleActivity : AppCompatActivity() {
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
     private var saleId: Int = -1
-    private val baseImageUrl = "http://10.224.83.75:3000/sales"
+    //private val baseImageUrl = "http://10.224.83.75:3000/sales"
+    private val baseImageUrl = "http://10.224.86.54:3000/sales" // Zsolti tablethez
 
     // Képkezelő listák
     private val oldImages = mutableListOf<Uri>()      // szerverről betöltött képek
@@ -195,10 +196,6 @@ class ModifySaleActivity : AppCompatActivity() {
             findViewById(R.id.subCategory)
         )
         saleManagerMethod.setSpinnerCategory(findViewById(R.id.subCategory), sale.subCategory)
-
-        val folderUrl = sale.SaleFolder.takeIf { it.isNotEmpty() }
-            ?.let { "$baseImageUrl/$it" }
-            ?: return
 
         oldImages.clear()
         sale.Images?.forEach { imageName ->

@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.util.Base64
+import android.util.Log
 import android.webkit.MimeTypeMap
 import android.widget.Button
 import android.widget.EditText
@@ -23,6 +24,7 @@ import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleManagerMethod
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.profilemenus.forownsalesactivity.ImageAdapter
+import com.example.usedpalace.requests.CreateSaleRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -119,7 +121,6 @@ class CreateSaleActivity : AppCompatActivity() {
                 val clipData = intentData.clipData
                 val allowedToAdd = MAX_IMAGES - imageUris.size
                 if (clipData != null) {
-                    // Több kép kiválasztva
                     val count = clipData.itemCount
                     val limit = if (count > allowedToAdd) allowedToAdd else count
                     for (i in 0 until limit) {
@@ -127,7 +128,6 @@ class CreateSaleActivity : AppCompatActivity() {
                         imageUris.add(imageUri)
                     }
                 } else {
-                    // Egy kép kiválasztva
                     intentData.data?.let { uri ->
                         if (allowedToAdd > 0) {
                             imageUris.add(uri)
@@ -142,88 +142,113 @@ class CreateSaleActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        findViewById<Button>(R.id.buttonBack).setOnClickListener {
+        val buttonBack = findViewById<Button>(R.id.buttonBack)
+            buttonBack.setOnClickListener {
             navigateBackToProfile()
         }
-        findViewById<Button>(R.id.createSale).setOnClickListener {
-            createSale()
+        val createButton = findViewById<Button>(R.id.createSale)
+            createButton.setOnClickListener {
+            createSale(createButton)
         }
     }
 
-    private fun createSale() {
-        try {
-            val name = findViewById<EditText>(R.id.inputSaleName).text.toString().trim()
-            val description = findViewById<EditText>(R.id.inputDesc).text.toString().trim()
-            val cost = findViewById<EditText>(R.id.inputCost).text.toString().toIntOrNull() ?: 0
+    private fun createSale(createButton: Button) {
+        val name = findViewById<EditText>(R.id.inputSaleName).text.toString().trim()
+        val description = findViewById<EditText>(R.id.inputDesc).text.toString().trim()
+        val cost = findViewById<EditText>(R.id.inputCost).text.toString().toIntOrNull() ?: 0
 
-            val (bigCategory, smallCategory) = saleManagerMethod.getSelectedCategories(
-                findViewById(R.id.mainCategory),
-                findViewById(R.id.subCategory)
-            )
+        val (bigCategory, smallCategory) = saleManagerMethod.getSelectedCategories(
+            findViewById(R.id.mainCategory),
+            findViewById(R.id.subCategory)
+        )
 
-            if (name.isEmpty() || description.isEmpty() || cost <= 0 || bigCategory == null) {
-                Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            saleManagerMethod.createSale(
-                name = name,
-                description = description,
-                cost = cost,
-                bigCategory = bigCategory,
-                smallCategory = smallCategory,
-                userId = UserSession.getUserId()!!
-            ) { result ->
-                runOnUiThread {
-                    result.onSuccess { response ->
-                        uploadImages(response.saleFolder!!)
-                        Toast.makeText(this, "Sale created successfully!", Toast.LENGTH_SHORT).show()
-                        clearForm()
-                    }.onFailure {
-                        Toast.makeText(this, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+        if (name.isEmpty() || description.isEmpty() || cost <= 0 || bigCategory == null) {
+            Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show()
+            return
         }
-    }
 
-    private fun uploadImages(saleFolder: String) {
-        if (imageUris.isEmpty()) return
+        createButton.isEnabled = false
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val saleFolderBody = saleFolder.toRequestBody("text/plain".toMediaTypeOrNull())
-
-                val imageParts = mutableListOf<MultipartBody.Part>()
-                for (uri in imageUris) {
-                    uri?.let {
-                        val part = uriToMultipart(it, "images")
-                        part?.let { imageParts.add(it) }
-                    }
-                }
-
-                if (imageParts.isEmpty()) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@CreateSaleActivity, "Nincs feltölthető kép", Toast.LENGTH_SHORT).show()
-                    }
-                    return@launch
-                }
-
-                val response = apiService.uploadSaleImages(saleFolderBody, imageParts)
+                val response = apiService.createSale(
+                    CreateSaleRequest(
+                        name = name,
+                        description = description,
+                        cost = cost,
+                        bigCategory = bigCategory,
+                        smallCategory = smallCategory,
+                        userId = UserSession.getUserId()!!
+                    )
+                )
 
                 withContext(Dispatchers.Main) {
                     if (response.success) {
-                        Toast.makeText(this@CreateSaleActivity, "Images uploaded successfully", Toast.LENGTH_SHORT).show()
+                        // Feltöltjük a képeket az új mappába
+                        uploadImages(response.saleFolder!!, imageUris) {
+                            showSuccessDialog {
+                                navigateBackToProfile()
+                            }
+                        }
                     } else {
-                        Toast.makeText(this@CreateSaleActivity, "Image upload failed: ${response.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@CreateSaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
+                        createButton.isEnabled = true
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    Toast.makeText(this@CreateSaleActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    createButton.isEnabled = true
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+    private fun uploadImages(saleFolder: String, uris: List<Uri>, onComplete: () -> Unit) {
+        if (uris.isEmpty()) {
+            onComplete()
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val saleFolderBody = saleFolder.toRequestBody("text/plain".toMediaTypeOrNull())
+                val imageParts = mutableListOf<MultipartBody.Part>()
+
+                for ((index, uri) in uris.withIndex()) {
+                    val part = uriToMultipart(uri, "images")
+                    if (part != null) {
+                        val uniquePart = MultipartBody.Part.createFormData(
+                            "images",
+                            "image_${System.currentTimeMillis()}_$index.jpg",
+                            part.body
+                        )
+                        imageParts.add(uniquePart)
+                    }
+                }
+
+                if (imageParts.isEmpty()) {
+                    withContext(Dispatchers.Main) { onComplete() }
+                    return@launch
+                }
+
+                val response = apiService.uploadSaleImages(saleFolderBody, imageParts)
+                withContext(Dispatchers.Main) {
+                    if (!response.success) {
+                        Toast.makeText(this@CreateSaleActivity, "Image upload failed: ${response.message}", Toast.LENGTH_LONG).show()
+                    }
+                    onComplete()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
                     Toast.makeText(this@CreateSaleActivity, "Error uploading images: ${e.message}", Toast.LENGTH_LONG).show()
+                    onComplete()
                 }
             }
         }
@@ -233,68 +258,20 @@ class CreateSaleActivity : AppCompatActivity() {
     private suspend fun uriToMultipart(uri: Uri, key: String): MultipartBody.Part? {
         return withContext(Dispatchers.IO) {
             try {
-                val inputStream = contentResolver.openInputStream(uri) ?: return@withContext null
+                val inputStream = contentResolver.openInputStream(uri)
+                if (inputStream == null) {
+                    Log.d("UploadImages", "Failed to open InputStream for uri: $uri")
+                    return@withContext null
+                }
+
                 val bytes = inputStream.readBytes()
-                inputStream.close()
-
-                val mimeType = getMimeType(uri) ?: "image/*"
-                val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
-
-                // getFileName kell hogy legyen kiterjesztéssel
-                val fileName = getFileName(uri) ?: "upload_${System.currentTimeMillis()}.jpg"
-                MultipartBody.Part.createFormData(key, fileName, requestBody)
+                val mime = contentResolver.getType(uri) ?: "image/*"
+                val requestBody = bytes.toRequestBody(mime.toMediaTypeOrNull())
+                MultipartBody.Part.createFormData(key, "image.jpg", requestBody)
             } catch (e: Exception) {
-                e.printStackTrace()
                 null
             }
         }
-    }
-
-
-
-    private fun getMimeType(uri: Uri): String? {
-        val contentResolver: ContentResolver = contentResolver
-        return if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
-            contentResolver.getType(uri)
-        } else {
-            val fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri.toString())
-            MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension.lowercase())
-        }
-    }
-
-
-
-    private fun getFileName(uri: Uri): String? {
-        var result: String? = null
-        if (uri.scheme == "content") {
-            val cursor = contentResolver.query(uri, null, null, null, null)
-            cursor?.use {
-                if (it.moveToFirst()) {
-                    val index = it.getColumnIndex("_display_name")
-                    if (index != -1) {
-                        result = it.getString(index)
-                    }
-                }
-            }
-        }
-        if (result == null) {
-            result = uri.path
-            val cut = result?.lastIndexOf('/')
-            if (cut != null && cut != -1) {
-                result = result?.substring(cut + 1)
-            }
-        }
-        return result
-    }
-
-
-
-    private fun clearForm() {
-        findViewById<EditText>(R.id.inputSaleName).text.clear()
-        findViewById<EditText>(R.id.inputDesc).text.clear()
-        findViewById<EditText>(R.id.inputCost).text.clear()
-        imageUris.clear()
-        imageAdapter.notifyDataSetChanged()
     }
 
     private fun navigateBackToProfile() {
@@ -310,7 +287,7 @@ class CreateSaleActivity : AppCompatActivity() {
         runOnUiThread {
             val builder = androidx.appcompat.app.AlertDialog.Builder(this)
             builder.setTitle("Sikeres módosítás")
-            builder.setMessage("A hirdetésed sikeresen módosítva lett.")
+            builder.setMessage("A hirdetésed sikeresen létre lett hozva.")
             builder.setPositiveButton("OK") { dialog, _ ->
                 dialog.dismiss()
                 onDismiss()
