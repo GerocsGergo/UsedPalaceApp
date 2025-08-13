@@ -1,6 +1,7 @@
 package com.example.usedpalace.profilemenus.forownsalesactivity
 
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,8 +31,10 @@ class ImageAdapter(
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         val uri = images[position]
+        Log.d("ImageAdapter", "Image URI: $uri")
         if (uri != null) {
             val url = uri.toString()
+            Log.d("ImageAdapter", "Image URL: $url")
             if (url.startsWith("http")) {
                 // Internetes kép betöltése Picasso-val
                 Picasso.get()

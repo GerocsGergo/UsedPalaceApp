@@ -25,6 +25,7 @@ import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.UserSession
+import com.example.usedpalace.profilemenus.forownsalesactivity.ModifySaleActivity
 import com.example.usedpalace.profilemenus.forownsalesactivity.OpenSaleActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
