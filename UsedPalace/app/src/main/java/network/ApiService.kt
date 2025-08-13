@@ -118,7 +118,7 @@ interface ApiService {
     suspend fun deleteSale(@Body request: DeleteSaleRequest): ApiResponseGeneric
 
     @POST("get-images-with-saleId")
-    suspend fun searchImages(@Body request: SearchRequestID): ApiResponseForSalesWithEverything
+    suspend fun getImages(@Body request: SearchRequestID): ApiResponseForSalesWithEverything
 
     @PUT("modify-sale")
     suspend fun modifySale(@Body request: ModifySaleRequest): ResponseMessageWithFolder

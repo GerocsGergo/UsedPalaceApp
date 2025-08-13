@@ -51,8 +51,4 @@ class ImageAdapter(
             onDeleteClicked(position)
         }
     }
-
 }
-
-
-

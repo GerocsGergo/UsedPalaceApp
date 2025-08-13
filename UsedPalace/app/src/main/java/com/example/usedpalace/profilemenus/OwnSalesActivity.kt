@@ -19,7 +19,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.example.usedpalace.requests.DeleteSaleRequest
 import com.example.usedpalace.MainMenuActivity
-import com.example.usedpalace.profilemenus.forownsalesactivity.ModifySaleActivity
+
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithSid

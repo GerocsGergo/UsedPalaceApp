@@ -146,7 +146,7 @@ class ModifySaleActivity : AppCompatActivity() {
     private fun fetchSaleData() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = apiService.searchImages(SearchRequestID(saleId))
+                val response = apiService.searchSalesSID(SearchRequestID(saleId))
                 withContext(Dispatchers.Main) {
                     if (response.success && response.data != null) {
                         displaySale(response.data)
@@ -170,7 +170,7 @@ class ModifySaleActivity : AppCompatActivity() {
         saleManagerMethod.setSpinnerCategory(findViewById(R.id.mainCategory), sale.mainCategory)
         saleManagerMethod.updateSubcategories(
             findViewById<Spinner>(R.id.mainCategory).selectedItemPosition,
-                    findViewById(R.id.subCategory)
+            findViewById(R.id.subCategory)
         )
         saleManagerMethod.setSpinnerCategory(findViewById(R.id.subCategory), sale.subCategory)
 
