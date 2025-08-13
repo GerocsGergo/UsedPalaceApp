@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
@@ -200,27 +201,30 @@ class ModifySaleActivity : AppCompatActivity() {
             ?: return
 
         oldImages.clear()
-        for (i in 1..MAX_IMAGES) {
-            val imageUrl = "$folderUrl/image$i.jpg"
-            oldImages.add(Uri.parse(imageUrl))
+        sale.Images?.forEach { imageName ->
+            oldImages.add(Uri.parse("$baseImageUrl/${sale.SaleFolder}/$imageName"))
         }
+
         newImages.clear()
         deletedImages.clear()
         refreshImageList()
     }
 
     private fun setupClickListeners() {
+        val modifyButton = findViewById<Button>(R.id.createSale)
+        modifyButton.text = "Módosítás"
+        modifyButton.setOnClickListener {
+            modifySale(modifyButton)
+        }
+
         findViewById<Button>(R.id.buttonBack).setOnClickListener {
             navigateBackToProfile()
         }
-
-        findViewById<Button>(R.id.createSale).apply {
-            text = "Módosítás"
-            setOnClickListener { modifySale() }
-        }
     }
 
-    private fun modifySale() {
+
+
+    private fun modifySale(modifyButton: Button) {
         val name = findViewById<EditText>(R.id.inputSaleName).text.toString().trim()
         val description = findViewById<EditText>(R.id.inputDesc).text.toString().trim()
         val cost = findViewById<EditText>(R.id.inputCost).text.toString().toIntOrNull() ?: 0
@@ -234,6 +238,9 @@ class ModifySaleActivity : AppCompatActivity() {
             Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show()
             return
         }
+
+        // Gomb inaktiválása a módosítás idejére
+        modifyButton.isEnabled = false
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -251,61 +258,82 @@ class ModifySaleActivity : AppCompatActivity() {
 
                 withContext(Dispatchers.Main) {
                     if (response.success) {
-                        // Először a törölt képeket jelzi a szerver felé (ha van)
                         deleteSaleImages(response.saleFolder!!, deletedImages)
 
-                        // Majd az új képeket feltölti
-                        uploadImages(response.saleFolder!!, newImages)
-
-                        Toast.makeText(this@ModifySaleActivity, "Sale updated successfully!", Toast.LENGTH_SHORT).show()
+                        // Feltöltés után visszatérés
+                        uploadImages(response.saleFolder!!, newImages) {
+                            showSuccessDialog {
+                                navigateBackToProfile()
+                            }
+                        }
                     } else {
                         Toast.makeText(this@ModifySaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
+                        modifyButton.isEnabled = true
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@ModifySaleActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    modifyButton.isEnabled = true
                 }
             }
         }
     }
 
-    private fun uploadImages(saleFolder: String, uris: List<Uri>) {
-        if (uris.isEmpty()) return
+    private fun uploadImages(saleFolder: String, uris: List<Uri>, onComplete: () -> Unit) {
+        if (uris.isEmpty()) {
+            onComplete()
+            return
+        }
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val saleFolderBody = saleFolder.toRequestBody("text/plain".toMediaTypeOrNull())
                 val imageParts = mutableListOf<MultipartBody.Part>()
 
-                for (uri in uris) {
+                for ((index, uri) in uris.withIndex()) {
                     val part = uriToMultipart(uri, "images")
-                    part?.let { imageParts.add(it) }
+                    if (part != null) {
+                        val uniquePart = MultipartBody.Part.createFormData(
+                            "images",
+                            "image_${System.currentTimeMillis()}_$index.jpg",
+                            part.body
+                        )
+                        imageParts.add(uniquePart)
+                    }
                 }
 
-                if (imageParts.isEmpty()) return@launch
+                if (imageParts.isEmpty()) {
+                    withContext(Dispatchers.Main) { onComplete() }
+                    return@launch
+                }
 
                 val response = apiService.uploadSaleImages(saleFolderBody, imageParts)
-
                 withContext(Dispatchers.Main) {
-                    if (response.success) {
-                        Toast.makeText(this@ModifySaleActivity, "Images uploaded successfully", Toast.LENGTH_SHORT).show()
-                    } else {
+                    if (!response.success) {
                         Toast.makeText(this@ModifySaleActivity, "Image upload failed: ${response.message}", Toast.LENGTH_LONG).show()
                     }
+                    onComplete()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@ModifySaleActivity, "Error uploading images: ${e.message}", Toast.LENGTH_LONG).show()
+                    onComplete()
                 }
             }
         }
     }
 
+
     private suspend fun uriToMultipart(uri: Uri, key: String): MultipartBody.Part? {
         return withContext(Dispatchers.IO) {
             try {
-                val inputStream = contentResolver.openInputStream(uri) ?: return@withContext null
+                val inputStream = contentResolver.openInputStream(uri)
+                if (inputStream == null) {
+                    Log.d("UploadImages", "Failed to open InputStream for uri: $uri")
+                    return@withContext null
+                }
+
                 val bytes = inputStream.readBytes()
                 val mime = contentResolver.getType(uri) ?: "image/*"
                 val requestBody = bytes.toRequestBody(mime.toMediaTypeOrNull())
@@ -321,21 +349,18 @@ class ModifySaleActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 // Uri-ból az index kinyerése (image1.jpg -> 1)
-                val deletedIndexes = uris.mapNotNull { uri ->
-                    uri.lastPathSegment?.substringAfter("image")?.substringBefore(".jpg")?.toIntOrNull()
+                val deletedFileNames = deletedImages.mapNotNull { uri ->
+                    uri.lastPathSegment?.substringAfterLast("/")  // vagy teljes fájlnevet
                 }
+                Log.d("Deleted file names", deletedFileNames[0])
+                Log.d("Deleted file names", deletedFileNames[1])
 
-                if (deletedIndexes.isNotEmpty()) {
-                    apiService.deleteImages(DeleteImagesRequest(saleFolder, deletedIndexes))
+                if (deletedFileNames.isNotEmpty()) {
+                    apiService.deleteImages(DeleteImagesRequest(saleFolder, deletedFileNames))
                 }
             } catch (_: Exception) { }
         }
     }
-
-
-
-
-
 
     private fun navigateBackToProfile() {
         val intent = Intent(this, MainMenuActivity::class.java).apply {
@@ -344,5 +369,19 @@ class ModifySaleActivity : AppCompatActivity() {
         }
         startActivity(intent)
         finish()
+    }
+
+    private fun showSuccessDialog(onDismiss: () -> Unit) {
+        runOnUiThread {
+            val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+            builder.setTitle("Sikeres módosítás")
+            builder.setMessage("A hirdetésed sikeresen módosítva lett.")
+            builder.setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+                onDismiss()
+            }
+            builder.setCancelable(false)
+            builder.show()
+        }
     }
 }

@@ -305,4 +305,18 @@ class CreateSaleActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+
+    private fun showSuccessDialog(onDismiss: () -> Unit) {
+        runOnUiThread {
+            val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+            builder.setTitle("Sikeres módosítás")
+            builder.setMessage("A hirdetésed sikeresen módosítva lett.")
+            builder.setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+                onDismiss()
+            }
+            builder.setCancelable(false)
+            builder.show()
+        }
+    }
 }

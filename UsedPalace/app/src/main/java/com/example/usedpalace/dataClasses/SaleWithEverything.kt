@@ -10,6 +10,9 @@ data class SaleWithEverything(
     @SerializedName("SaleFolder") val SaleFolder: String,
     @SerializedName("BigCategory") val mainCategory: String,
     @SerializedName("SmallCategory") val subCategory: String,
-    @SerializedName("Uid") val Uid: Int
+    @SerializedName("Uid") val Uid: Int,
+    @SerializedName("Images") val Images: List<String>? = emptyList()
+
+
 )
 

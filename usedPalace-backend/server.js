@@ -539,12 +539,18 @@ app.get('/getSales', authenticateToken , (req, res) => {
     });
 });
 
+function getSaleImages(saleFolder) {
+    const folderPath = path.join(__dirname, 'sales', saleFolder); // a mappa elérési útja
+    if (!fs.existsSync(folderPath)) return [];
+
+    return fs.readdirSync(folderPath) // listázza a fájlokat
+        .filter(file => file.endsWith('.jpg')); // csak jpg képeket
+}
+
 app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
     try {
-		
         const { searchParam } = req.body;
-        console.log('Received sales search request:', searchParam);
-		
+
         if (!searchParam) {
             return res.status(400).json({
                 success: false,
@@ -554,7 +560,6 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
         }
 
         const query = 'SELECT * FROM Sales WHERE Sid = ?';
-        
         const [results] = await connection.promise().query(query, [searchParam]);
 
         if (results.length === 0) {
@@ -565,13 +570,18 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
             });
         }
 
-        // Return the first result as an object
+        const sale = results[0];
+        const images = getSaleImages(sale.SaleFolder);
+
         res.json({
             success: true,
             message: "Product found",
-            data: results[0]  // Return single object instead of array
+            data: {
+                ...sale,
+                Images: images // itt adjuk hozzá a képek listáját
+            }
         });
-        
+
     } catch (err) {
         console.error('Error in /search-sales-withSID:', err);
         res.status(500).json({
@@ -581,6 +591,7 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
         });
     }
 });
+
 
 app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) => {
     try {
@@ -890,32 +901,36 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
 
 //Image Uploader and stuff for it
 
-// Delete multiple images
+// Delete multiple images by filenames
 app.post('/delete-images', authenticateToken, async (req, res) => {
     try {
-        const { saleFolder, imageIndexes } = req.body;
+		
+        const { saleFolder, imageNames } = req.body;
+		console.log('Image deletion in this folder: ', saleFolder);
 
-        if (!saleFolder || !Array.isArray(imageIndexes) || imageIndexes.length === 0) {
+        if (!saleFolder || !Array.isArray(imageNames) || imageNames.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "saleFolder and non-empty imageIndexes array are required"
+                message: "saleFolder and non-empty imageNames array are required"
             });
         }
 
         const deletedImages = [];
 
-        imageIndexes.forEach(index => {
-            const imagePath = path.join('sales', saleFolder, `image${index}.jpg`);
+        imageNames.forEach(name => {
+            // Biztonsági okokból tisztítsuk a fájlnevet, hogy ne lehessen könyvtárat átugrani
+            const safeName = path.basename(name);
+            const imagePath = path.join('sales', saleFolder, safeName);
             if (fs.existsSync(imagePath)) {
                 fs.unlinkSync(imagePath);
-                deletedImages.push(index);
+                deletedImages.push(safeName);
             }
         });
 
         return res.json({
             success: true,
             message: "Operation completed",
-            deletedImages // opcionális: visszaadjuk, hogy melyek törlődtek
+            deletedImages
         });
 
     } catch (err) {
@@ -927,6 +942,7 @@ app.post('/delete-images', authenticateToken, async (req, res) => {
         });
     }
 });
+
 
 
 //Get images for modify
