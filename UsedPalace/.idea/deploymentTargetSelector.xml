@@ -20,7 +20,7 @@
             </Target>
             <Target type="DEFAULT_BOOT">
               <handle>
-                <DeviceId pluginId="PhysicalDevice" identifier="serial=R52N61C6F0F" />
+                <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\geroc\.android\avd\Pixel_6_API_36.avd" />
               </handle>
             </Target>
           </targets>

@@ -3,6 +3,7 @@ package com.example.usedpalace.fragments.messagesHelpers
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
@@ -56,10 +57,10 @@ class ChatActivity : AppCompatActivity() {
             insets
         }
 
+        getIntentData()
         setupWebSocket()
         setupRetrofit()
         initializeViews()
-        getIntentData()
         setupToolbar(toolbarUsername)
         initializeMessages()
         setupSendButton()
@@ -128,6 +129,8 @@ class ChatActivity : AppCompatActivity() {
         saleItemTextView = findViewById(R.id.sale_item_text)
 
         val currentUserId = UserSession.getUserId() ?: -1
+        Log.d("ChatActivity", "ITT NÉZD Current user ID: $currentUserId")
+        Log.d("ChatActivity", "ITT NÉZD Current chat ID: $chatId")
         messageAdapter = MessageAdapter(emptyList(), apiService, currentUserId)
 
         messagesRecyclerView.apply {
@@ -151,7 +154,7 @@ class ChatActivity : AppCompatActivity() {
         }
         sellerId = intent.getIntExtra("SELLER_ID", -1)
         if (sellerId == -1) {
-            showErrorMessage("Could not get saleID")
+            showErrorMessage("Could not get sellerID")
             finish()
         }
 

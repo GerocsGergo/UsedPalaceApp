@@ -1,5 +1,6 @@
 package com.example.usedpalace.fragments.messagesHelpers
 
+import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
@@ -19,10 +20,11 @@ class ChatWebSocketClient(
     fun connect() {
         val request = Request.Builder()
             //.url("ws://10.0.2.2:8080")
-            .url("ws://10.224.83.75:8080")
-
-            // cseréld a saját websocket URL-re
+            //.url("ws://10.224.83.75:8080")
+            .url("ws://10.224.86.54:8080")
             .build()
+
+        Log.e("ws connect request", "Request: $request")
         webSocket = client.newWebSocket(request, this)
 
         // Csatlakozás a chathez (küldj egy join-chat üzenetet JSON-ban)
@@ -41,6 +43,12 @@ class ChatWebSocketClient(
         """.trimIndent()
         webSocket.send(msgJson)
     }
+
+    override fun onOpen(webSocket: WebSocket, response: okhttp3.Response) {
+        super.onOpen(webSocket, response)
+        Log.e("WebSocket", "Connected successfully! Response: ${response.message}")
+    }
+
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         try {
@@ -90,6 +98,17 @@ class ChatWebSocketClient(
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: okhttp3.Response?) {
         onError("WebSocket failure: ${t.message}")
+        if (response != null) {
+            onError("WebSocket failure: ${response.message}")
+        }
+    }
+
+    override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+        Log.e("WebSocket", "Closing: code=$code, reason=$reason")
+    }
+
+    override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+        Log.e("WebSocket", "Closed: code=$code, reason=$reason")
     }
 
     fun close() {

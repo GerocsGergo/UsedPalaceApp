@@ -74,6 +74,8 @@ class MessageAdapter(
         holder.messageText.text = message.content
         holder.messageTime.text = ChatHelper.formatMessageTime(message.sentAt)
         CoroutineScope(Dispatchers.IO).launch {
+            Log.d("Bindreceived message", "senderid: ${message.senderId}")
+
             val username = ChatHelper.getUserName(apiService, message.senderId)
             withContext(Dispatchers.Main) {
                 holder.senderName.text = username ?: "Unknown"

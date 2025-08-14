@@ -104,10 +104,17 @@
     {
       "version": "1.0.0",
       "changes": [
-        "First working version",
+        "First Release version",
         "Changed some menus to look better",
         "Added sessions and tokens",
         "Bug fixes"
+      ]
+    }
+  ,
+    {
+      "version": "1.0.1",
+      "changes": [
+        "Chats fixed"
       ]
     }
   ]

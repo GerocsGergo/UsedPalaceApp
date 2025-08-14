@@ -409,7 +409,9 @@ class MessagesFragment : Fragment() {
     private fun onProductClick(chatId: Int, username: String?, saleId: Int, sellerId: Int) {
         val intent = Intent(context, ChatActivity::class.java).apply {
             putExtra("CHAT_ID", chatId)
+            Log.i("onProductClick", "Username: $username")
             putExtra("USERNAME", username)
+            Log.i("onProductClick", "Chatid: $chatId")
             putExtra("SALE_ID", saleId)
             putExtra("SELLER_ID", sellerId)
         }
@@ -449,12 +451,12 @@ class MessagesFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     if (response.success) {
                         if (response.data.isNotEmpty()) {
-
+                            val sortedChats = response.data.sortedByDescending { it.lastMessageAt }
                             when (flag) {
-                                "activeChats" -> displayActiveChats(apiService, response.data, containerLayout, inflater)
-                                "deletedChats" -> displayDeletedChats(apiService, response.data, containerLayout, inflater)
-                                "allChats" -> displayChats(apiService, response.data, containerLayout, inflater)
-                                else -> displayActiveChats(apiService, response.data, containerLayout, inflater)
+                                "activeChats" -> displayActiveChats(apiService, sortedChats, containerLayout, inflater)
+                                "deletedChats" -> displayDeletedChats(apiService, sortedChats, containerLayout, inflater)
+                                "allChats" -> displayChats(apiService, sortedChats, containerLayout, inflater)
+                                else -> displayActiveChats(apiService, sortedChats, containerLayout, inflater)
                             }
 
                         } else {
