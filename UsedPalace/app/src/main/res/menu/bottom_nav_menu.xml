@@ -2,13 +2,13 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:title="Home"
+    <item android:title="Otthon"
         android:icon="@drawable/baseline_home_filled_24"
         android:id="@+id/home"/>
-    <item android:title="Messages"
+    <item android:title="Üzenetek"
         android:id="@+id/messages"
         android:icon="@drawable/baseline_message_24"/>
-    <item android:title="Profile"
+    <item android:title="Profil"
         android:id="@+id/profile"
         android:icon="@drawable/baseline_person_24"/>
 

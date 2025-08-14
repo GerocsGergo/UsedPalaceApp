@@ -15,7 +15,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
@@ -29,11 +28,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import network.ApiService
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONArray
-import org.json.JSONObject
 
 class ModifySaleActivity : AppCompatActivity() {
 
@@ -111,7 +105,7 @@ class ModifySaleActivity : AppCompatActivity() {
                 Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            pickImages()
+            saleManagerMethod.pickImages(this, REQUEST_CODE_PICK_IMAGES)
         }
 
         saleManagerMethod.setupCategorySpinners(
@@ -131,40 +125,41 @@ class ModifySaleActivity : AppCompatActivity() {
         imageAdapter.notifyDataSetChanged()
     }
 
-    private fun pickImages() {
-        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-            type = "image/*"
-            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-        }
-        startActivityForResult(intent, REQUEST_CODE_PICK_IMAGES)
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_PICK_IMAGES && resultCode == RESULT_OK) {
-            data?.let { intentData ->
-                val clipData = intentData.clipData
+
+        if (requestCode == REQUEST_CODE_PICK_IMAGES && resultCode == RESULT_OK && data != null) {
+            val clipData = data.clipData
+            val selectedUris = mutableListOf<Uri>()
+
+            if (clipData != null) {
                 val allowedToAdd = MAX_IMAGES - imageUris.size
-                if (clipData != null) {
-                    val count = clipData.itemCount
-                    val limit = if (count > allowedToAdd) allowedToAdd else count
-                    for (i in 0 until limit) {
-                        val imageUri = clipData.getItemAt(i).uri
-                        newImages.add(imageUri)
-                    }
-                } else {
-                    intentData.data?.let { uri ->
-                        if (allowedToAdd > 0) {
-                            newImages.add(uri)
-                        } else {
-                            Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
-                        }
+                val count = clipData.itemCount
+                val limit = if (count > allowedToAdd) allowedToAdd else count
+
+                for (i in 0 until limit) {
+                    val uri = clipData.getItemAt(i).uri
+                    selectedUris.add(uri)
+                }
+
+                if (count > allowedToAdd) {
+                    Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                data.data?.let { uri ->
+                    if (imageUris.size < MAX_IMAGES) {
+                        selectedUris.add(uri)
+                    } else {
+                        Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
                     }
                 }
-                refreshImageList()
             }
+            newImages.addAll(selectedUris)
+            refreshImageList()
         }
     }
+
 
     private fun fetchSaleData() {
         CoroutineScope(Dispatchers.IO).launch {
@@ -215,7 +210,7 @@ class ModifySaleActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.buttonBack).setOnClickListener {
-            navigateBackToProfile()
+            saleManagerMethod.navigateBackToProfile(this@ModifySaleActivity)
         }
     }
 
@@ -258,9 +253,13 @@ class ModifySaleActivity : AppCompatActivity() {
                         deleteSaleImages(response.saleFolder!!, deletedImages)
 
                         // Feltöltés után visszatérés
-                        uploadImages(response.saleFolder!!, newImages) {
-                            showSuccessDialog {
-                                navigateBackToProfile()
+                        saleManagerMethod.uploadImages(this@ModifySaleActivity,response.saleFolder!!, newImages) {
+                            saleManagerMethod.showSuccessDialog(
+                                this@ModifySaleActivity,
+                                "Sikeres módosítás",
+                                "A hirdetésed sikeresen módosult."
+                            ) {
+                                saleManagerMethod.navigateBackToProfile(this@ModifySaleActivity)
                             }
                         }
                     } else {
@@ -277,69 +276,7 @@ class ModifySaleActivity : AppCompatActivity() {
         }
     }
 
-    private fun uploadImages(saleFolder: String, uris: List<Uri>, onComplete: () -> Unit) {
-        if (uris.isEmpty()) {
-            onComplete()
-            return
-        }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val saleFolderBody = saleFolder.toRequestBody("text/plain".toMediaTypeOrNull())
-                val imageParts = mutableListOf<MultipartBody.Part>()
-
-                for ((index, uri) in uris.withIndex()) {
-                    val part = uriToMultipart(uri, "images")
-                    if (part != null) {
-                        val uniquePart = MultipartBody.Part.createFormData(
-                            "images",
-                            "image_${System.currentTimeMillis()}_$index.jpg",
-                            part.body
-                        )
-                        imageParts.add(uniquePart)
-                    }
-                }
-
-                if (imageParts.isEmpty()) {
-                    withContext(Dispatchers.Main) { onComplete() }
-                    return@launch
-                }
-
-                val response = apiService.uploadSaleImages(saleFolderBody, imageParts)
-                withContext(Dispatchers.Main) {
-                    if (!response.success) {
-                        Toast.makeText(this@ModifySaleActivity, "Image upload failed: ${response.message}", Toast.LENGTH_LONG).show()
-                    }
-                    onComplete()
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@ModifySaleActivity, "Error uploading images: ${e.message}", Toast.LENGTH_LONG).show()
-                    onComplete()
-                }
-            }
-        }
-    }
-
-
-    private suspend fun uriToMultipart(uri: Uri, key: String): MultipartBody.Part? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val inputStream = contentResolver.openInputStream(uri)
-                if (inputStream == null) {
-                    Log.d("UploadImages", "Failed to open InputStream for uri: $uri")
-                    return@withContext null
-                }
-
-                val bytes = inputStream.readBytes()
-                val mime = contentResolver.getType(uri) ?: "image/*"
-                val requestBody = bytes.toRequestBody(mime.toMediaTypeOrNull())
-                MultipartBody.Part.createFormData(key, "image.jpg", requestBody)
-            } catch (e: Exception) {
-                null
-            }
-        }
-    }
 
     private fun deleteSaleImages(saleFolder: String, uris: List<Uri>) {
         if (uris.isEmpty()) return
@@ -359,26 +296,4 @@ class ModifySaleActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateBackToProfile() {
-        val intent = Intent(this, MainMenuActivity::class.java).apply {
-            putExtra("SHOW_PROFILE_FRAGMENT", true)
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-        }
-        startActivity(intent)
-        finish()
-    }
-
-    private fun showSuccessDialog(onDismiss: () -> Unit) {
-        runOnUiThread {
-            val builder = androidx.appcompat.app.AlertDialog.Builder(this)
-            builder.setTitle("Sikeres módosítás")
-            builder.setMessage("A hirdetésed sikeresen módosítva lett.")
-            builder.setPositiveButton("OK") { dialog, _ ->
-                dialog.dismiss()
-                onDismiss()
-            }
-            builder.setCancelable(false)
-            builder.show()
-        }
-    }
 }
