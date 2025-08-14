@@ -24,7 +24,21 @@
 			app:navigationIconTint="@color/white"
 			app:title="Chat"
 			app:titleTextColor="@color/colorTextButton"
-			app:popupTheme="@style/ThemeOverlay.Material3.Light" />
+			app:popupTheme="@style/ThemeOverlay.Material3.Light">
+
+		</com.google.android.material.appbar.MaterialToolbar>
+
+		<TextView
+			android:id="@+id/sale_item_text"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:gravity="center"
+			android:padding="8dp"
+			android:text="Termék név"
+			android:textSize="16sp"
+			android:textColor="@color/white"
+			android:background="@color/colorPrimary" />
+
 	</com.google.android.material.appbar.AppBarLayout>
 
 	<androidx.recyclerview.widget.RecyclerView

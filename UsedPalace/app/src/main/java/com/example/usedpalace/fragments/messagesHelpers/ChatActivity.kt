@@ -1,7 +1,10 @@
 package com.example.usedpalace.fragments.messagesHelpers
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
@@ -15,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
+import com.example.usedpalace.fragments.homefragmentHelpers.HomeFragmentSingleSaleActivity
 import com.example.usedpalace.requests.SearchRequestID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,12 +32,15 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
 
     private var chatId: Int = -1
+    private var saleId: Int = -1
+    private var sellerId: Int = -1
     private var toolbarUsername: String? = "null"
 
     private lateinit var mainLayout: ConstraintLayout
     private lateinit var messagesRecyclerView: RecyclerView
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var enterMessage: EditText
+    private lateinit var saleItemTextView: TextView
     private lateinit var buttonSend: ImageButton
 
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
@@ -56,7 +63,56 @@ class ChatActivity : AppCompatActivity() {
         setupToolbar(toolbarUsername)
         initializeMessages()
         setupSendButton()
+        getSaleItemText()
+
     }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.chat_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_sale -> {
+                intent = Intent(this, OpenSaleChatActivity::class.java).apply {
+                    putExtra("SALE_ID", saleId) //Give the saleId to the activity
+                    putExtra("SELLER_ID", sellerId)
+                }
+                startActivity(intent)
+                true
+            }
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun getSaleItemText() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = apiService.searchSalesSID(SearchRequestID(saleId))
+
+                val text = if (response.success && response.data != null) {
+                    response.data.Name
+                } else {
+                    "Nincs termék"
+                }
+
+                withContext(Dispatchers.Main) {
+                    saleItemTextView.text = text
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    saleItemTextView.text = "Hiba történt"
+                }
+            }
+        }
+    }
+
 
     private fun setupRetrofit() {
         prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
@@ -69,6 +125,7 @@ class ChatActivity : AppCompatActivity() {
         messagesRecyclerView = findViewById(R.id.messages_list_recycler_view)
         enterMessage = findViewById(R.id.enter_message)
         buttonSend = findViewById(R.id.button_send)
+        saleItemTextView = findViewById(R.id.sale_item_text)
 
         val currentUserId = UserSession.getUserId() ?: -1
         messageAdapter = MessageAdapter(emptyList(), apiService, currentUserId)
@@ -85,6 +142,16 @@ class ChatActivity : AppCompatActivity() {
         chatId = intent.getIntExtra("CHAT_ID", -1)
         if (chatId == -1) {
             showErrorMessage("Could not get chatID")
+            finish()
+        }
+        saleId = intent.getIntExtra("SALE_ID", -1)
+        if (saleId == -1) {
+            showErrorMessage("Could not get saleID")
+            finish()
+        }
+        sellerId = intent.getIntExtra("SELLER_ID", -1)
+        if (sellerId == -1) {
+            showErrorMessage("Could not get saleID")
             finish()
         }
 

@@ -2,7 +2,6 @@ package com.example.usedpalace.fragments
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.inputmethodservice.AbstractInputMethodService.AbstractInputMethodImpl
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -30,8 +29,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import network.ApiService
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 
 class MessagesFragment : Fragment() {
@@ -197,7 +194,7 @@ class MessagesFragment : Fragment() {
                                 containerLayout?.addView(itemView)
 
                                 itemView.setOnClickListener {
-                                    onProductClick(chat.chatId, username)
+                                    onProductClick(chat.chatId, username, chat.saleId, chat.sellerId)
                                 }
                             } else {
                                 Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
@@ -240,7 +237,7 @@ class MessagesFragment : Fragment() {
                             Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
                         }
                         itemView.setOnClickListener {
-                            onProductClick(chat.chatId, username)
+                            onProductClick(chat.chatId, username, chat.saleId, chat.sellerId)
                         }
                     }catch (e: Exception){
                         Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
@@ -339,7 +336,7 @@ class MessagesFragment : Fragment() {
 
 
                         itemView.setOnClickListener {
-                            onProductClick(chat.chatId, username)
+                            onProductClick(chat.chatId, username, chat.saleId, chat.sellerId)
                         }
                     }catch (e: Exception){
                         Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
@@ -409,10 +406,12 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    private fun onProductClick(chatId: Int, username: String?) {
+    private fun onProductClick(chatId: Int, username: String?, saleId: Int, sellerId: Int) {
         val intent = Intent(context, ChatActivity::class.java).apply {
             putExtra("CHAT_ID", chatId)
             putExtra("USERNAME", username)
+            putExtra("SALE_ID", saleId)
+            putExtra("SELLER_ID", sellerId)
         }
         startActivity(intent)
     }
