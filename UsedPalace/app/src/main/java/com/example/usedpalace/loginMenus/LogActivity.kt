@@ -13,6 +13,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
@@ -77,7 +78,8 @@ class LogActivity : AppCompatActivity() {
             apiServiceAuth.verifyToken("Bearer $token").enqueue(object : Callback<ResponseForLoginTokenExpiration> {
                 override fun onResponse(call: Call<ResponseForLoginTokenExpiration>, response: Response<ResponseForLoginTokenExpiration>) {
                     if (response.isSuccessful) {
-                        Log.d("JWTCheck", "Token is valid")
+                        //Log.d("JWTCheck", "Token is valid")
+                        ErrorHandler.logToLogcat("JWTCheck", "Token is valid", ErrorHandler.LogLevel.DEBUG)
 
                         val savedUserName = prefs.getString("userName", null)
                         val savedUserId = prefs.getInt("userId", -1)
@@ -106,7 +108,10 @@ class LogActivity : AppCompatActivity() {
                         btnReg.visibility = View.GONE
                         buttonVerifyEmail.visibility = View.GONE
                     } else {
-                        Log.d("JWTCheck", "Token is invalid or expired")
+                        //Log.d("JWTCheck", "Token is invalid or expired")
+                        ErrorHandler.logToLogcat("JWTCheck", "Token is invalid or expired", ErrorHandler.LogLevel.DEBUG)
+                        val errorBody = response.errorBody()?.string()
+                        ErrorHandler.handleApiError(this@LogActivity, response.code(), errorBody)
                         // No token: show login inputs
                         btnLogout.visibility = View.GONE
                         btnOpenMainMenu.visibility = View.GONE
@@ -130,13 +135,10 @@ class LogActivity : AppCompatActivity() {
                     }
                 }
                 override fun onFailure(call: Call<ResponseForLoginTokenExpiration>, t: Throwable) {
-                    Log.e("JWTCheck", "Network error: ${t.message}")
+                    ErrorHandler.handleNetworkError(this@LogActivity, t)
                 }
             })
         }
-
-
-
     }
 
 
@@ -145,9 +147,7 @@ class LogActivity : AppCompatActivity() {
         if (logout) {
             logout()
         }
-
     }
-
 
     private fun setupClickListeners() {
         btnReg.setOnClickListener {
@@ -166,7 +166,7 @@ class LogActivity : AppCompatActivity() {
         }
 
         btnOpenMainMenu.setOnClickListener {
-            Log.d("Login activity","Logged in user id: " + UserSession.getUserId())
+            ErrorHandler.logToLogcat("Login activity","Logged in user id: " + UserSession.getUserId(), ErrorHandler.LogLevel.DEBUG)
             val intent = Intent(this@LogActivity, MainMenuActivity::class.java)
             startActivity(intent)
         }
@@ -181,7 +181,7 @@ class LogActivity : AppCompatActivity() {
 
             // Validate email and password
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please enter both email and password", Toast.LENGTH_SHORT).show()
+                ErrorHandler.toaster(this, "Kérjük töltse ki az összes mezőt!")
                 return@setOnClickListener
             }
 
@@ -195,9 +195,6 @@ class LogActivity : AppCompatActivity() {
             apiServiceNoAuth.loginUser(newLogin).enqueue(object : Callback<ResponseMessageWithUser> {
                 override fun onResponse(call: Call<ResponseMessageWithUser>, response: Response<ResponseMessageWithUser>) {
                     if (response.isSuccessful) {
-                        val message = response.body()?.message
-                        Toast.makeText(this@LogActivity, message, Toast.LENGTH_SHORT).show()
-
                         // Clear input fields
                         inputEmail.text.clear()
                         inputPassword.text.clear()
@@ -220,25 +217,20 @@ class LogActivity : AppCompatActivity() {
                         editor.apply()
 
                         // Navigate to the main menu
-                        Log.d("Login activity","Logged in user id: " + UserSession.getUserId())
+                        ErrorHandler.logToLogcat("Login activity","Logged in user id: " + UserSession.getUserId(), ErrorHandler.LogLevel.DEBUG)
                         val intent = Intent(this@LogActivity, MainMenuActivity::class.java)
                         startActivity(intent)
                     } else {
                         val errorBody = response.errorBody()?.string()
-                        val statusCode = response.code()
-                        val headers = response.headers().toString()
+                        ErrorHandler.handleApiError(this@LogActivity, response.code(), errorBody)
 
-                        println("Status Code: $statusCode")
-                        println("Headers: $headers")
-                        println("Error Response: $errorBody")
-
-                        Toast.makeText(this@LogActivity, "Login failed: $errorBody", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseMessageWithUser>, t: Throwable) {
                     // Handle network errors
-                    Toast.makeText(this@LogActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@LogActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleNetworkError(this@LogActivity, t)
                 }
             })
         }
@@ -251,16 +243,22 @@ class LogActivity : AppCompatActivity() {
             apiServiceAuth.logoutUser("Bearer $token").enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@LogActivity, response.body()?.message ?: "Sikeres kijelentkezés", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(this@LogActivity, response.body()?.message ?: "Sikeres kijelentkezés", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.toaster(this@LogActivity, "Sikeres kijelentkezés")
                     } else {
-                        Toast.makeText(this@LogActivity, "Kijelentkezés sikertelen", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(this@LogActivity, "Kijelentkezés sikertelen", Toast.LENGTH_SHORT).show()
+                        //ErrorHandler.toaster(this@LogActivity, "Sikertelen kijelentkezés")
+                        val errorBody = response.errorBody()?.string()
+                        ErrorHandler.handleApiError(this@LogActivity, response.code(), errorBody)
                     }
                     // Minden esetben töröljük a helyi adatokat és session-t
                     clearSessionAndGoToLogin()
                 }
 
                 override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-                    Toast.makeText(this@LogActivity, "Hálózati hiba a kijelentkezéskor: ${t.message}", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@LogActivity, "Hálózati hiba a kijelentkezéskor: ${t.message}", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleNetworkError(this@LogActivity, t)
+
                     clearSessionAndGoToLogin()
                 }
             })

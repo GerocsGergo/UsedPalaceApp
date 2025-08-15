@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DIALOG" />
-        <DropdownSelection timestamp="2025-08-11T08:46:56.548434200Z">
+        <DropdownSelection timestamp="2025-08-15T10:56:00.704249900Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=R52N61C6F0F" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\geroc\.android\avd\Medium_Phone.avd" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -16,11 +16,6 @@
             <Target type="DEFAULT_BOOT">
               <handle>
                 <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\geroc\.android\avd\Medium_Phone.avd" />
-              </handle>
-            </Target>
-            <Target type="DEFAULT_BOOT">
-              <handle>
-                <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\geroc\.android\avd\Pixel_6_API_36.avd" />
               </handle>
             </Target>
           </targets>

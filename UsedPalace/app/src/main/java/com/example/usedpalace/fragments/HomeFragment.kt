@@ -215,7 +215,8 @@ class HomeFragment : Fragment() {
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val sales = apiService.getSales()
+                val response = apiService.getSales()
+                val sales = response.data
 
                 withContext(Dispatchers.Main) {
                     containerLayout?.removeAllViews()

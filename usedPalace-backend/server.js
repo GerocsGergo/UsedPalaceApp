@@ -107,20 +107,32 @@ app.post('/forgot-password', async (req, res) => {
         const { email, phoneNumber } = req.body;
 
         if (!email || !phoneNumber) {
-            return res.status(400).json({ error: 'Some fields are empty!' });
+            return res.status(400).json({ 
+                error: 'Some fields are empty!', 
+                message: 'Kérlek töltsd ki az összes mezőt!' 
+            });
         }
 
         if (!validator.isEmail(email)) {
-            return res.status(400).json({ error: 'Invalid email address.' });
+            return res.status(400).json({ 
+                error: 'Invalid email address.', 
+                message: 'Érvénytelen email cím.' 
+            });
         }
 
         if (phoneNumber.trim().length !== 11) {
-            return res.status(400).json({ error: 'Phone number format invalid.' });
+            return res.status(400).json({ 
+                error: 'Phone number format invalid.', 
+                message: 'A telefonszám formátuma nem megfelelő.' 
+            });
         }
 
         const phoneRegex = /^06\d{9}$/;
         if (!phoneRegex.test(phoneNumber)) {
-            return res.status(400).json({ error: 'Phone number format invalid.' });
+            return res.status(400).json({ 
+                error: 'Phone number format invalid.', 
+                message: 'A telefonszám formátuma nem megfelelő.' 
+            });
         }
 
         // Find user
@@ -130,7 +142,10 @@ app.post('/forgot-password', async (req, res) => {
         );
 
         if (users.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json({ 
+                error: 'User not found', 
+                message: 'Ismeretlen hiba történt.' 
+            });
         }
 
         const user = users[0];
@@ -153,16 +168,25 @@ app.post('/forgot-password', async (req, res) => {
         transporter.sendMail(mailOptions, (err) => {
             if (err) {
                 console.error('Error sending email:', err);
-                return res.status(500).json({ error: 'Failed to send email' });
+                return res.status(500).json({ 
+                    error: 'Failed to send email', 
+                    message: 'Nem sikerült elküldeni az emailt.' 
+                });
             }
-            res.json({ message: 'Reset code sent to your email' });
+            res.json({ 
+                message: 'Reset code sent to your email' 
+            });
         });
 
     } catch (err) {
         console.error('Error in /forgot-password:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: 'Szerver hiba történt. Kérlek próbáld újra később.' 
+        });
     }
 });
+
 
 
 // Confirm forgot password
@@ -171,21 +195,31 @@ app.post('/confirm-forgot-password', async (req, res) => {
         const { email, code, newPassword } = req.body;
 
         if (!email || !code || !newPassword) {
-            return res.status(400).json({ error: 'Some fields are empty!' });
+            return res.status(400).json({ 
+                error: 'Some fields are empty!', 
+                message: 'Kérlek töltsd ki az összes mezőt!' 
+            });
         }
 
         if (!validator.isEmail(email)) {
-            return res.status(400).json({ error: 'Invalid email address.' });
+            return res.status(400).json({ 
+                error: 'Invalid email address.', 
+                message: 'Érvénytelen email cím.' 
+            });
         }
 
         if (newPassword.trim().length < 8) {
-            return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+            return res.status(400).json({ 
+                error: 'Password must be at least 8 characters.', 
+                message: 'A jelszónak legalább 8 karakter hosszúnak kell lennie.' 
+            });
         }
 
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         if (!passwordRegex.test(newPassword)) {
             return res.status(400).json({
-                error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+                error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+                message: 'A jelszónak tartalmaznia kell legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.'
             });
         }
 
@@ -198,7 +232,10 @@ app.post('/confirm-forgot-password', async (req, res) => {
         );
 
         if (results.length === 0) {
-            return res.status(400).json({ error: 'Invalid or expired code' });
+            return res.status(400).json({ 
+                error: 'Invalid or expired code', 
+                message: 'Érvénytelen vagy lejárt kód.' 
+            });
         }
 
         const userId = results[0].Uid;
@@ -220,9 +257,13 @@ app.post('/confirm-forgot-password', async (req, res) => {
 
     } catch (err) {
         console.error('Error in /confirm-forgot-password:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: 'Szerver hiba történt. Kérlek próbáld újra később.' 
+        });
     }
 });
+
 
 
 //TODO bruteforce protection with login rate limiter
@@ -235,29 +276,39 @@ app.post('/login', async (req, res) => {
 		console.log('Received login request:', email);
 		
 		if (!email || !password || !deviceInfo) {
-        return res.status(400).json({ error: 'Some data is missing' });
+        return res.status(400).json({ 
+			error: 'Some data is missing',
+			message: 'Felhasználó nem létezik, vagy hibás adat'});
     }
 		
 		if (!validator.isEmail(email)) {
-        return res.status(400).json({ error: 'Invalid email address.' });
+        return res.status(400).json({ 
+			error: 'Invalid email address.',
+			message: 'Felhasználó nem létezik, vagy hibás adat'});
 		}
 		
         const query = 'SELECT * FROM Users WHERE Email = ?';
         const [results] = await connection.promise().query(query, [email]);
 
         if (results.length === 0) {
-            return res.status(401).json({ error: 'User not found' });
+            return res.status(401).json({ 
+				error: 'User not found',
+				message: 'Felhasználó nem létezik, vagy hibás adat'});
         }
 
         const user = results[0];
 
         const isPasswordValid = await bcrypt.compare(password, user.PassHashed);
         if (!isPasswordValid) {
-            return res.status(401).json({ error: 'Invalid password' });
+            return res.status(401).json({ 
+			error: 'Invalid password',
+			message: 'Felhasználó nem létezik, vagy hibás adat'});
         }
 
         if (!user.Verified) {
-            return res.status(401).json({ error: 'Email not verified' });
+            return res.status(401).json({ 
+				error: 'Email not verified',
+				message: 'Felhasználó nem létezik, vagy hibás adat'});
         }
 
         const token = jwt.sign({ id: user.Uid }, JWT_SECRET, { expiresIn: '7d' }); //10s for testing 7d for production
@@ -283,125 +334,172 @@ app.post('/login', async (req, res) => {
 
     } catch (err) {
         console.error('Error in /login:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+			error: 'Internal server error',
+			message: 'Felhasználó nem létezik, vagy hibás adat'});
     }
 });
 
-//Check if login token is expired
+// Check if login token is expired
 app.get('/verify-token', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
-        return res.status(401).json({ error: 'No token provided' });
+        return res.status(401).json({ 
+            error: 'No token provided', 
+            message: 'Nincs megadva token. Kérlek jelentkezz be újra.' 
+        });
     }
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-		
-		// Session ellenőrzés
+
+        // Session ellenőrzés
         const [sessions] = await connection.promise().query(
             'SELECT * FROM Sessions WHERE Token = ? AND ExpiresAt > NOW()',
             [token]
         );
 
         if (sessions.length === 0) {
-            return res.status(401).json({ error: 'Invalid or expired session' });
+            return res.status(401).json({ 
+                error: 'Invalid or expired session', 
+                message: 'Érvénytelen vagy lejárt munkamenet. Kérlek jelentkezz be újra.' 
+            });
         }
-		
-        res.json({ valid: true, user: decoded });
+
+        res.json({ 
+            valid: true, 
+            user: decoded, 
+            message: 'Token érvényes.' 
+        });
+
     } catch (err) {
         if (err.name === 'TokenExpiredError') {
-            res.status(401).json({ error: 'Token expired' });
+            res.status(401).json({ 
+                error: 'Token expired', 
+                message: 'A token lejárt. Kérlek jelentkezz be újra.' 
+            });
         } else {
-            res.status(401).json({ error: 'Invalid token' });
+            res.status(401).json({ 
+                error: 'Invalid token', 
+                message: 'Érvénytelen token. Kérlek jelentkezz be újra.' 
+            });
         }
     }
 });
 
-// logout endpoint
-app.delete('/logout', authenticateToken , async (req, res) => {
+// Logout endpoint
+app.delete('/logout', authenticateToken, async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
-        return res.status(400).json({ error: 'No token provided' });
+        return res.status(400).json({ 
+            error: 'No token provided', 
+            message: 'Nincs megadva token. Nem tudunk kijelentkeztetni.' 
+        });
     }
 
     try {
         await connection.promise().query('DELETE FROM Sessions WHERE Token = ?', [token]);
-        res.json({ message: 'Logout successful' });
+        res.json({ 
+            message: 'Sikeres kijelentkezés.' 
+        });
 
     } catch (err) {
         console.error('Error in /logout:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: 'Szerver hiba történt. Kérlek próbáld újra később.' 
+        });
     }
 });
+
 
 // API to register a new user
 app.post('/register', async (req, res) => {
     const { fullname, email, password, phoneNumber } = req.body;
-	console.log('Received registration request:', email);
-	
-	if (!fullname || !email || !password || !phoneNumber){
-		return res.status(500).json({ error: 'Somefields are empty!' });
-	}
-	
-	if (fullname.trim().length < 2 || fullname.trim().length > 50) {
-        return res.status(400).json({ error: 'Fullname must be between 2-50 characters.' });
-    }
-	
-	if (password.trim().length < 8) {
-        return res.status(400).json({ error: 'Password must be atleast 8 characters.' });
-    }
-	
-	const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(password)) {
+    console.log('Received registration request:', email);
+
+    if (!fullname || !email || !password || !phoneNumber) {
         return res.status(400).json({ 
-            error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+            error: 'Some fields are empty!', 
+            message: 'Minden mező kitöltése kötelező.' 
         });
     }
-	
-	if (!validator.isEmail(email)) {
-        return res.status(400).json({ error: 'Invalid email address.' });
+
+    if (fullname.trim().length < 2 || fullname.trim().length > 50) {
+        return res.status(400).json({ 
+            error: 'Fullname length invalid', 
+            message: 'A teljes névnek 2 és 50 karakter között kell lennie.' 
+        });
     }
-	
-	const [existingUser] = await connection.promise().query(
+
+    if (password.trim().length < 8) {
+        return res.status(400).json({ 
+            error: 'Password too short', 
+            message: 'A jelszónak legalább 8 karakter hosszúnak kell lennie.' 
+        });
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+        return res.status(400).json({ 
+            error: 'Password complexity invalid', 
+            message: 'A jelszónak tartalmaznia kell legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.' 
+        });
+    }
+
+    if (!validator.isEmail(email)) {
+        return res.status(400).json({ 
+            error: 'Invalid email address', 
+            message: 'Érvénytelen email cím.' 
+        });
+    }
+
+    try {
+        const [existingUser] = await connection.promise().query(
             'SELECT Uid FROM Users WHERE Email = ?',
             [email]
         );
 
         if (existingUser.length > 0) {
             return res.status(400).json({
-                message: 'Email address already in use.'
+                error: 'Email already in use', 
+                message: 'Ez az email cím már használatban van.' 
             });
         }
-	
-	if (phoneNumber.trim().length != 11) {
-        return res.status(400).json({ error: 'Phone number format invalid.' });
-    }
-	
-	const phoneRegex = /^06\d{9}$/;
-	if (!phoneRegex.test(phoneNumber)) {
-		return res.status(400).json({
-		message: "Phone number format invalid."
-		});
-	}
-	
-    try {
+
+        if (phoneNumber.trim().length !== 11) {
+            return res.status(400).json({ 
+                error: 'Phone number format invalid', 
+                message: 'A telefonszám hossza nem megfelelő.' 
+            });
+        }
+
+        const phoneRegex = /^06\d{9}$/;
+        if (!phoneRegex.test(phoneNumber)) {
+            return res.status(400).json({
+                error: 'Phone number format invalid',
+                message: 'A telefonszám formátuma érvénytelen. Például: 06123456789'
+            });
+        }
+
         // Hash the password
-        const saltRounds = 10; // Number of salt rounds (higher = more secure but slower)
+        const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Insert the user into the database
         const query = 'INSERT INTO Users (Fullname, Email, PassHashed, PhoneNumber) VALUES (?, ?, ?, ?)';
-        connection.query(query, [fullname, email, hashedPassword, phoneNumber], (err, results) => {
-            if (err) {
-                res.status(400).json({ error: 'Failed to register user' });
-            } else {
-                res.json({ message: 'User registered successfully!' });
-            }
-        });
+        await connection.promise().query(query, [fullname, email, hashedPassword, phoneNumber]);
+
+        res.json({ message: 'Felhasználó sikeresen regisztrálva.' });
+
     } catch (error) {
-        res.status(500).json({ error: 'Failed to hash password' });
+        console.error('Error in /register:', error);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: 'Hiba történt a regisztráció során. Kérlek próbáld újra később.' 
+        });
     }
 });
 
@@ -414,8 +512,11 @@ app.post('/send-verify-email', async (req, res) => {
         const { email } = req.body;
         console.log('Received send-verify-email request:', email);
 
-        if (!validator.isEmail(email)) {
-            return res.status(400).json({ error: 'Invalid email address.' });
+        if (!email || !validator.isEmail(email)) {
+            return res.status(400).json({ 
+                error: 'Invalid email address', 
+                message: 'Érvénytelen vagy hiányzó email cím.' 
+            });
         }
 
         // Check if user exists
@@ -424,7 +525,10 @@ app.post('/send-verify-email', async (req, res) => {
             [email]
         );
         if (users.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json({ 
+                error: 'User not found', 
+                message: 'A megadott email címhez nem található felhasználó.' 
+            });
         }
 
         const userId = users[0].Uid;
@@ -449,17 +553,22 @@ app.post('/send-verify-email', async (req, res) => {
         transporter.sendMail(mailOptions, (err) => {
             if (err) {
                 console.error('Error sending email:', err);
-                return res.status(500).json({ error: 'Failed to send email' });
+                return res.status(500).json({ 
+                    error: 'Failed to send email', 
+                    message: 'Nem sikerült elküldeni az ellenőrző emailt. Próbáld újra később.' 
+                });
             }
-            res.json({ message: 'Verification code sent to your email' });
+            res.json({ message: 'Az ellenőrző kód elküldve az email címedre.' });
         });
 
     } catch (err) {
         console.error('Error in /send-verify-email:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: 'Hiba történt az email küldés során. Próbáld újra később.' 
+        });
     }
 });
-
 
 // Verify Email
 app.post('/verify-email', async (req, res) => {
@@ -467,8 +576,18 @@ app.post('/verify-email', async (req, res) => {
         const { email, code } = req.body;
         console.log('Received verify-email request:', email);
 
-        if (!validator.isEmail(email)) {
-            return res.status(400).json({ error: 'Invalid email address.' });
+        if (!email || !validator.isEmail(email)) {
+            return res.status(400).json({ 
+                error: 'Invalid email address', 
+                message: 'Érvénytelen vagy hiányzó email cím.' 
+            });
+        }
+
+        if (!code) {
+            return res.status(400).json({
+                error: 'Code missing',
+                message: 'Az ellenőrző kód megadása kötelező.'
+            });
         }
 
         // Find user + matching token
@@ -481,7 +600,10 @@ app.post('/verify-email', async (req, res) => {
         );
 
         if (results.length === 0) {
-            return res.status(400).json({ error: 'Invalid or expired verification code' });
+            return res.status(400).json({ 
+                error: 'Invalid or expired verification code', 
+                message: 'Érvénytelen vagy lejárt ellenőrző kód.' 
+            });
         }
 
         const userId = results[0].Uid;
@@ -498,30 +620,46 @@ app.post('/verify-email', async (req, res) => {
             [userId]
         );
 
-        res.json({ message: 'Email verified successfully' });
+        res.json({ message: 'Email cím sikeresen ellenőrizve.' });
 
     } catch (err) {
         console.error('Error in /verify-email:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: 'Hiba történt az email ellenőrzés során. Próbáld újra később.' 
+        });
     }
 });
 
 
 
 
-//End points for sales
-//fetch sales data
-app.get('/getSales', authenticateToken , (req, res) => {
+// Endpoints for sales
+// Fetch sales data
+app.get('/getSales', authenticateToken, (req, res) => {
     const query = 'SELECT * FROM Sales';
     connection.query(query, (err, results) => {
         if (err) {
             console.error('Error fetching sales data:', err);
-            res.status(500).json({ error: 'Failed to fetch sales data' });
-        } else {
-            res.json(results);
+            return res.status(500).json({ 
+                error: 'Failed to fetch sales data',
+                message: 'Hiba történt a hirdetések lekérése során. Próbáld újra később.'
+            });
+        } 
+
+        if (results.length === 0) {
+            return res.status(404).json({
+                error: 'No sales found',
+                message: 'Ismeretlen hiba történt.'
+            });
         }
+
+        res.json({ 
+            data: results 
+        });
     });
 });
+
 
 function getSaleImages(saleFolder) {
     const folderPath = path.join(__dirname, 'sales', saleFolder); // a mappa elérési útja
@@ -538,7 +676,8 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
         if (!searchParam) {
             return res.status(400).json({
                 success: false,
-                message: "Search parameter is required",
+				error: "Search parameter is missing",
+                message: "Töltsd ki a keresési mezőt.",
                 data: null
             });
         }
@@ -549,7 +688,8 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
         if (results.length === 0) {
             return res.json({
                 success: true,
-                message: "No product found with this ID",
+                message: "Ismeretlen hiba történt",
+				error:"No product found with this ID",
                 data: null
             });
         }
@@ -570,7 +710,8 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
         console.error('Error in /search-sales-withSID:', err);
         res.status(500).json({
             success: false,
-            message: "Server error",
+            error: "Server error",
+			message: "Ismeretlen hiba történt",
             data: null 
         });
     }
@@ -586,7 +727,8 @@ app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) =>
         if (!searchParam) {
             return res.status(400).json({
                 success: false,
-                message: "Search parameter is required",
+                error: "Search parameter is missing",
+                message: "Töltsd ki a keresési mezőt.",
                 data: null
             });
         }
@@ -598,7 +740,8 @@ app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) =>
         if (results.length === 0) {
             return res.json({
                 success: true,
-                message: "No product found with this ID",
+                message: "Ismeretlen hiba történt",
+				error:"No product found with this ID",
                 data: null 
             });
         }
@@ -606,7 +749,6 @@ app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) =>
  
         res.json({
             success: true,
-            message: "Product found",
             data: results[0]  
         });
         
@@ -614,7 +756,8 @@ app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) =>
         console.error('Error in /search-deletedSales-withSID:', err);
         res.status(500).json({
             success: false,
-            message: "Server error",
+            error: "Server error",
+			message: "Ismeretlen hiba történt",
             data: null 
         });
     }
@@ -628,7 +771,8 @@ app.post('/search-sales-withSaleName', authenticateToken , async (req, res) => {
         if (!searchParam) {
             return res.status(400).json({
                 success: false,
-                message: "Search parameter is required",
+                error: "Search parameter is missing",
+                message: "Töltsd ki a keresési mezőt.",
                 data: []
             });
         }
@@ -649,7 +793,8 @@ app.post('/search-sales-withSaleName', authenticateToken , async (req, res) => {
         console.error('Error in /search-sales:', err);
         res.status(500).json({
             success: false,
-            message: "Server error",
+            error: "Server error",
+			message: "Ismeretlen hiba történt",
             data: []
         });
     }
@@ -663,31 +808,40 @@ app.post('/search-salesID', authenticateToken , async (req, res) => {
         if (!searchParam) {
             return res.status(400).json({
                 success: false,
-                message: "Search parameter is required",
+                message: "Töltsd ki a keresési mezőt.",
+                error: "Search parameter is missing",
                 data: []
             });
         }
 
         const query = 'SELECT * FROM Sales WHERE Uid = ?';
-
         const [results] = await connection.promise().query(query, [searchParam]);
 
-        // Ensure we always return the same structure
+        if (results.length === 0) {
+            return res.status(404).json({
+                success: true,
+                message: "Ismeretlen hiba történt",
+                error: "No product found with this ID",
+                data: []
+            });
+        }
+
         res.json({
             success: true,
-            message: results.length ? "Products found" : "No products found",
             data: results
         });
         
     } catch (err) {
-        console.error('Error in /search-sales:', err);
+        console.error('Error in /search-salesID:', err);
         res.status(500).json({
             success: false,
-            message: "Server error",
+            message: "Ismeretlen hiba történt",
+            error: err.message,
             data: []
         });
     }
 });
+
 
 
 app.post('/create-sale', authenticateToken , (req, res) =>  {
@@ -698,7 +852,8 @@ app.post('/create-sale', authenticateToken , (req, res) =>  {
         if (!name || !description || !cost || !bigCategory || !userId) {
             return res.status(400).json({
                 success: false,
-                message: "Missing required fields"
+                message: "Kérjük minden mezőt töltsön ki!",
+				error:"Missing required fields"
             });
         }
 		console.log('Received sale creation request: ', userId);
@@ -723,13 +878,14 @@ app.post('/create-sale', authenticateToken , (req, res) =>  {
                     console.error('Error creating sale:', err);
                     return res.status(500).json({ 
                         success: false,
-                        message: 'Failed to create sale' 
+						error:'Failed to create sale',
+                        message: 'Nem sikerült létrehozni a hirdetést.' 
                     });
                 }
                 
                 res.json({ 
                     success: true,
-                    message: 'Sale created successfully!',
+                    message: 'Hirdetés sikeresen létrehozva!',
                     saleId: results.insertId,
                     saleFolder: saleFolder
                 });
@@ -740,7 +896,8 @@ app.post('/create-sale', authenticateToken , (req, res) =>  {
         console.error('Error in /create-sale:', err);
         res.status(500).json({ 
             success: false,
-            message: 'Internal server error' 
+            message: 'Ismeretlen hiba történt.',
+			error: err.message
         });
     }
 });
@@ -756,7 +913,8 @@ app.put('/modify-sale', authenticateToken , async (req, res) => {
         if (!saleId || !name || !description || !cost || !bigCategory || !userId) {
             return res.status(400).json({
                 success: false,
-                message: "Missing required fields"
+                message: "Kérjük minden mezőt töltsön ki!",
+				error:"Missing required fields"
             });
         }
 
@@ -768,14 +926,16 @@ app.put('/modify-sale', authenticateToken , async (req, res) => {
         if (sale.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: "Sale not found"
+                message: "Nem található hirdetés",
+				error: "Sale not found"
             });
         }
 
         if (sale[0].Uid !== userId) {
             return res.status(403).json({
                 success: false,
-                message: "Unauthorized"
+				message: "Ismeretlen hiba történt.",
+                error: "Unauthorized"
             });
         }
 
@@ -799,7 +959,7 @@ app.put('/modify-sale', authenticateToken , async (req, res) => {
         console.error('Error in /modify-sale:', err);
         res.status(500).json({ 
             success: false,
-            message: 'Internal server error',
+            message: 'Ismeretlen hiba történt',
             error: err.message
         });
     }
@@ -814,7 +974,8 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
         if (!saleId || !userId) {
             return res.status(400).json({
                 success: false,
-                message: "Both saleId and userId are required",
+                message: "Kérjük töltsön ki minden mezőt.",
+				error: "Both saleId and userId are required",
                 data: null
             });
         }
@@ -827,7 +988,8 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
         if (sale.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: "Sale not found",
+				message: "Nem található ilyen hirdetés.",
+                error: "Sale not found",
                 data: null
             });
         }
@@ -835,7 +997,8 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
         if (sale[0].Uid !== userId) {
             return res.status(403).json({
                 success: false,
-                message: "Unauthorized - you can only delete your own sales",
+				message: "Ismeretlen hiba",
+                error: "Unauthorized - you can only delete your own sales",
                 data: null
             });
         }
@@ -866,7 +1029,7 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
 
         res.json({
             success: true,
-            message: "Sale deleted successfully",
+            message: "Hirdetés sikeresen törölve",
             data: {
                 deletedSaleId: saleId
             }
@@ -883,6 +1046,8 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
 });
 
 
+
+
 //Image Uploader and stuff for it
 
 // Delete multiple images by filenames
@@ -895,7 +1060,8 @@ app.post('/delete-images', authenticateToken, async (req, res) => {
         if (!saleFolder || !Array.isArray(imageNames) || imageNames.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "saleFolder and non-empty imageNames array are required"
+                message: "Hiba történt, próbáld újra később",
+				error: "saleFolder and non-empty imageNames array are required"
             });
         }
 
@@ -913,7 +1079,7 @@ app.post('/delete-images', authenticateToken, async (req, res) => {
 
         return res.json({
             success: true,
-            message: "Operation completed",
+            message: "Sikeres törlés",
             deletedImages
         });
 
@@ -937,7 +1103,8 @@ app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
         if (!searchParam) {
             return res.status(400).json({
                 success: false,
-                message: "Search parameter is required",
+                message: "Kérjük töltsön ki minden mezőt",
+				error: "Search parameter is required",
                 data: null
             });
         }
@@ -947,7 +1114,8 @@ app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
 
         res.json({
             success: true,
-            message: results.length ? "Product found" : "No product found",
+            message: results.length ? "Hirdetés megtalálva" : "Nem található hirdetés",
+			error: results.length ? "Product found" : "No product found",
             data: results[0] || null // Return single object or null
         });
         
@@ -955,7 +1123,7 @@ app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
         console.error('Error in /search-sales:', err);
         res.status(500).json({
             success: false,
-            message: "Server error",
+            message: 'Server error',
             data: null
         });
     }
@@ -982,7 +1150,7 @@ app.post('/upload-sale-images', authenticateToken, upload.array('images', 10), (
     const files = req.files.map(file => file.filename);
     res.json({
         success: true,
-        message: 'Images uploaded successfully',
+        message: 'Képek sikeresen feltöltve',
         files: files
     });
 });
@@ -997,7 +1165,10 @@ app.post('/get-sale-images', async (req, res) => {
     );
 
     if (results.length === 0) {
-        return res.status(404).json({ success: false, message: 'Sale not found' });
+        return res.status(404).json({ 
+		success: false, 
+		message: 'Ismeretlen hiba',
+		error:	'Sale not found'	});
     }
 
     const saleFolder = results[0].SaleFolder;
@@ -1011,7 +1182,9 @@ app.post('/get-sale-images', async (req, res) => {
     const imageUrls = files.map(file => `${req.protocol}://${req.get('host')}/sales/${saleFolder}/${file}`);
 	//const imageUrls = files.map(file => `http://10.224.83.75:3000/sales/${saleFolder}/${file}`);
 
-    res.json({ success: true, images: imageUrls });
+    res.json({ 
+	success: true, 
+	images: imageUrls });
 });
 
 
@@ -1022,13 +1195,15 @@ app.use((err, req, res, next) => {
         // A Multer error occurred when uploading
         return res.status(400).json({
             success: false,
-            message: err.message
+			error: 'Multer error while uploading',
+            message: 'Hiba történt a képek feltöltése közben'
         });
     } else if (err) {
         // An unknown error occurred
         return res.status(500).json({
             success: false,
-            message: err.message
+			error: 'Unknown multer error',
+            message: 'Ismeretlen hiba történt'
         });
     }
     next();

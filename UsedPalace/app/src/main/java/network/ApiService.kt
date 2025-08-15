@@ -81,7 +81,7 @@ interface ApiService {
 
     //Sales
     @GET("getSales")
-    suspend fun getSales(): List<SaleWithSid>
+    suspend fun getSales(): ApiResponseForSearchSales
 
     @POST("search-sales-withSaleName")
     suspend fun searchSales(@Body request: SearchRequestName): ApiResponseForSearchSales
