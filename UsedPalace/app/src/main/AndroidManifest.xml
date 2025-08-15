@@ -17,76 +17,73 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".fragments.messagesHelpers.OpenSaleChatActivity"
+            android:name=".fragments.ChatAndMessages.OpenSaleChatActivity"
             android:exported="false" />
         <activity
-            android:name=".fragments.homefragmentHelpers.FullscreenGalleryActivity"
+            android:name=".fragments.homeFragmentHelpers.FullscreenGalleryActivity"
             android:exported="false" />
         <activity
-            android:name=".login.EmailVerifyLateActivity"
+            android:name=".profileMenus.profileActivity.DeleteAccountActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.forprofileactivity.DeleteAccountActivity"
+            android:name=".profileMenus.profileActivity.ModifyPhoneActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.forprofileactivity.ModifyPhoneActivity"
+            android:name=".profileMenus.profileActivity.ModifyPasswordActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.forprofileactivity.ModifyPasswordActivity"
+            android:name=".profileMenus.profileActivity.ModifyEmailActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.forprofileactivity.ModifyEmailActivity"
+            android:name=".fragments.ChatAndMessages.ChatActivity"
             android:exported="false" />
         <activity
-            android:name=".fragments.messagesHelpers.ChatActivity"
+            android:name=".profileMenus.ownSalesActivity.OpenSaleActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.forownsalesactivity.OpenSaleActivity"
+            android:name=".fragments.homeFragmentHelpers.HomeFragmentSingleSaleActivity"
             android:exported="false" />
         <activity
-            android:name=".fragments.homefragmentHelpers.HomeFragmentSingleSaleActivity"
+            android:name=".profileMenus.ownSalesActivity.ModifySaleActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.forownsalesactivity.ModifySaleActivity"
+            android:name=".profileMenus.InformationActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.InformationActivity"
+            android:name=".profileMenus.AboutActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.AboutActivity"
+            android:name=".profileMenus.SupportActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.SupportActivity"
+            android:name=".profileMenus.SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.SettingsActivity"
+            android:name=".profileMenus.HelpActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.HelpActivity"
+            android:name=".profileMenus.ownSalesActivity.OwnSalesActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.OwnSalesActivity"
+            android:name=".profileMenus.CreateSaleActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.CreateSaleActivity"
+            android:name=".profileMenus.profileActivity.ProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".profilemenus.ProfileActivity"
+            android:name=".loginMenus.EmailVerifyActivity"
             android:exported="false" />
         <activity
-            android:name=".login.EmailVerifyActivity"
+            android:name=".loginMenus.ResetPasswordActivity"
             android:exported="false" />
         <activity
-            android:name=".login.ResetPasswordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".login.ForgottenPasswordActivity"
+            android:name=".loginMenus.ForgottenPasswordActivity"
             android:exported="false" />
         <activity
             android:name=".MainMenuActivity"
             android:exported="false" /> <!-- a "android:usesCleartextTraffic="true"-t át kell írni hogy https-t használjon az app ne sima http-t -->
         <activity
-            android:name=".login.LogActivity"
+            android:name=".loginMenus.LogActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -94,7 +91,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".login.RegActivity" />
+        <activity android:name=".loginMenus.RegActivity" />
     </application>
 
 </manifest>

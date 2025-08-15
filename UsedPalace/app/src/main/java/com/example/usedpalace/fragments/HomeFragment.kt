@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SearchView
@@ -19,7 +18,7 @@ import androidx.fragment.app.Fragment
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithSid
-import com.example.usedpalace.fragments.homefragmentHelpers.HomeFragmentSingleSaleActivity
+import com.example.usedpalace.fragments.homeFragmentHelpers.HomeFragmentSingleSaleActivity
 import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.squareup.picasso.Picasso
@@ -28,8 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import network.ApiService
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 
 class HomeFragment : Fragment() {

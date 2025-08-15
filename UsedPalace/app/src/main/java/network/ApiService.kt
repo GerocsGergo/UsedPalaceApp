@@ -3,7 +3,6 @@ package network
 
 import com.example.usedpalace.responses.ApiResponseForSearchSales
 import com.example.usedpalace.responses.ApiResponseForSalesWithEverything
-import com.example.usedpalace.responses.ApiResponseForSaleWithSid
 import com.example.usedpalace.responses.ApiResponseGeneric
 import com.example.usedpalace.requests.CreateSaleRequest
 import com.example.usedpalace.requests.DeleteSaleRequest
@@ -18,11 +17,11 @@ import com.example.usedpalace.responses.ResponseMessage
 import com.example.usedpalace.responses.ResponseMessageWithFolder
 import com.example.usedpalace.responses.ResponseMessageWithUser
 import com.example.usedpalace.dataClasses.SaleWithSid
-import com.example.usedpalace.fragments.messagesHelpers.responses.ChatListResponse
-import com.example.usedpalace.fragments.messagesHelpers.Requests.InitiateChatRequest
-import com.example.usedpalace.fragments.messagesHelpers.responses.InitiateChatResponse
-import com.example.usedpalace.fragments.messagesHelpers.Requests.SearchChatRequest
-import com.example.usedpalace.fragments.messagesHelpers.responses.UsernameResponse
+import com.example.usedpalace.fragments.ChatAndMessages.responses.ChatListResponse
+import com.example.usedpalace.fragments.ChatAndMessages.Requests.InitiateChatRequest
+import com.example.usedpalace.fragments.ChatAndMessages.responses.InitiateChatResponse
+import com.example.usedpalace.fragments.ChatAndMessages.Requests.SearchChatRequest
+import com.example.usedpalace.fragments.ChatAndMessages.responses.UsernameResponse
 import com.example.usedpalace.requests.ChangeEmailRequest
 import com.example.usedpalace.requests.ChangePasswordRequest
 import com.example.usedpalace.requests.ChangePhoneNumberRequest
@@ -38,7 +37,6 @@ import com.example.usedpalace.responses.ApiResponseForDeletedSaleWithEverything
 import com.example.usedpalace.responses.DeleteImagesResponse
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
 import com.example.usedpalace.responses.ResponseGetImages
-import com.example.usedpalace.responses.ResponseUpload
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
@@ -89,7 +87,7 @@ interface ApiService {
     suspend fun searchSales(@Body request: SearchRequestName): ApiResponseForSearchSales
 
     @POST("search-salesID")
-    suspend fun searchSalesID(@Body request: SearchRequestID): ApiResponseForSaleWithSid   //USER ID-vel keresi a Saleket
+    suspend fun searchSalesID(@Body request: SearchRequestID): ApiResponseForSearchSales   //USER ID-vel keresi a Saleket
 
     @POST("search-sales-withSID")
     suspend fun searchSalesSID(@Body request: SearchRequestID): ApiResponseForSalesWithEverything //Sales SID-el keresi a Saleket
@@ -105,7 +103,7 @@ interface ApiService {
     suspend fun uploadSaleImages(
         @Part("saleFolder") saleFolder: RequestBody,
         @Part images: List<MultipartBody.Part>
-    ): ResponseUpload
+    ): ApiResponseGeneric
 
     @POST("/get-sale-images")
     suspend fun getSaleImages(

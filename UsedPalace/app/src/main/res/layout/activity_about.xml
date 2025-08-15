@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    tools:context=".profilemenus.AboutActivity">
+    tools:context=".profileMenus.AboutActivity">
 
         <!-- Top Section -->
         <com.google.android.material.textview.MaterialTextView

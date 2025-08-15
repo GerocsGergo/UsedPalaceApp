@@ -17,10 +17,10 @@ import androidx.fragment.app.Fragment
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
-import com.example.usedpalace.fragments.messagesHelpers.ChatActivity
-import com.example.usedpalace.fragments.messagesHelpers.ChatHelper
-import com.example.usedpalace.fragments.messagesHelpers.ChatItem
-import com.example.usedpalace.fragments.messagesHelpers.Requests.SearchChatRequest
+import com.example.usedpalace.fragments.ChatAndMessages.ChatActivity
+import com.example.usedpalace.fragments.ChatAndMessages.ChatHelper
+import com.example.usedpalace.fragments.ChatAndMessages.ChatItem
+import com.example.usedpalace.fragments.ChatAndMessages.Requests.SearchChatRequest
 import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SearchRequestID
 import com.squareup.picasso.Picasso

@@ -1,4 +1,4 @@
-package com.example.usedpalace.profilemenus
+package com.example.usedpalace.profileMenus
 
 import android.content.Intent
 import android.os.Bundle

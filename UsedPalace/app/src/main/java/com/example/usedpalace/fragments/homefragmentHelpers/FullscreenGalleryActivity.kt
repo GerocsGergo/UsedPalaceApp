@@ -1,4 +1,4 @@
-package com.example.usedpalace.fragments.homefragmentHelpers
+package com.example.usedpalace.fragments.homeFragmentHelpers
 
 import android.os.Bundle
 import android.widget.ImageButton

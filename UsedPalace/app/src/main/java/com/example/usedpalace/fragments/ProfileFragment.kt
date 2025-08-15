@@ -8,14 +8,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import com.example.usedpalace.R
-import com.example.usedpalace.profilemenus.AboutActivity
-import com.example.usedpalace.profilemenus.CreateSaleActivity
-import com.example.usedpalace.profilemenus.InformationActivity
-import com.example.usedpalace.profilemenus.HelpActivity
-import com.example.usedpalace.profilemenus.OwnSalesActivity
-import com.example.usedpalace.profilemenus.ProfileActivity
-import com.example.usedpalace.profilemenus.SettingsActivity
-import com.example.usedpalace.profilemenus.SupportActivity
+import com.example.usedpalace.loginMenus.LogActivity
+import com.example.usedpalace.profileMenus.AboutActivity
+import com.example.usedpalace.profileMenus.CreateSaleActivity
+import com.example.usedpalace.profileMenus.HelpActivity
+import com.example.usedpalace.profileMenus.InformationActivity
+import com.example.usedpalace.profileMenus.SettingsActivity
+import com.example.usedpalace.profileMenus.SupportActivity
+import com.example.usedpalace.profileMenus.ownSalesActivity.OwnSalesActivity
+import com.example.usedpalace.profileMenus.profileActivity.ProfileActivity
+
 
 class ProfileFragment : Fragment() {
     private lateinit var buttonProfile: Button
@@ -26,6 +28,7 @@ class ProfileFragment : Fragment() {
     private lateinit var buttonSupport: Button
     private lateinit var buttonAbout: Button
     private lateinit var buttonContacts: Button
+    private lateinit var buttonLogout: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +60,7 @@ class ProfileFragment : Fragment() {
         buttonSupport = view.findViewById(R.id.support)
         buttonAbout = view.findViewById(R.id.about)
         buttonContacts = view.findViewById(R.id.contacts)
+        buttonLogout = view.findViewById(R.id.logout)
     }
 
     private fun setupClickListeners() {
@@ -84,6 +88,15 @@ class ProfileFragment : Fragment() {
         }
         buttonContacts.setOnClickListener {
             startActivity(Intent(requireActivity(), InformationActivity::class.java))
+        }
+        buttonLogout.setOnClickListener {
+            val intent = Intent(requireActivity(), LogActivity::class.java).apply {
+                putExtra("forceLogout", true)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
+            requireActivity().finish()
+
         }
     }
 

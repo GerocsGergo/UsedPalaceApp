@@ -12,7 +12,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.usedpalace.databinding.MainMenuBinding
 import com.example.usedpalace.fragments.ProfileFragment
-import com.example.usedpalace.login.LogActivity
+import com.example.usedpalace.loginMenus.LogActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 

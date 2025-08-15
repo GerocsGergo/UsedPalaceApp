@@ -1,6 +1,5 @@
-package com.example.usedpalace.profilemenus
+package com.example.usedpalace.profileMenus
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -10,7 +9,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
-import org.json.JSONObject
 
 class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

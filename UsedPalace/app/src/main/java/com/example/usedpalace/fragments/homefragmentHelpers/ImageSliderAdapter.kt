@@ -1,4 +1,4 @@
-package com.example.usedpalace.fragments.homefragmentHelpers
+package com.example.usedpalace.fragments.homeFragmentHelpers
 
 import android.content.Context
 import android.view.LayoutInflater

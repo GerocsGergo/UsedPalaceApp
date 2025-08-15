@@ -5,7 +5,7 @@
 	android:id="@+id/main"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	tools:context=".fragments.messagesHelpers.ChatActivity"
+	tools:context=".fragments.ChatAndMessages.ChatActivity"
 	android:background="@color/colorBackground">
 
 	<com.google.android.material.appbar.AppBarLayout

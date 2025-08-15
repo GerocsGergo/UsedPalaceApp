@@ -1,10 +1,9 @@
-package com.example.usedpalace.profilemenus
+package com.example.usedpalace.profileMenus
 
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -16,7 +15,6 @@ import androidx.viewpager2.widget.ViewPager2
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
 import network.ApiService
-import org.json.JSONArray
 import org.json.JSONObject
 
 class InformationActivity : AppCompatActivity() {

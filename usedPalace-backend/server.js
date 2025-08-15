@@ -406,22 +406,6 @@ app.post('/register', async (req, res) => {
 });
 
 
-// Function to generate a unique 6-digit code FOR EMAIL
-const generateUniqueCode2 = async () => {
-    let code;
-    let isUnique = false;
-
-    while (!isUnique) {
-        code = Math.floor(100000 + Math.random() * 900000).toString();
-        const query = 'SELECT * FROM Users WHERE VerifyToken = ?';
-        const [results] = await connection.promise().query(query, [code]);
-        if (results.length === 0) {
-            isUnique = true;
-        }
-    }
-
-    return code;
-};
 
 
 // Send Verification Email

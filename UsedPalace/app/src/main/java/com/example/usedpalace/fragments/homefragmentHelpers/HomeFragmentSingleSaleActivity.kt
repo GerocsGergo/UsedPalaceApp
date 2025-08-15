@@ -1,4 +1,4 @@
-package com.example.usedpalace.fragments.homefragmentHelpers
+package com.example.usedpalace.fragments.homeFragmentHelpers
 
 import android.content.Intent
 import android.content.SharedPreferences
@@ -15,8 +15,8 @@ import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithEverything
 import com.example.usedpalace.UserSession
-import com.example.usedpalace.fragments.messagesHelpers.ChatActivity
-import com.example.usedpalace.fragments.messagesHelpers.Requests.InitiateChatRequest
+import com.example.usedpalace.fragments.ChatAndMessages.ChatActivity
+import com.example.usedpalace.fragments.ChatAndMessages.Requests.InitiateChatRequest
 import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SearchRequestID
 import kotlinx.coroutines.CoroutineScope

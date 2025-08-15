@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".profilemenus.SettingsActivity">
+    tools:context=".profileMenus.SettingsActivity">
 
     <LinearLayout
         android:id="@+id/top_layout"
