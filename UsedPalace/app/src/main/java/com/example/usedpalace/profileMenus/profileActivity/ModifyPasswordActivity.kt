@@ -7,11 +7,11 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
@@ -61,111 +61,102 @@ class ModifyPasswordActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        buttonCancel.setOnClickListener {
-            finish()
-        }
+        buttonCancel.setOnClickListener { finish() }
+
         buttonRequest.setOnClickListener {
             val oldPassword = inputOldPassword.text.toString()
             val newPassword = inputNewPassword.text.toString()
             val newPasswordRe = inputNewRePassword.text.toString()
 
-            if (newPasswordRe == newPassword){
-                if (UserSession.getUserId() != null) {
-                    if (oldPassword.isNotEmpty() && newPassword.isNotEmpty()) {
-                        //Step 1 request
-                        changePasswordRequest(oldPassword, newPassword)
-                    } else {
-                        Toast.makeText(this, "Please enter the passwords.", Toast.LENGTH_SHORT).show()
-                    }
-                } else  {
-                    Toast.makeText(this, "Could not get UserId.", Toast.LENGTH_SHORT).show()
-                }
-            } else  {
-                Toast.makeText(this, "A jelszavak nem egyeznek", Toast.LENGTH_SHORT).show()
+            if (newPasswordRe != newPassword) {
+                ErrorHandler.toaster(this, "A jelszavak nem egyeznek!")
+                return@setOnClickListener
             }
 
+            if (UserSession.getUserId() == null) {
+                ErrorHandler.toaster(this, "Ismeretlen hiba történt")
+                ErrorHandler.logToLogcat("ModifyPasswordActivity", "Could not get UserId.", ErrorHandler.LogLevel.ERROR)
+                return@setOnClickListener
+            }
 
+            if (oldPassword.isEmpty() || newPassword.isEmpty()) {
+                ErrorHandler.toaster(this, "Kérjük, adja meg a jelszavakat!")
+                return@setOnClickListener
+            }
+
+            changePasswordRequest(oldPassword, newPassword)
         }
+
         buttonModify.setOnClickListener {
             val code = inputCode.text.toString()
 
-            if (UserSession.getUserId() != null) {
-                if (code.isNotEmpty()) {
-                    //Step 2 confirm
-                    confirmPassword(code)
-                } else {
-                    Toast.makeText(this, "Please enter the code.", Toast.LENGTH_SHORT).show()
-                }
-            } else  {
-                Toast.makeText(this, "Could not get UserId.", Toast.LENGTH_SHORT).show()
+            if (UserSession.getUserId() == null) {
+                ErrorHandler.toaster(this, "Ismeretlen hiba történt")
+                ErrorHandler.logToLogcat("ModifyPasswordActivity", "Could not get UserId.", ErrorHandler.LogLevel.ERROR)
+                return@setOnClickListener
             }
+
+            if (code.isEmpty()) {
+                ErrorHandler.toaster(this, "Kérjük, adja meg a kódot!")
+                return@setOnClickListener
+            }
+
+            confirmPassword(code)
         }
     }
 
-    private fun changePasswordRequest(oldPassword: String, newPassword: String){
+    private fun changePasswordRequest(oldPassword: String, newPassword: String) {
         val request = ChangePasswordRequest(UserSession.getUserId()!!, oldPassword, newPassword)
-
-
         apiService.requestPasswordChange(request).enqueue(object : Callback<ApiResponseGeneric> {
-            override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>
-            ) {
+            override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>) {
                 if (response.isSuccessful) {
-                    Toast.makeText(this@ModifyPasswordActivity, "Verification code sent!", Toast.LENGTH_SHORT).show()
-                    inputNewPassword.visibility = View.GONE
+                    ErrorHandler.toaster(this@ModifyPasswordActivity, "Hitelesítő kód elküldve!")
+
+                    // UI módosítás
                     inputOldPassword.visibility = View.GONE
-                    buttonRequest.visibility = View.GONE
+                    inputNewPassword.visibility = View.GONE
+                    inputNewRePassword.visibility = View.GONE
                     oldPasswordText.visibility = View.GONE
                     newPasswordText.visibility = View.GONE
-                    inputNewRePassword.visibility = View.GONE
                     newPasswordReText.visibility = View.GONE
                     oldPasswordInputLayout.visibility = View.GONE
                     newPasswordInputLayout.visibility = View.GONE
                     newPasswordReInputLayout.visibility = View.GONE
+                    buttonRequest.visibility = View.GONE
 
                     codeInputLayout.visibility = View.VISIBLE
                     codeText.visibility = View.VISIBLE
                     inputCode.visibility = View.VISIBLE
                     buttonModify.visibility = View.VISIBLE
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    Toast.makeText(this@ModifyPasswordActivity, "Failed to request password change: $errorBody", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleApiError(this@ModifyPasswordActivity, null, response.message())
                 }
             }
 
             override fun onFailure(call: Call<ApiResponseGeneric>, t: Throwable) {
-                Toast.makeText(
-                    this@ModifyPasswordActivity,
-                    "Network error.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                ErrorHandler.handleNetworkError(this@ModifyPasswordActivity, t)
             }
         })
     }
 
-    private fun confirmPassword(code: String){
+    private fun confirmPassword(code: String) {
         val request = ConfirmEmailOrPasswordChangeOrDeleteRequest(UserSession.getUserId()!!, code)
-
         apiService.confirmPasswordChange(request).enqueue(object : Callback<ApiResponseGeneric> {
             override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>) {
-                    if (response.isSuccessful) {
-                        Toast.makeText(this@ModifyPasswordActivity, "Password changed successfully!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this@ModifyPasswordActivity, ProfileActivity::class.java)
-                        startActivity(intent)
-                        finishAffinity() //cleareli a backstacket elv
-                    } else {
-                        val errorBody = response.errorBody()?.string()
-                        Toast.makeText(this@ModifyPasswordActivity, "Invalid code or error: $errorBody", Toast.LENGTH_SHORT).show()
-                    }
+                if (response.isSuccessful) {
+                    ErrorHandler.toaster(this@ModifyPasswordActivity, "Jelszó sikeresen módosítva!")
+                    val intent = Intent(this@ModifyPasswordActivity, ProfileActivity::class.java)
+                    startActivity(intent)
+                    finishAffinity()
+                } else {
+                    ErrorHandler.handleApiError(this@ModifyPasswordActivity, null, response.message())
                 }
+            }
 
-                override fun onFailure(call: Call<ApiResponseGeneric>, t: Throwable) {
-                    Toast.makeText(
-                        this@ModifyPasswordActivity,
-                        "Network error.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
+            override fun onFailure(call: Call<ApiResponseGeneric>, t: Throwable) {
+                ErrorHandler.handleNetworkError(this@ModifyPasswordActivity, t)
+            }
+        })
     }
 
     private fun setupViewItems() {
@@ -174,17 +165,16 @@ class ModifyPasswordActivity : AppCompatActivity() {
         buttonRequest = findViewById(R.id.buttonRequest)
         inputOldPassword = findViewById(R.id.inputOldPassword)
         inputNewPassword = findViewById(R.id.inputNewPassword)
+        inputNewRePassword = findViewById(R.id.inputNewRePassword)
         inputCode = findViewById(R.id.inputCode)
         oldPasswordText = findViewById(R.id.oldPasswordText)
         newPasswordText = findViewById(R.id.newPasswordText)
+        newPasswordReText = findViewById(R.id.newPasswordReText)
         codeText = findViewById(R.id.codeText)
-        newPasswordReText= findViewById(R.id.newPasswordReText)
-        inputNewRePassword = findViewById(R.id.inputNewRePassword)
         oldPasswordInputLayout = findViewById(R.id.oldPasswordInputLayout)
         newPasswordInputLayout = findViewById(R.id.newPasswordInputLayout)
         newPasswordReInputLayout = findViewById(R.id.newPasswordReInputLayout)
         codeInputLayout = findViewById(R.id.codeInputLayout)
-
     }
 
     private fun setupRetrofit() {
@@ -192,6 +182,4 @@ class ModifyPasswordActivity : AppCompatActivity() {
         RetrofitClient.init(applicationContext)
         apiService = RetrofitClient.apiService
     }
-
-
 }

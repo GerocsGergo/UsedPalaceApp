@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.RetrofitClientNoAuth
@@ -60,13 +61,15 @@ class ForgottenPasswordActivity : AppCompatActivity() {
             val phoneNumber = inputPhoneNumber.text.toString().trim()
 
             if (!phoneNumber.matches(Regex("^06\\d{9}$"))) {
-                Toast.makeText(this, "Invalid phone number format", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Invalid phone number format", Toast.LENGTH_SHORT).show()
+                ErrorHandler.toaster(this, "Helytelen telefonszám formátum")
                 return@setOnClickListener
             }
 
             // Validate inputs
             if (email.isEmpty() || phoneNumber.isEmpty()) {
-                Toast.makeText(this, "Please enter both email and phone number", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Please enter both email and phone number", Toast.LENGTH_SHORT).show()
+                ErrorHandler.toaster(this, "Kérjük töltsön ki minden mezőt")
                 return@setOnClickListener
             }
 
@@ -75,21 +78,22 @@ class ForgottenPasswordActivity : AppCompatActivity() {
             apiServiceNoAuth.forgotPassword(request).enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@ForgottenPasswordActivity, "Reset code sent to your email", Toast.LENGTH_SHORT).show()
-
+                        //Toast.makeText(this@ForgottenPasswordActivity, "Reset code sent to your email", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.toaster(this@ForgottenPasswordActivity, "A kódot elküldtük az e-mail címére.")
                         // Navigate to the reset password screen
                         val intent = Intent(this@ForgottenPasswordActivity, ResetPasswordActivity::class.java)
                         intent.putExtra("email", email) // Pass the email to the next activity
                         startActivity(intent)
                     } else {
                         val errorBody = response.errorBody()?.string()
-                        println("Error Response: $errorBody") // Log the full error response
-                        Toast.makeText(this@ForgottenPasswordActivity, "Failed: $errorBody", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.handleApiError(this@ForgottenPasswordActivity, null, errorBody)
+                        //Toast.makeText(this@ForgottenPasswordActivity, "Failed: $errorBody", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-                    Toast.makeText(this@ForgottenPasswordActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@ForgottenPasswordActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleNetworkError(this@ForgottenPasswordActivity,t)
                 }
             })
         }

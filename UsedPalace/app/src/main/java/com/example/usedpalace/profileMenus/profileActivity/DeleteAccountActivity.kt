@@ -12,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
@@ -73,7 +74,9 @@ class DeleteAccountActivity : AppCompatActivity() {
                     deleteUserRequest()
 
             } else  {
-                Toast.makeText(this, "Could not get UserId.", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Could not get UserId.", Toast.LENGTH_SHORT).show()
+                ErrorHandler.toaster(this, "Ismeretlen hiba történt")
+                ErrorHandler.logToLogcat("DeleteAccountActivity", "Could not get UserId.", ErrorHandler.LogLevel.ERROR)
             }
 
 
@@ -88,10 +91,12 @@ class DeleteAccountActivity : AppCompatActivity() {
                     deleteUserConfirm(code, email, password)        //serveren végre hajtani
 
                 } else {
-                    Toast.makeText(this, "Please enter a code.", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this, "Please enter a code.", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.toaster(this, "Kérjük töltse ki az összes mezőt!")
                 }
             } else  {
-
+                ErrorHandler.logToLogcat("DeleteAccountActivity", "Could not get UserId.", ErrorHandler.LogLevel.ERROR)
+                ErrorHandler.toaster(this, "Ismeretlen hiba történt")
             }
         }
     }
@@ -102,7 +107,8 @@ class DeleteAccountActivity : AppCompatActivity() {
             override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>
             ) {
                 if (response.isSuccessful) {
-                    Toast.makeText(this@DeleteAccountActivity, "Verification code sent!", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@DeleteAccountActivity, "Verification code sent!", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.toaster(this@DeleteAccountActivity,"Hitelesítő kód elküldve!")
                     buttonRequest.visibility = View.GONE
                     text.visibility = View.GONE
 
@@ -120,16 +126,13 @@ class DeleteAccountActivity : AppCompatActivity() {
                     codeText.visibility = View.VISIBLE
 
                 } else {
-                    Toast.makeText(this@DeleteAccountActivity, "Failed to request account deletion", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@DeleteAccountActivity, "Failed to request account deletion", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleApiError(this@DeleteAccountActivity, null, response.message())
                 }
             }
 
             override fun onFailure(call: Call<ApiResponseGeneric>, t: Throwable) {
-                Toast.makeText(
-                    this@DeleteAccountActivity,
-                    "Network error.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                ErrorHandler.handleNetworkError(this@DeleteAccountActivity, t)
             }
         })
     }
@@ -140,8 +143,8 @@ class DeleteAccountActivity : AppCompatActivity() {
             override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>) {
                 if (response.isSuccessful) {
 
-                    Toast.makeText(this@DeleteAccountActivity, "Account deleted success fully!", Toast.LENGTH_SHORT).show()
-
+                    //Toast.makeText(this@DeleteAccountActivity, "Account deleted success fully!", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.toaster(this@DeleteAccountActivity,"Sikeresen törölve!")
                     //Token törlés
                     val prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
                     val editor = prefs.edit()
@@ -158,16 +161,14 @@ class DeleteAccountActivity : AppCompatActivity() {
                     startActivity(intent)
                     finish()
                 } else {
-                    Toast.makeText(this@DeleteAccountActivity, "Invalid credentials or error.", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@DeleteAccountActivity, "Invalid credentials or error.", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleApiError(this@DeleteAccountActivity, null, response.message())
+                    //Toast.makeText(this@DeleteAccountActivity, "Invalid credentials or error.", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponseGeneric>, t: Throwable) {
-                Toast.makeText(
-                    this@DeleteAccountActivity,
-                    "Network error.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                ErrorHandler.handleNetworkError(this@DeleteAccountActivity,t)
             }
         })
     }

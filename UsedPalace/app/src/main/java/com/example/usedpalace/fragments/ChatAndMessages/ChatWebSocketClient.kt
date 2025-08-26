@@ -1,6 +1,7 @@
 package com.example.usedpalace.fragments.ChatAndMessages
 
 import android.util.Log
+import com.example.usedpalace.ErrorHandler
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
@@ -24,7 +25,9 @@ class ChatWebSocketClient(
             .url("ws://10.224.86.54:8080")
             .build()
 
-        Log.e("ws connect request", "Request: $request")
+        //Log.e("ws connect request", "Request: $request")
+        ErrorHandler.logToLogcat("ws connect request", "Request: $request", ErrorHandler.LogLevel.ERROR)
+
         webSocket = client.newWebSocket(request, this)
 
         // Csatlakozás a chathez (küldj egy join-chat üzenetet JSON-ban)
@@ -46,7 +49,8 @@ class ChatWebSocketClient(
 
     override fun onOpen(webSocket: WebSocket, response: okhttp3.Response) {
         super.onOpen(webSocket, response)
-        Log.e("WebSocket", "Connected successfully! Response: ${response.message}")
+        //Log.e("WebSocket", "Connected successfully! Response: ${response.message}")
+        ErrorHandler.logToLogcat("WebSocket", "Connected successfully! Response: ${response.message}", ErrorHandler.LogLevel.ERROR)
     }
 
 
@@ -104,11 +108,13 @@ class ChatWebSocketClient(
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-        Log.e("WebSocket", "Closing: code=$code, reason=$reason")
+        //Log.e("WebSocket", "Closing: code=$code, reason=$reason")
+        ErrorHandler.logToLogcat("WebSocket", "Closing: code=$code, reason=$reason", ErrorHandler.LogLevel.ERROR)
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-        Log.e("WebSocket", "Closed: code=$code, reason=$reason")
+        //Log.e("WebSocket", "Closed: code=$code, reason=$reason")
+        ErrorHandler.logToLogcat("WebSocket", "Closed: code=$code, reason=$reason", ErrorHandler.LogLevel.ERROR)
     }
 
     fun close() {

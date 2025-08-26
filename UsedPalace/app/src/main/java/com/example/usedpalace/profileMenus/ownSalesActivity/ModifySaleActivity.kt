@@ -15,6 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
@@ -63,9 +64,9 @@ class ModifySaleActivity : AppCompatActivity() {
 
         saleId = intent.getIntExtra("SALE_ID", -1)
         if (saleId == -1) {
-            Toast.makeText(this, "Invalid sale ID", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this,"Ismeretlen hiba történt")
+            ErrorHandler.logToLogcat("ChatActivity", "Hiba: saleId: $saleId", ErrorHandler.LogLevel.ERROR)
             finish()
-            return
         }
 
         initialize()
@@ -102,7 +103,8 @@ class ModifySaleActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnAddImage).setOnClickListener {
             if (imageUris.size >= MAX_IMAGES) {
-                Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
+                ErrorHandler.toaster(this,"Maximum $MAX_IMAGES kép tölthető fel")
                 return@setOnClickListener
             }
             saleManagerHelper.pickImages(this, REQUEST_CODE_PICK_IMAGES)
@@ -144,14 +146,16 @@ class ModifySaleActivity : AppCompatActivity() {
                 }
 
                 if (count > allowedToAdd) {
-                    Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.toaster(this,"Maximum $MAX_IMAGES kép tölthető fel")
                 }
             } else {
                 data.data?.let { uri ->
                     if (imageUris.size < MAX_IMAGES) {
                         selectedUris.add(uri)
                     } else {
-                        Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.toaster(this,"Maximum $MAX_IMAGES kép tölthető fel")
                     }
                 }
             }
@@ -169,12 +173,14 @@ class ModifySaleActivity : AppCompatActivity() {
                     if (response.success && response.data != null) {
                         displaySale(response.data)
                     } else {
-                        Toast.makeText(this@ModifySaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.handleApiError(this@ModifySaleActivity, null,response.message)
+                        //Toast.makeText(this@ModifySaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@ModifySaleActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleNetworkError(this@ModifySaleActivity,e)
+                    //Toast.makeText(this@ModifySaleActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -227,7 +233,8 @@ class ModifySaleActivity : AppCompatActivity() {
         )
 
         if (name.isEmpty() || description.isEmpty() || cost <= 0 || bigCategory == null) {
-            Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this,"Kérjük minden mezőt töltsön ki.")
+            //Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -263,13 +270,15 @@ class ModifySaleActivity : AppCompatActivity() {
                             }
                         }
                     } else {
-                        Toast.makeText(this@ModifySaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(this@ModifySaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.handleApiError(this@ModifySaleActivity, null,response.message)
                         modifyButton.isEnabled = true
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@ModifySaleActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleNetworkError(this@ModifySaleActivity,e)
+                    //Toast.makeText(this@ModifySaleActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                     modifyButton.isEnabled = true
                 }
             }
@@ -286,13 +295,12 @@ class ModifySaleActivity : AppCompatActivity() {
                 val deletedFileNames = deletedImages.mapNotNull { uri ->
                     uri.lastPathSegment?.substringAfterLast("/")  // vagy teljes fájlnevet
                 }
-                Log.d("Deleted file names", deletedFileNames[0])
-                Log.d("Deleted file names", deletedFileNames[1])
-
                 if (deletedFileNames.isNotEmpty()) {
                     apiService.deleteImages(DeleteImagesRequest(saleFolder, deletedFileNames))
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                    ErrorHandler.handleNetworkError(this@ModifySaleActivity,e)
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.example.usedpalace.fragments.ChatAndMessages
 
 import android.util.Log
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.requests.SearchRequestID
 import network.ApiService
 import java.time.LocalDateTime
@@ -19,7 +20,8 @@ object ChatHelper {
 
         return try {
             val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
-            Log.d("FormatMessageTime", "date: " + dateString)
+            //Log.d("FormatMessageTime", "date: " + dateString)
+            ErrorHandler.logToLogcat("FormatMessageTime", "date: $dateString")
             val messageTime = ZonedDateTime.parse(dateString, inputFormatter).withZoneSameInstant(ZoneId.systemDefault())
 
             val now = ZonedDateTime.now(ZoneId.systemDefault())
@@ -39,7 +41,8 @@ object ChatHelper {
                 }
             }
         } catch (e: Exception) {
-            Log.e("DateHelper", "Failed to parse date string: $dateString", e)
+            //Log.e("DateHelper", "Failed to parse date string: $dateString", e)
+            ErrorHandler.logToLogcat("DateHelper", "Failed to parse date string: $dateString", ErrorHandler.LogLevel.ERROR)
             "Just now"
         }
     }
@@ -51,12 +54,14 @@ object ChatHelper {
             val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX", huLocale)
             val outputFormatter = DateTimeFormatter.ofPattern("yyyy MMM dd, HH:mm", huLocale)
 
-            Log.d("formatDateString", "date: " + dateString)
+            //Log.d("formatDateString", "date: " + dateString)
+            ErrorHandler.logToLogcat("formatDateString", "date: $dateString")
             val dateTime = LocalDateTime.parse(dateString, inputFormatter)
             dateTime.format(outputFormatter)
             dateTime.plusHours(2).format(outputFormatter)
         } catch (e: Exception) {
-            Log.e("DateUtils", "Failed to parse date: $dateString", e)
+            //Log.e("DateUtils", "Failed to parse date: $dateString", e)
+            ErrorHandler.logToLogcat("DateUtils", "Failed to parse date: $dateString", ErrorHandler.LogLevel.ERROR)
             dateString
         }
     }
@@ -67,11 +72,13 @@ object ChatHelper {
             if (response.success && response.fullname != null) {
                 response.fullname
             } else {
-                Log.e("Search", "Username not found: ${response.message}")
+                //Log.e("Search", "Username not found: ${response.message}")
+                ErrorHandler.logToLogcat("Search", "Username not found: ${response.message}", ErrorHandler.LogLevel.ERROR)
                 null
             }
         } catch (e: Exception) {
-            Log.e("Search", "Error fetching username", e)
+            //Log.e("Search", "Error fetching username", e)
+            ErrorHandler.logToLogcat("Search", "Error fetching username", ErrorHandler.LogLevel.ERROR)
             null
         }
     }

@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import androidx.fragment.app.Fragment
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
@@ -98,7 +99,7 @@ class MessagesFragment : Fragment() {
     private fun showErrorMessage(
         containerLayout: LinearLayout?,
         inflater: LayoutInflater,
-        message: String = "No chats found"
+        message: String = "Nem találhatóak üzenetek!"
     ) {
         containerLayout?.removeAllViews()
         val noChatsView = inflater.inflate(R.layout.show_error_message, containerLayout, false)
@@ -126,11 +127,14 @@ class MessagesFragment : Fragment() {
                         if (username != null) {
                             itemView.findViewById<TextView>(R.id.profile_name).text = username
                         } else {
-                            Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
+                            //Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
+                            ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
                         }
 
                     }catch (e: Exception){
-                        Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
+
                     }
                 }
 
@@ -139,7 +143,6 @@ class MessagesFragment : Fragment() {
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
                         val deletedSale = withContext(Dispatchers.IO) {
-                            Log.d("MessagesFragment", "Fetching sale for saleId: ${chat.saleId}")
                             apiService.searchDeletedSalesSID(SearchRequestID(chat.saleId))
                         }
                         if (deletedSale.success && deletedSale.data != null) {
@@ -148,22 +151,12 @@ class MessagesFragment : Fragment() {
                             containerLayout?.addView(itemView)
                         } else {
                             val activeSale = withContext(Dispatchers.IO) {
-                                Log.d("MessagesFragment", "Fetching sale for saleId: ${chat.saleId}")
                                 apiService.searchSalesSID(SearchRequestID(chat.saleId))
                             }
                             if (activeSale.success && activeSale.data != null && username == "Deleted User") {
                                 itemView.findViewById<TextView>(R.id.product_name).text = activeSale.data.Name
 
-                                //val folderName = activeSale.data.SaleFolder
-                                //val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
-                                //val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
-//
                                val imageView: ImageView = itemView.findViewById(R.id.image1)
-//                                Picasso.get()
-//                                    .load(imageUrl)
-//                                    .placeholder(R.drawable.baseline_loading_24)
-//                                    .error(R.drawable.baseline_error_24)
-//                                    .into(imageView)
                                 try {
                                     val imageResponse = apiService.getSaleImages(
                                         GetSaleImagesRequest(chat.saleId)
@@ -197,12 +190,15 @@ class MessagesFragment : Fragment() {
                                     onProductClick(chat.chatId, username, chat.saleId, chat.sellerId)
                                 }
                             } else {
-                                Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
+                                //Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
+                                ErrorHandler.logToLogcat("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
+                                //ErrorHandler.handleApiError(requireContext(), null, "No chat found with this saleID: " + chat.saleId)
                             }
                         }
                     } catch (e: Exception) {
-                        Log.e("MessagesFragment", "Error loading chat details", e)
-                        showErrorMessage(containerLayout, inflater, message = "server error")
+                        //Log.e("MessagesFragment", "Error loading chat details", e)
+                        ErrorHandler.handleNetworkError(requireContext(),e)
+                        showErrorMessage(containerLayout, inflater, message = "Ismeretlen hiba, kérjük próbáld újra később.")
                     }
                 }
 
@@ -234,13 +230,13 @@ class MessagesFragment : Fragment() {
                         if (username != null) {
                             itemView.findViewById<TextView>(R.id.profile_name).text = username
                         } else {
-                            Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
+                            ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
                         }
                         itemView.setOnClickListener {
                             onProductClick(chat.chatId, username, chat.saleId, chat.sellerId)
                         }
                     }catch (e: Exception){
-                        Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
                     }
                 }
 
@@ -249,23 +245,11 @@ class MessagesFragment : Fragment() {
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
                         val sale = withContext(Dispatchers.IO) {
-                            Log.d("MessagesFragment", "Fetching sale for saleId: ${chat.saleId}")
                             apiService.searchSalesSID(SearchRequestID(chat.saleId))
                         }
                         if (sale.success && sale.data != null) {
                             itemView.findViewById<TextView>(R.id.product_name).text = sale.data.Name
-
-                            //val folderName = sale.data.SaleFolder
-                            //val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
-//                            val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
-//
                             val imageView: ImageView = itemView.findViewById(R.id.image1)
-//                            Picasso.get()
-//                                .load(imageUrl)
-//                                .placeholder(R.drawable.baseline_loading_24)
-//                                .error(R.drawable.baseline_error_24)
-//                                .into(imageView)
-
 
                             try {
                                 val imageResponse = apiService.getSaleImages(
@@ -273,7 +257,7 @@ class MessagesFragment : Fragment() {
                                 )
                                 withContext(Dispatchers.Main) {
                                     if (imageResponse.success) {
-                                        val images = imageResponse.images ?: emptyList()
+                                        val images = imageResponse.images
                                         if (images.isNotEmpty()) {
                                             Picasso.get()
                                                 .load(images.first()) // az első képet betöltöd
@@ -297,11 +281,14 @@ class MessagesFragment : Fragment() {
                             }
 
                         } else {
-                            Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
+                            //Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
+                            //ErrorHandler.handleApiError(requireContext(),null, "No chat found with this saleID: " + chat.saleId)
+                            ErrorHandler.logToLogcat("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
                         }
                     } catch (e: Exception) {
-                        Log.e("MessagesFragment", "Error loading chat details", e)
-                        showErrorMessage(containerLayout, inflater, message = "server error")
+                        //Log.e("MessagesFragment", "Error loading chat details", e)
+                        ErrorHandler.handleNetworkError(requireContext(),e)
+                        showErrorMessage(containerLayout, inflater, message = "Ismeretlen hiba, kérjük próbáld újra később.")
                     }
                 }
             }
@@ -317,7 +304,7 @@ class MessagesFragment : Fragment() {
 
             for (chat in chats) {
                 val itemView = inflater.inflate(R.layout.item_fragment_messages, containerLayout, false)
-                var username:String? = null
+                var username:String?
 
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
@@ -331,7 +318,7 @@ class MessagesFragment : Fragment() {
                         if (username != null) {
                             itemView.findViewById<TextView>(R.id.profile_name).text = username
                         } else {
-                            Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
+                            ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
                         }
 
 
@@ -339,7 +326,7 @@ class MessagesFragment : Fragment() {
                             onProductClick(chat.chatId, username, chat.saleId, chat.sellerId)
                         }
                     }catch (e: Exception){
-                        Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
                     }
                 }
 
@@ -347,24 +334,12 @@ class MessagesFragment : Fragment() {
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
                         val sale = withContext(Dispatchers.IO) {
-                            Log.d("MessagesFragment", "Fetching sale for saleId: ${chat.saleId}")
                             apiService.searchSalesSID(SearchRequestID(chat.saleId))
                         }
                         if (sale.success && sale.data != null) {
                             itemView.findViewById<TextView>(R.id.product_name).text = sale.data.Name
 
-                            //val folderName = sale.data.SaleFolder
-                            //val imageUrl = "http://10.0.2.2:3000/${folderName}/image1.jpg"
-                            //val imageUrl = "$baseImageUrl/${folderName}/image1.jpg" // Adjust the image path
-
                             val imageView: ImageView = itemView.findViewById(R.id.image1)
-//                            Picasso.get()
-//                                .load(imageUrl)
-//                                .placeholder(R.drawable.baseline_loading_24)
-//                                .error(R.drawable.baseline_error_24)
-//                                .into(imageView)
-
-
                             try {
                                 val imageResponse = apiService.getSaleImages(
                                     GetSaleImagesRequest(chat.saleId)
@@ -391,12 +366,16 @@ class MessagesFragment : Fragment() {
                                 }
                             }
                         } else {
-                            Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
+                            //Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
+                            //ErrorHandler.handleApiError(requireContext(),null, "No chat found with this saleID: " + chat.saleId)
+                            ErrorHandler.logToLogcat("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
+
                             itemView.findViewById<TextView>(R.id.product_name).text = "Warning! This sale has been deleted!"
                         }
                     } catch (e: Exception) {
-                        Log.e("MessagesFragment", "Error loading chat details", e)
-                        showErrorMessage(containerLayout, inflater, message = "server error")
+                        //Log.e("MessagesFragment", "Error loading chat details", e)
+                        ErrorHandler.handleNetworkError(requireContext(),e)
+                        showErrorMessage(containerLayout, inflater, message = "Ismeretlen hiba, kérjük probáld újra később.")
                     }
                 }
 
@@ -409,9 +388,7 @@ class MessagesFragment : Fragment() {
     private fun onProductClick(chatId: Int, username: String?, saleId: Int, sellerId: Int) {
         val intent = Intent(context, ChatActivity::class.java).apply {
             putExtra("CHAT_ID", chatId)
-            Log.i("onProductClick", "Username: $username")
             putExtra("USERNAME", username)
-            Log.i("onProductClick", "Chatid: $chatId")
             putExtra("SALE_ID", saleId)
             putExtra("SELLER_ID", sellerId)
         }
@@ -425,11 +402,13 @@ class MessagesFragment : Fragment() {
             if (response.success && response.fullname != null) {
                 response.fullname
             } else {
-                Log.e("Search", "Username not found: ${response.message}")
+                //Log.e("Search", "Username not found: ${response.message}")
+                ErrorHandler.logToLogcat("Search", "Username not found: ${response.message}", ErrorHandler.LogLevel.ERROR)
                 null // Return null if not found
             }
         } catch (e: Exception) {
-            Log.e("Search", "Error fetching username", e)
+            //Log.e("Search", "Error fetching username", e)
+            ErrorHandler.logToLogcat("Search", "Error fetching username", ErrorHandler.LogLevel.ERROR, e)
             null // Return null on error
         }
     }
@@ -444,7 +423,6 @@ class MessagesFragment : Fragment() {
                 }
 
                 userId = UserSession.getUserId()!!
-                Log.d("MessagesFragment", "Fetching chats for buyerId: $userId")
 
                 val response = apiService.getAllChats(SearchChatRequest(userId))
 
@@ -460,18 +438,20 @@ class MessagesFragment : Fragment() {
                             }
 
                         } else {
-                            Log.d("MessagesFragment", "No chats found")
+                            Log.e("MessagesFragment", "No chats found")
+                            ErrorHandler.logToLogcat("MessagesFragment", "No chats found",ErrorHandler.LogLevel.ERROR)
                             showErrorMessage(containerLayout, inflater, response.message)
                         }
                     } else {
-                        Log.e("MessagesFragment", "API Error: ${response.message}")
-                        Toast.makeText(context, "Search failed: ${response.message}", Toast.LENGTH_SHORT).show()
+                        //Log.e("MessagesFragment", "API Error: ${response.message}")
+                        ErrorHandler.handleApiError(requireContext(),null, response.message)
+                        //Toast.makeText(context, "Search failed: ${response.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 Log.e("MessagesFragment fetch", "Network error", e)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleNetworkError(requireContext(),e)
                     showErrorMessage(containerLayout, inflater, "Connection error")
                 }
             }

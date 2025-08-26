@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.viewpager2.widget.ViewPager2
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithEverything
@@ -74,7 +75,8 @@ class OpenSaleActivity : AppCompatActivity() {
     private fun getIntentData() {
         saleId = intent.getIntExtra("SALE_ID", -1)
         if (saleId == -1) {
-            showErrorMessage("Invalid sale ID")
+            ErrorHandler.toaster(this,"Ismeretlen hiba történt")
+            ErrorHandler.logToLogcat("ChatActivity", "Hiba: saleId: $saleId", ErrorHandler.LogLevel.ERROR)
             finish()
         }
     }
@@ -87,14 +89,14 @@ class OpenSaleActivity : AppCompatActivity() {
                     if (response.success) {
                         response.data?.let { sale ->
                             displaySale(sale)
-                        } ?: showErrorMessage("Sale data is null")
+                        } ?: ErrorHandler.toaster(this@OpenSaleActivity,"Ismeretlen hiba történt")
                     } else {
-                        showErrorMessage(response.message ?: "Failed to load sale")
+                        ErrorHandler.handleApiError(this@OpenSaleActivity, null, response.message )
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    showErrorMessage("Network error: ${e.localizedMessage}")
+                    ErrorHandler.handleNetworkError(this@OpenSaleActivity, e)
                 }
             }
         }
@@ -129,20 +131,9 @@ class OpenSaleActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    showErrorMessage("Failed to load images: ${e.localizedMessage}")
+                    ErrorHandler.handleNetworkError(this@OpenSaleActivity, e)
                 }
             }
         }
-    }
-
-    private fun showErrorMessage(message: String) {
-        mainLayout.removeAllViews()
-        val errorView = layoutInflater.inflate(
-            R.layout.show_error_message,
-            mainLayout,
-            false
-        )
-        errorView.findViewById<TextView>(R.id.messageText).text = message
-        mainLayout.addView(errorView)
     }
 }

@@ -8,6 +8,13 @@ import org.json.JSONObject
 
 object ErrorHandler {
 
+
+    //haha pirítós
+    fun toaster(context: Context, message: String?, duration: Int = Toast.LENGTH_SHORT) {
+        Toast.makeText(context, message ?: "Ismeretlen hiba történt", duration).show()
+    }
+
+
     fun logToLogcat(tag: String, message: String, level: LogLevel = LogLevel.DEBUG, throwable: Throwable? = null) {
         when (level) {
             LogLevel.DEBUG -> Log.d(tag, message, throwable)
@@ -21,12 +28,6 @@ object ErrorHandler {
     enum class LogLevel {
         DEBUG, INFO, WARN, ERROR, VERBOSE
     }
-
-    //haha pirítós
-    fun toaster(context: Context, message: String?, duration: Int = Toast.LENGTH_SHORT) {
-        Toast.makeText(context, message ?: "Ismeretlen hiba történt", duration).show()
-    }
-
 
     fun handleNetworkError(context: Context, t: Throwable?) {
         // Log the error for developer
@@ -44,10 +45,16 @@ object ErrorHandler {
 
         errorBody?.let {
             try {
-                val json = JSONObject(it)
-                userMessage = json.optString("message", userMessage)
+                if (it.trim().startsWith("{")) { // ha JSON
+                    val json = JSONObject(it)
+                    userMessage = json.optString("message", userMessage)
+                } else {
+                    // egyszerű string
+                    userMessage = it
+                }
             } catch (e: JSONException) {
                 e.printStackTrace()
+                userMessage = it // fallback
             }
         }
 

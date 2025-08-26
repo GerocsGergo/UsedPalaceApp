@@ -15,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import androidx.fragment.app.Fragment
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithSid
@@ -85,7 +86,10 @@ class HomeFragment : Fragment() {
                     clearButton.visibility = View.VISIBLE
                     exampleText.visibility = View.GONE
                 } else if (query.trim().isEmpty()) {
-                    Toast.makeText(context, "Please enter a search term", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(context, "Please enter a search term", Toast.LENGTH_SHORT).show()
+                    clearButton.visibility = View.GONE
+                    exampleText.visibility = View.VISIBLE
+                    ErrorHandler.toaster(requireContext(), "Please enter a search term", Toast.LENGTH_SHORT)
                     return true
                 }
                 return true
@@ -132,13 +136,15 @@ class HomeFragment : Fragment() {
                             showNoProductsMessage(containerLayout, inflater, response.message)
                         }
                     } else {
-                        Toast.makeText(context, "Search failed: ${response.message}", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(context, "Search failed: ${response.message}", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.handleApiError(requireContext(), null, response.message)
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(context, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
                     showNoProductsMessage(containerLayout, inflater, "Connection error")
+                    ErrorHandler.handleNetworkError(requireContext(), e)
                 }
             }
         }
@@ -251,7 +257,8 @@ class HomeFragment : Fragment() {
                                 }
                             }
                         } catch (e: Exception) {
-                            Log.d("HomeFragment", "Error fetching images: ${e.message}")
+                            //Log.d("HomeFragment", "Error fetching images: ${e.message}")
+                            ErrorHandler.handleApiError(requireContext(), null, e.message)
                             withContext(Dispatchers.Main) {
                                 imageView.setImageResource(R.drawable.baseline_home_filled_24)
                             }

@@ -10,6 +10,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
 import kotlinx.coroutines.CoroutineScope
@@ -146,7 +147,8 @@ class SaleManagerHelper(private val context: Context, private val apiService: Ap
                     if (allowedToAdd > 0) {
                         currentImages.add(uri)
                     } else {
-                        Toast.makeText(context, "Maximum $maxImages kép tölthető fel", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(context, "Maximum $maxImages kép tölthető fel", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.toaster(this.context,"Maximum $maxImages kép tölthető fel")
                     }
                 }
             }
@@ -158,7 +160,6 @@ class SaleManagerHelper(private val context: Context, private val apiService: Ap
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)
                 if (inputStream == null) {
-                    Log.d("SaleImageHelper", "Failed to open InputStream for uri: $uri")
                     return@withContext null
                 }
 
@@ -215,7 +216,8 @@ class SaleManagerHelper(private val context: Context, private val apiService: Ap
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error uploading images: ${e.message}", Toast.LENGTH_LONG).show()
+                    //Toast.makeText(context, "Error uploading images: ${e.message}", Toast.LENGTH_LONG).show()
+                    ErrorHandler.handleNetworkError(this@SaleManagerHelper.context,e)
                     onComplete()
                 }
             }

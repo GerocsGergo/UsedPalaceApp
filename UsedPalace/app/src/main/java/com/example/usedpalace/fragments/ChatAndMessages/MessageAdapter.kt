@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,7 +74,8 @@ class MessageAdapter(
         holder.messageText.text = message.content
         holder.messageTime.text = ChatHelper.formatMessageTime(message.sentAt)
         CoroutineScope(Dispatchers.IO).launch {
-            Log.d("Bindreceived message", "senderid: ${message.senderId}")
+            //Log.d("Bindreceived message", "senderid: ${message.senderId}")
+            ErrorHandler.logToLogcat("Bindreceived message", "senderid: ${message.senderId}")
 
             val username = ChatHelper.getUserName(apiService, message.senderId)
             withContext(Dispatchers.Main) {

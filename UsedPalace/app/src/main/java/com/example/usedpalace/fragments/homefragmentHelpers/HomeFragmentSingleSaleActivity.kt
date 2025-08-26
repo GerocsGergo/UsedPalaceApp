@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.viewpager2.widget.ViewPager2
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithEverything
@@ -73,12 +74,14 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
 
     private fun initiateChat() {
         buyerId = UserSession.getUserId() ?: run {
-            Toast.makeText(this, "You must be logged in to message sellers", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "You must be logged in to message sellers", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this, "Ismeretlen hiba történt")
             return
         }
 
         if (sellerId == buyerId) {
-            Toast.makeText(this, "You can't message yourself", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "You can't message yourself", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this, "Nem üzenhetsz magadnak!")
             return
         }
 
@@ -106,27 +109,15 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
                             }
                             startActivity(intent)
                         } else {
-                            Toast.makeText(
-                                this@HomeFragmentSingleSaleActivity,
-                                response.message ?: "Failed to initiate chat",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            ErrorHandler.toaster(this@HomeFragmentSingleSaleActivity, response.message ?: "Failed to initiate chat")
                         }
                     } else {
-                        Toast.makeText(
-                            this@HomeFragmentSingleSaleActivity,
-                            "Error: " + response.message,
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        ErrorHandler.toaster(this@HomeFragmentSingleSaleActivity, response.message ?: "Failed to initiate chat")
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@HomeFragmentSingleSaleActivity,
-                        "Network error: ${e.localizedMessage}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    ErrorHandler.handleNetworkError(this@HomeFragmentSingleSaleActivity,e)
                 }
             }
         }
@@ -139,11 +130,13 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
             if (response.success && response.fullname != null) {
                 response.fullname
             } else {
-                Log.e("Search", "Username not found: ${response.message}")
+                //Log.e("Search", "Username not found: ${response.message}")
+                ErrorHandler.logToLogcat("Search", "Username not found: ${response.message}", ErrorHandler.LogLevel.ERROR)
                 null // Return null if not found
             }
         } catch (e: Exception) {
-            Log.e("Search", "Error fetching username", e)
+            //Log.e("Search", "Error fetching username", e)
+            ErrorHandler.logToLogcat("Search", "Error fetching username", ErrorHandler.LogLevel.ERROR)
             null // Return null on error
         }
     }
@@ -169,12 +162,14 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
     private fun getIntentData() {
         saleId = intent.getIntExtra("SALE_ID", -1)
         if (saleId == -1) {
-            showErrorMessage("Invalid sale ID")
+            ErrorHandler.toaster(this,"Ismeretlen hiba történt")
+            ErrorHandler.logToLogcat("ChatActivity", "Hiba: saleId: $saleId", ErrorHandler.LogLevel.ERROR)
             finish()
         }
         sellerId = intent.getIntExtra("SELLER_ID", -1)
         if (sellerId == -1) {
-            showErrorMessage("Invalid seller ID")
+            ErrorHandler.toaster(this,"Ismeretlen hiba történt")
+            ErrorHandler.logToLogcat("ChatActivity", "Hiba: sellerId: $sellerId", ErrorHandler.LogLevel.ERROR)
             finish()
         }
     }
@@ -199,7 +194,7 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    showErrorMessage("Failed to load images: ${e.localizedMessage}")
+                    ErrorHandler.handleNetworkError(this@HomeFragmentSingleSaleActivity, e)
                 }
             }
         }
@@ -213,14 +208,14 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
                     if (response.success) {
                         response.data?.let { sale ->
                             displaySale(sale)
-                        } ?: showErrorMessage("Sale data is null")
+                        } ?: ErrorHandler.toaster(this@HomeFragmentSingleSaleActivity,"Ismeretlen hiba történt")
                     } else {
-                        showErrorMessage(response.message ?: "Failed to load sale")
+                        ErrorHandler.handleApiError(this@HomeFragmentSingleSaleActivity, null, response.message )
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    showErrorMessage("Network error: ${e.localizedMessage}")
+                    ErrorHandler.handleNetworkError(this@HomeFragmentSingleSaleActivity, e)
                 }
             }
         }
@@ -233,21 +228,6 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
 
         // Itt hívjuk meg az API-t a képek lekérésére a SaleFolder alapján
         fetchSaleImages(saleId)
-    }
-
-
-
-    private fun showErrorMessage(message: String) {
-        mainLayout.removeAllViews()
-
-        val errorView = layoutInflater.inflate(
-            R.layout.show_error_message,
-            mainLayout,
-            false
-        )
-
-        errorView.findViewById<TextView>(R.id.messageText).text = message
-        mainLayout.addView(errorView)
     }
 
 }

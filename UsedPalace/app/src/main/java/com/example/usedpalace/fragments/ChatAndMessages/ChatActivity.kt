@@ -3,19 +3,18 @@ package com.example.usedpalace.fragments.ChatAndMessages
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
@@ -55,6 +54,7 @@ class ChatActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
 
         getIntentData()
         setupWebSocket()
@@ -128,8 +128,6 @@ class ChatActivity : AppCompatActivity() {
         saleItemTextView = findViewById(R.id.sale_item_text)
 
         val currentUserId = UserSession.getUserId() ?: -1
-        Log.d("ChatActivity", "ITT NÉZD Current user ID: $currentUserId")
-        Log.d("ChatActivity", "ITT NÉZD Current chat ID: $chatId")
         messageAdapter = MessageAdapter(emptyList(), apiService, currentUserId)
 
         messagesRecyclerView.apply {
@@ -143,23 +141,27 @@ class ChatActivity : AppCompatActivity() {
     private fun getIntentData() {
         chatId = intent.getIntExtra("CHAT_ID", -1)
         if (chatId == -1) {
-            showErrorMessage("Could not get chatID")
+            ErrorHandler.toaster(this,"Ismeretlen hiba történt")
+            ErrorHandler.logToLogcat("ChatActivity", "Hiba: chatId: $chatId", ErrorHandler.LogLevel.ERROR)
             finish()
         }
         saleId = intent.getIntExtra("SALE_ID", -1)
         if (saleId == -1) {
-            showErrorMessage("Could not get saleID")
+            ErrorHandler.toaster(this,"Ismeretlen hiba történt")
+            ErrorHandler.logToLogcat("ChatActivity", "Hiba: saleId: $saleId", ErrorHandler.LogLevel.ERROR)
             finish()
         }
         sellerId = intent.getIntExtra("SELLER_ID", -1)
         if (sellerId == -1) {
-            showErrorMessage("Could not get sellerID")
+            ErrorHandler.toaster(this,"Ismeretlen hiba történt")
+            ErrorHandler.logToLogcat("ChatActivity", "Hiba: sellerId: $sellerId", ErrorHandler.LogLevel.ERROR)
             finish()
         }
 
         toolbarUsername = intent.getStringExtra("USERNAME")
         if (toolbarUsername.isNullOrEmpty()) {
-            showErrorMessage("Could not get username for enemy")
+            ErrorHandler.toaster(this,"Ismeretlen hiba történt")
+            ErrorHandler.logToLogcat("ChatActivity", "Hiba: toolbarUsername: $toolbarUsername", ErrorHandler.LogLevel.ERROR)
             finish()
         }
     }
@@ -203,7 +205,7 @@ class ChatActivity : AppCompatActivity() {
             },
             onError = { error ->
                 runOnUiThread {
-                    Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                    ErrorHandler.toaster(this,error)
                 }
             }
         )
@@ -220,7 +222,7 @@ class ChatActivity : AppCompatActivity() {
                 }
             } else {
                 enterMessage.text.clear()
-                Toast.makeText(this, "You can't send message to deleted user.", Toast.LENGTH_SHORT).show()
+                ErrorHandler.toaster(this, "Nem küldhetsz üzenetet törölt felhasználónak")
             }
         }
     }
@@ -235,14 +237,4 @@ class ChatActivity : AppCompatActivity() {
         webSocketClient.close()
     }
 
-    private fun showErrorMessage(message: String) {
-        mainLayout.removeAllViews()
-        val errorView = layoutInflater.inflate(
-            R.layout.show_error_message,
-            mainLayout,
-            false
-        )
-        errorView.findViewById<TextView>(R.id.messageText).text = message
-        mainLayout.addView(errorView)
-    }
 }

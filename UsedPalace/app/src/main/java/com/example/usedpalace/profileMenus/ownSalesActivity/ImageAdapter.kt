@@ -31,10 +31,8 @@ class ImageAdapter(
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         val uri = images[position]
-        Log.d("ImageAdapter", "Image URI: $uri")
         if (uri != null) {
             val url = uri.toString()
-            Log.d("ImageAdapter", "Image URL: $url")
             if (url.startsWith("http")) {
                 // Internetes kép betöltése Picasso-val
                 Picasso.get()

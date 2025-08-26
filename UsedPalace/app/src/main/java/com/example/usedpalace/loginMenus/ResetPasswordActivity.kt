@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.RetrofitClientNoAuth
@@ -56,12 +57,14 @@ class ResetPasswordActivity : AppCompatActivity() {
 
             // Validate inputs
             if (code.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                ErrorHandler.toaster(this,"Kérjük töltsön ki minden mezőt")
                 return@setOnClickListener
             }
 
             if (newPassword != confirmPassword) {
-                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                ErrorHandler.toaster(this,"A jelszavak nem egyeznek")
                 return@setOnClickListener
             }
 
@@ -70,18 +73,22 @@ class ResetPasswordActivity : AppCompatActivity() {
             apiServiceNoAuth.confirmPasswordReset(request).enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@ResetPasswordActivity, "Password reset successfully", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.toaster(this@ResetPasswordActivity, "Jelszó sikeresen visszaállítva")
+                        //Toast.makeText(this@ResetPasswordActivity, "Password reset successfully", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this@ResetPasswordActivity, LogActivity::class.java)
                         startActivity(intent)
                         finishAffinity() //close and clear backstack
                     } else {
                         val errorBody = response.errorBody()?.string()
-                        Toast.makeText(this@ResetPasswordActivity, "Failed: $errorBody", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.handleApiError(this@ResetPasswordActivity, response.code(), errorBody)
+                        //Toast.makeText(this@ResetPasswordActivity, "Failed: $errorBody", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-                    Toast.makeText(this@ResetPasswordActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleNetworkError(this@ResetPasswordActivity, t)
+
+                    //Toast.makeText(this@ResetPasswordActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
         }

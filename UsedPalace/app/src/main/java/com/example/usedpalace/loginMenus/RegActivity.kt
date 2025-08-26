@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.RetrofitClientNoAuth
@@ -77,54 +78,54 @@ class RegActivity : AppCompatActivity(){
         rePassword: String,
         phoneNumber: String
     ): Boolean {
-        if (fullname.isEmpty()) {
-            Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show()
+        if (fullname.isEmpty() || password.isEmpty() || email.isEmpty() || rePassword.isEmpty() || phoneNumber.isEmpty()) {
+            //Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this, "Kérjük töltsön ki minden mezőt")
             return false
         }
         if (!fullname.matches(Regex("^[a-zA-Z\\s'-]+$"))) {
-            Toast.makeText(this, "Your name can only contain letters and spaces", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "Your name can only contain letters and spaces", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this, "A neved csak betűket és szóközöket tartalmazhat")
             return false
         }
         if (fullname.length > 50) {
-            Toast.makeText(this, "Your name can be only 50 characters long", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "Your name can be only 50 characters long", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this,"A neved maximum 50 karakter hosszú lehet")
             return false
         }
-        if (email.isEmpty()) {
-            Toast.makeText(this, "Please enter your email", Toast.LENGTH_SHORT).show()
-            return false
-        }
+
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this,"Nem megfelelő email formátum")
+            //Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
             return false
         }
-        if (password.isEmpty()) {
-            Toast.makeText(this, "Please enter a password", Toast.LENGTH_SHORT).show()
-            return false
-        }
+
         if (password.length < 8) {
-            Toast.makeText(this, "Your password is too short", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "Your password is too short", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this,"A jelszónak legalább 8 karakter hosszúnak kell lennie")
             return false
         }
         val passwordPattern = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@\$!%*?&])[A-Za-z\\d@\$!%*?&]{8,}$")
         if (!passwordPattern.matches(password)) {
-            Toast.makeText(this, "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this,"A jelszónak legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert tartalmaznak")
             return false
         }
         if (password != rePassword) {
-            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this,"A jelszavak nem egyeznek")
             return false
         }
-        if (phoneNumber.isEmpty()) {
-            Toast.makeText(this, "Please enter your phone number", Toast.LENGTH_SHORT).show()
-            return false
-        }
+
         if (phoneNumber.length != 11) {
-            Toast.makeText(this, "Your phone number is in incorrect form", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "Your phone number is in incorrect form", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this,"Nem megfelelő telefonszám formátum")
             return false
         }
         val phoneNumberPattern = Regex("^06\\d{9}\$")
         if (!phoneNumberPattern.matches(phoneNumber)) {
-            Toast.makeText(this, "Invalid phoneNumber format", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "Invalid phoneNumber format", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this,"Nem megfelelő telefonszám formátum")
             return false
         }
         return true
@@ -157,29 +158,34 @@ class RegActivity : AppCompatActivity(){
                     apiServiceNoAuth.sendVerifyEmail(request).enqueue(object : Callback<ResponseMessage> {
                         override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                             if (response.isSuccessful) {
-                                Toast.makeText(this@RegActivity, "Email verification code sent to your email", Toast.LENGTH_SHORT).show()
+                                //Toast.makeText(this@RegActivity, "Email verification code sent to your email", Toast.LENGTH_SHORT).show()
+                                ErrorHandler.toaster(this@RegActivity, "Az ellenőrző kódot elküldtük a megadott e-mail címre.")
                                 val intent = Intent(this@RegActivity, EmailVerifyActivity::class.java)
                                 intent.putExtra("email", email)
                                 startActivity(intent)
                             } else {
                                 val errorBody = response.errorBody()?.string()
-                                Toast.makeText(this@RegActivity, "Failed to send verification email: $errorBody", Toast.LENGTH_SHORT).show()
+                                ErrorHandler.handleApiError(this@RegActivity, response.code(), errorBody)
+                                //Toast.makeText(this@RegActivity, "Failed to send verification email: $errorBody", Toast.LENGTH_SHORT).show()
                             }
                         }
 
                         override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-                            Toast.makeText(this@RegActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                            //Toast.makeText(this@RegActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                            ErrorHandler.handleNetworkError(this@RegActivity, t)
                         }
                     })
 
                 } else {
                     val errorBody = response.errorBody()?.string()
-                    Toast.makeText(this@RegActivity, "Registration failed: $errorBody", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleApiError(this@RegActivity, response.code(), errorBody)
+                    //Toast.makeText(this@RegActivity, "Registration failed: $errorBody", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-                Toast.makeText(this@RegActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this@RegActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                ErrorHandler.handleNetworkError(this@RegActivity,t)
             }
         })
     }

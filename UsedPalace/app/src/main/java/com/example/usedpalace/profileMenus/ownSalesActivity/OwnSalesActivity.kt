@@ -15,6 +15,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.requests.DeleteSaleRequest
 import com.example.usedpalace.MainMenuActivity
 
@@ -96,20 +97,22 @@ class OwnSalesActivity : AppCompatActivity() {
                             showNoProductsMessage(containerLayout, response.message)
                         }
                     } else {
-                        Toast.makeText(this@OwnSalesActivity, "Search failed: ${response.message}", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.handleApiError(this@OwnSalesActivity, null, response.message)
+                        //Toast.makeText(this@OwnSalesActivity, "Search failed: ${response.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@OwnSalesActivity, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
-                    showNoProductsMessage(containerLayout, "Connection error")
+                    ErrorHandler.handleNetworkError(this@OwnSalesActivity,e)
+                    //Toast.makeText(this@OwnSalesActivity, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    showNoProductsMessage(containerLayout, "Ismeretlen hiba történt.")
                 }
             }
         }
     }
 
     private fun displaySales(apiService: ApiService, sales: List<SaleWithSid>, containerLayout: LinearLayout) {
-        val inflater = LayoutInflater.from(this)  // Get inflater here
+        val inflater = LayoutInflater.from(this)
 
         if (sales.isEmpty()) {
             // Create and show "No products found" message
@@ -161,7 +164,7 @@ class OwnSalesActivity : AppCompatActivity() {
 
     private fun showNoProductsMessage(
         containerLayout: LinearLayout?,
-        message: String = "No products found"
+        message: String = "Nem található hirdetés."
     ) {
         containerLayout?.removeAllViews()
         val noProductsView = LayoutInflater.from(this).inflate(R.layout.show_error_message, containerLayout, false)
@@ -172,13 +175,13 @@ class OwnSalesActivity : AppCompatActivity() {
     //For delete modify and open
     private fun showDeleteConfirmationDialog(apiService: ApiService, saleId: Int, itemView: View, containerLayout: LinearLayout) {
         AlertDialog.Builder(this)
-            .setTitle("Delete Sale")
-            .setMessage("Are you sure you want to delete this sale?")
-            .setPositiveButton("Delete") { dialog, _ ->
+            .setTitle("Hirdetés Törlése")
+            .setMessage("Biztosan törölni akarod?")
+            .setPositiveButton("Törlés") { dialog, _ ->
                 deleteSale(apiService, saleId, itemView, containerLayout)
                 dialog.dismiss()
             }
-            .setNegativeButton("Cancel") { dialog, _ ->
+            .setNegativeButton("Mégsem") { dialog, _ ->
                 dialog.dismiss()
             }
             .create()
@@ -194,31 +197,22 @@ class OwnSalesActivity : AppCompatActivity() {
                     if (response.success) {
                         // Remove from UI
                         containerLayout.removeView(itemView)
-                        Toast.makeText(
-                            this@OwnSalesActivity,
-                            "Sale deleted successfully",
-                            Toast.LENGTH_SHORT
-                        ).show()
+
+                        ErrorHandler.toaster(this@OwnSalesActivity,"Sikeresen törölve")
 
                         // Refresh the list or show empty state if needed
                         if (containerLayout.childCount == 0) {
-                            showNoProductsMessage(containerLayout, "No sales found")
+                            showNoProductsMessage(containerLayout, "Nem található hirdetés")
                         }
                     } else {
-                        Toast.makeText(
-                            this@OwnSalesActivity,
-                            "Failed to delete: ${response.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+
+                        ErrorHandler.handleApiError(this@OwnSalesActivity, null, response.message)
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@OwnSalesActivity,
-                        "Network error: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+
+                    ErrorHandler.handleNetworkError(this@OwnSalesActivity,e)
                 }
             }
         }

@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
@@ -77,7 +78,8 @@ class CreateSaleActivity : AppCompatActivity() {
 
         findViewById<MaterialButton>(R.id.btnAddImage).setOnClickListener {
             if (imageUris.size >= MAX_IMAGES) {
-                Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
+                ErrorHandler.toaster(this,"Maximum $MAX_IMAGES kép tölthető fel")
+                //Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             saleManagerHelper.pickImages(this, REQUEST_CODE_PICK_IMAGES)
@@ -124,7 +126,8 @@ class CreateSaleActivity : AppCompatActivity() {
         val (bigCategory, smallCategory) = saleManagerHelper.getSelectedCategories(mainCategory, subCategory)
 
         if (name.isEmpty() || description.isEmpty() || cost <= 0 || bigCategory == null) {
-            Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this,"Kérjük töltsön ki minden mezőt!")
             return
         }
 
@@ -155,13 +158,15 @@ class CreateSaleActivity : AppCompatActivity() {
                             }
                         }
                     } else {
-                        Toast.makeText(this@CreateSaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.handleApiError(this@CreateSaleActivity,null,response.message)
+                        //Toast.makeText(this@CreateSaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
                         createButton.isEnabled = true
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@CreateSaleActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@CreateSaleActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleNetworkError(this@CreateSaleActivity,e)
                     createButton.isEnabled = true
                 }
             }

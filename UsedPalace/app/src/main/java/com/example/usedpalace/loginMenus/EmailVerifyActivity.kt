@@ -12,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.RetrofitClientNoAuth
@@ -61,25 +62,28 @@ class EmailVerifyActivity : AppCompatActivity() {
 
         // Validate inputs
         if (code.isEmpty()){
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+            ErrorHandler.toaster(this, "Kérjük töltsön ki minden mezőt")
         } else  {
             // Send request to the server
             val request = EmailVerificationWithCodeRequest(email = email, code = code)
             apiServiceNoAuth.verifyEmail(request).enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@EmailVerifyActivity, "Email verified successfully", Toast.LENGTH_SHORT).show()
-
+                        //Toast.makeText(this@EmailVerifyActivity, "Email verified successfully", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.toaster(this@EmailVerifyActivity, "Email verified successfully")
                         val intent = Intent(this@EmailVerifyActivity, LogActivity::class.java)
                         startActivity(intent)
 
                     } else {
                         val errorBody = response.errorBody()?.string()
-                        Toast.makeText(this@EmailVerifyActivity, "Failed: $errorBody", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(this@EmailVerifyActivity, "Failed: $errorBody", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.handleApiError(this@EmailVerifyActivity, null, errorBody)
                     }
                 }
                 override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-                    Toast.makeText(this@EmailVerifyActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@EmailVerifyActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleNetworkError(this@EmailVerifyActivity,t)
                 }
             })
         }
@@ -113,7 +117,8 @@ class EmailVerifyActivity : AppCompatActivity() {
             }
 
             if (email.isNullOrEmpty()) {
-                Toast.makeText(this, "Kérjük, add meg az email címet", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Kérjük, add meg az email címet", Toast.LENGTH_SHORT).show()
+                ErrorHandler.toaster(this, "Kérjük, add meg az email címet")
                 return@setOnClickListener
             }
 
@@ -130,18 +135,6 @@ class EmailVerifyActivity : AppCompatActivity() {
         prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
         RetrofitClient.init(applicationContext)
         apiServiceNoAuth = RetrofitClientNoAuth.apiService
-    }
-
-    private fun showErrorMessage(message: String) {
-        mainLayout.removeAllViews()
-        val errorView = layoutInflater.inflate(
-            R.layout.show_error_message,
-            mainLayout,
-            false
-        )
-
-        errorView.findViewById<TextView>(R.id.messageText).text = message
-        mainLayout.addView(errorView)
     }
 
 }

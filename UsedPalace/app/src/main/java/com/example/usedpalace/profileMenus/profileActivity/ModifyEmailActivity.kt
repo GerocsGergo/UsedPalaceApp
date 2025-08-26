@@ -7,11 +7,11 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
@@ -40,7 +40,6 @@ class ModifyEmailActivity : AppCompatActivity() {
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -56,7 +55,6 @@ class ModifyEmailActivity : AppCompatActivity() {
         setupClickListeners()
     }
 
-
     private fun setupViewItems() {
         buttonCancel = findViewById(R.id.buttonCancel)
         buttonModify = findViewById(R.id.buttonModify)
@@ -67,55 +65,50 @@ class ModifyEmailActivity : AppCompatActivity() {
         codeText = findViewById(R.id.codeText)
         emailInputLayout = findViewById(R.id.emailInputLayout)
         codeInputLayout = findViewById(R.id.codeInputLayout)
-
     }
 
     private fun setupClickListeners() {
         buttonCancel.setOnClickListener {
             finish()
         }
+
         buttonRequest.setOnClickListener {
             val email = inputNewEmail.text.toString()
 
-
             if (UserSession.getUserId() != null) {
                 if (email.isNotEmpty()) {
-                    // Step 1: Request email change
                     changeEmailRequest(email)
-
                 } else {
-                    Toast.makeText(this, "Please enter an email.", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.toaster(this, "Kérjük, adja meg az új e-mail címet!")
                 }
-            } else  {
-                Toast.makeText(this, "Could not get UserId.", Toast.LENGTH_SHORT).show()
+            } else {
+                ErrorHandler.toaster(this, "Ismeretlen hiba történt")
+                ErrorHandler.logToLogcat("ModifyEmailActivity", "Could not get UserId.", ErrorHandler.LogLevel.ERROR)
             }
-
-
         }
+
         buttonModify.setOnClickListener {
             val code = inputCode.text.toString()
 
             if (UserSession.getUserId() != null) {
                 if (code.isNotEmpty()) {
-                    // Step 2: Confirm email change
                     confirmEmail(code)
                 } else {
-                    Toast.makeText(this, "Please enter a code.", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.toaster(this, "Kérjük, adja meg a kódot!")
                 }
-            } else  {
-                Toast.makeText(this, "Could not get UserId.", Toast.LENGTH_SHORT).show()
+            } else {
+                ErrorHandler.toaster(this, "Ismeretlen hiba történt")
+                ErrorHandler.logToLogcat("ModifyEmailActivity", "Could not get UserId.", ErrorHandler.LogLevel.ERROR)
             }
         }
     }
 
-    private fun changeEmailRequest(email: String){
-
+    private fun changeEmailRequest(email: String) {
         val request = ChangeEmailRequest(UserSession.getUserId()!!, email)
         apiService.requestEmailChange(request).enqueue(object : Callback<ApiResponseGeneric> {
-            override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>
-            ) {
+            override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>) {
                 if (response.isSuccessful) {
-                    Toast.makeText(this@ModifyEmailActivity, "Verification code sent!", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.toaster(this@ModifyEmailActivity, "Hitelesítő kód elküldve!")
                     newEmailText.visibility = View.GONE
                     inputNewEmail.visibility = View.GONE
                     buttonRequest.visibility = View.GONE
@@ -126,46 +119,35 @@ class ModifyEmailActivity : AppCompatActivity() {
                     inputCode.visibility = View.VISIBLE
                     buttonModify.visibility = View.VISIBLE
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    Toast.makeText(this@ModifyEmailActivity, "Failed to request email change: $errorBody", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleApiError(this@ModifyEmailActivity, null, response.message())
                 }
             }
 
             override fun onFailure(call: Call<ApiResponseGeneric>, t: Throwable) {
-                Toast.makeText(
-                    this@ModifyEmailActivity,
-                    "Network error.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                ErrorHandler.handleNetworkError(this@ModifyEmailActivity, t)
             }
         })
     }
 
-    private fun confirmEmail(code: String){
-        val confirmRequest =
-            ConfirmEmailOrPasswordChangeOrDeleteRequest(UserSession.getUserId()!!, code)
+    private fun confirmEmail(code: String) {
+        val confirmRequest = ConfirmEmailOrPasswordChangeOrDeleteRequest(UserSession.getUserId()!!, code)
         apiService.confirmEmailChange(confirmRequest).enqueue(object : Callback<ApiResponseGeneric> {
             override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>) {
-                    if (response.isSuccessful) {
-                        Toast.makeText(this@ModifyEmailActivity, "Email changed successfully!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this@ModifyEmailActivity, ProfileActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    } else {
-                        Toast.makeText(this@ModifyEmailActivity, "Invalid code or error.", Toast.LENGTH_SHORT).show()
-                    }
+                if (response.isSuccessful) {
+                    ErrorHandler.toaster(this@ModifyEmailActivity, "E-mail cím sikeresen módosítva!")
+                    val intent = Intent(this@ModifyEmailActivity, ProfileActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                } else {
+                    ErrorHandler.handleApiError(this@ModifyEmailActivity, null, response.message())
                 }
+            }
 
-                override fun onFailure(call: Call<ApiResponseGeneric>, t: Throwable) {
-                    Toast.makeText(
-                        this@ModifyEmailActivity,
-                        "Network error.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
+            override fun onFailure(call: Call<ApiResponseGeneric>, t: Throwable) {
+                ErrorHandler.handleNetworkError(this@ModifyEmailActivity, t)
+            }
+        })
     }
-
 
     private fun setupRetrofit() {
         prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)

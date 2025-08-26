@@ -12,6 +12,8 @@ const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const WebSocket = require('ws');
 
+const jj = "Ismeretlen hiba történt!"; // A felhasználónak hiba esetén ezeket küldi vissza
+const bb = "Szerver hiba, próbálja újra később";
 
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -144,7 +146,8 @@ app.post('/forgot-password', async (req, res) => {
         if (users.length === 0) {
             return res.status(404).json({ 
                 error: 'User not found', 
-                message: 'Ismeretlen hiba történt.' 
+                message: jj
+
             });
         }
 
@@ -170,7 +173,7 @@ app.post('/forgot-password', async (req, res) => {
                 console.error('Error sending email:', err);
                 return res.status(500).json({ 
                     error: 'Failed to send email', 
-                    message: 'Nem sikerült elküldeni az emailt.' 
+                    message: jj 
                 });
             }
             res.json({ 
@@ -181,8 +184,8 @@ app.post('/forgot-password', async (req, res) => {
     } catch (err) {
         console.error('Error in /forgot-password:', err);
         res.status(500).json({ 
-            error: 'Internal server error', 
-            message: 'Szerver hiba történt. Kérlek próbáld újra később.' 
+             
+            message: bb
         });
     }
 });
@@ -258,8 +261,8 @@ app.post('/confirm-forgot-password', async (req, res) => {
     } catch (err) {
         console.error('Error in /confirm-forgot-password:', err);
         res.status(500).json({ 
-            error: 'Internal server error', 
-            message: 'Szerver hiba történt. Kérlek próbáld újra később.' 
+             
+            message: bb 
         });
     }
 });
@@ -271,20 +274,19 @@ app.post('/confirm-forgot-password', async (req, res) => {
 app.post('/login', async (req, res) => {
     
     try {
-	
 		const { email, password, deviceInfo } = req.body;
 		console.log('Received login request:', email);
 		
 		if (!email || !password || !deviceInfo) {
         return res.status(400).json({ 
 			error: 'Some data is missing',
-			message: 'Felhasználó nem létezik, vagy hibás adat'});
+			message: 'Kérjük töltsön ki minden mezőt!'});
     }
 		
 		if (!validator.isEmail(email)) {
         return res.status(400).json({ 
 			error: 'Invalid email address.',
-			message: 'Felhasználó nem létezik, vagy hibás adat'});
+			message: 'Érvénytelen E-mail cím!'});
 		}
 		
         const query = 'SELECT * FROM Users WHERE Email = ?';
@@ -293,7 +295,7 @@ app.post('/login', async (req, res) => {
         if (results.length === 0) {
             return res.status(401).json({ 
 				error: 'User not found',
-				message: 'Felhasználó nem létezik, vagy hibás adat'});
+				message: 'Nincs ilyen felhasználó'});
         }
 
         const user = results[0];
@@ -302,13 +304,13 @@ app.post('/login', async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).json({ 
 			error: 'Invalid password',
-			message: 'Felhasználó nem létezik, vagy hibás adat'});
+			message: 'Helytelen jelszó'});
         }
 
         if (!user.Verified) {
             return res.status(401).json({ 
 				error: 'Email not verified',
-				message: 'Felhasználó nem létezik, vagy hibás adat'});
+				message: 'Nincs hitelesítve az email'});
         }
 
         const token = jwt.sign({ id: user.Uid }, JWT_SECRET, { expiresIn: '7d' }); //10s for testing 7d for production
@@ -327,7 +329,7 @@ app.post('/login', async (req, res) => {
         };
 
         res.json({
-            message: 'Login successful!',
+            message: 'Sikeres belépés!',
             token,
             user: safeUserData
         });
@@ -335,8 +337,9 @@ app.post('/login', async (req, res) => {
     } catch (err) {
         console.error('Error in /login:', err);
         res.status(500).json({ 
-			error: 'Internal server error',
-			message: 'Felhasználó nem létezik, vagy hibás adat'});
+			
+			message: bb
+		});
     }
 });
 
@@ -347,7 +350,7 @@ app.get('/verify-token', async (req, res) => {
     if (!token) {
         return res.status(401).json({ 
             error: 'No token provided', 
-            message: 'Nincs megadva token. Kérlek jelentkezz be újra.' 
+            message: 'Kérlek jelentkezz be újra.' 
         });
     }
 
@@ -395,7 +398,7 @@ app.delete('/logout', authenticateToken, async (req, res) => {
     if (!token) {
         return res.status(400).json({ 
             error: 'No token provided', 
-            message: 'Nincs megadva token. Nem tudunk kijelentkeztetni.' 
+            message: jj
         });
     }
 
@@ -408,8 +411,8 @@ app.delete('/logout', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error('Error in /logout:', err);
         res.status(500).json({ 
-            error: 'Internal server error', 
-            message: 'Szerver hiba történt. Kérlek próbáld újra később.' 
+             
+            message: bb 
         });
     }
 });
@@ -480,7 +483,7 @@ app.post('/register', async (req, res) => {
         if (!phoneRegex.test(phoneNumber)) {
             return res.status(400).json({
                 error: 'Phone number format invalid',
-                message: 'A telefonszám formátuma érvénytelen. Például: 06123456789'
+                message: 'A telefonszám formátuma érvénytelen. Helyes formátum például: 06123456789'
             });
         }
 
@@ -497,8 +500,8 @@ app.post('/register', async (req, res) => {
     } catch (error) {
         console.error('Error in /register:', error);
         res.status(500).json({ 
-            error: 'Internal server error', 
-            message: 'Hiba történt a regisztráció során. Kérlek próbáld újra később.' 
+             
+            message: bb 
         });
     }
 });
@@ -527,7 +530,7 @@ app.post('/send-verify-email', async (req, res) => {
         if (users.length === 0) {
             return res.status(404).json({ 
                 error: 'User not found', 
-                message: 'A megadott email címhez nem található felhasználó.' 
+                message: jj 
             });
         }
 
@@ -564,8 +567,8 @@ app.post('/send-verify-email', async (req, res) => {
     } catch (err) {
         console.error('Error in /send-verify-email:', err);
         res.status(500).json({ 
-            error: 'Internal server error', 
-            message: 'Hiba történt az email küldés során. Próbáld újra később.' 
+             
+            message: bb 
         });
     }
 });
@@ -625,8 +628,8 @@ app.post('/verify-email', async (req, res) => {
     } catch (err) {
         console.error('Error in /verify-email:', err);
         res.status(500).json({ 
-            error: 'Internal server error', 
-            message: 'Hiba történt az email ellenőrzés során. Próbáld újra később.' 
+             
+            message: bb 
         });
     }
 });
@@ -636,29 +639,31 @@ app.post('/verify-email', async (req, res) => {
 
 // Endpoints for sales
 // Fetch sales data
-app.get('/getSales', authenticateToken, (req, res) => {
-    const query = 'SELECT * FROM Sales';
-    connection.query(query, (err, results) => {
-        if (err) {
-            console.error('Error fetching sales data:', err);
-            return res.status(500).json({ 
-                error: 'Failed to fetch sales data',
-                message: 'Hiba történt a hirdetések lekérése során. Próbáld újra később.'
-            });
-        } 
+app.get('/getSales', authenticateToken, async (req, res) => {
+    try {
+        const [results] = await connection.promise().query('SELECT * FROM Sales');
 
         if (results.length === 0) {
             return res.status(404).json({
                 error: 'No sales found',
-                message: 'Ismeretlen hiba történt.'
+                message: 'Nincs elérhető értékesítési adat.'
             });
         }
 
-        res.json({ 
-            data: results 
+        res.json({
+            success: true,
+            data: results
         });
-    });
+
+    } catch (err) {
+        console.error('Error in /getSales:', err);
+        res.status(500).json({
+            
+            message: bb
+        });
+    }
 });
+
 
 
 function getSaleImages(saleFolder) {
@@ -688,7 +693,7 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
         if (results.length === 0) {
             return res.json({
                 success: true,
-                message: "Ismeretlen hiba történt",
+                message: jj,
 				error:"No product found with this ID",
                 data: null
             });
@@ -699,7 +704,7 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
 
         res.json({
             success: true,
-            message: "Product found",
+            message: "Találat",
             data: {
                 ...sale,
                 Images: images // itt adjuk hozzá a képek listáját
@@ -710,8 +715,7 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
         console.error('Error in /search-sales-withSID:', err);
         res.status(500).json({
             success: false,
-            error: "Server error",
-			message: "Ismeretlen hiba történt",
+			message: jj,
             data: null 
         });
     }
@@ -740,7 +744,7 @@ app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) =>
         if (results.length === 0) {
             return res.json({
                 success: true,
-                message: "Ismeretlen hiba történt",
+                message: jj,
 				error:"No product found with this ID",
                 data: null 
             });
@@ -756,8 +760,8 @@ app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) =>
         console.error('Error in /search-deletedSales-withSID:', err);
         res.status(500).json({
             success: false,
-            error: "Server error",
-			message: "Ismeretlen hiba történt",
+            
+			message: jj,
             data: null 
         });
     }
@@ -785,7 +789,8 @@ app.post('/search-sales-withSaleName', authenticateToken , async (req, res) => {
         // Ensure we always return the same structure
         res.json({
             success: true,
-            message: results.length ? "Products found" : "No products found",
+			message: results.length ? "Találat" : "Nincs találat",
+            error: results.length ? "Products found" : "No products found",
             data: results
         });
         
@@ -793,8 +798,8 @@ app.post('/search-sales-withSaleName', authenticateToken , async (req, res) => {
         console.error('Error in /search-sales:', err);
         res.status(500).json({
             success: false,
-            error: "Server error",
-			message: "Ismeretlen hiba történt",
+            
+			message: jj,
             data: []
         });
     }
@@ -820,7 +825,7 @@ app.post('/search-salesID', authenticateToken , async (req, res) => {
         if (results.length === 0) {
             return res.status(404).json({
                 success: true,
-                message: "Ismeretlen hiba történt",
+                message: jj,
                 error: "No product found with this ID",
                 data: []
             });
@@ -835,7 +840,7 @@ app.post('/search-salesID', authenticateToken , async (req, res) => {
         console.error('Error in /search-salesID:', err);
         res.status(500).json({
             success: false,
-            message: "Ismeretlen hiba történt",
+            message: jj,
             error: err.message,
             data: []
         });
@@ -896,7 +901,7 @@ app.post('/create-sale', authenticateToken , (req, res) =>  {
         console.error('Error in /create-sale:', err);
         res.status(500).json({ 
             success: false,
-            message: 'Ismeretlen hiba történt.',
+            message: jj,
 			error: err.message
         });
     }
@@ -926,7 +931,7 @@ app.put('/modify-sale', authenticateToken , async (req, res) => {
         if (sale.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: "Nem található hirdetés",
+                message: jj,
 				error: "Sale not found"
             });
         }
@@ -934,7 +939,7 @@ app.put('/modify-sale', authenticateToken , async (req, res) => {
         if (sale[0].Uid !== userId) {
             return res.status(403).json({
                 success: false,
-				message: "Ismeretlen hiba történt.",
+				message: jj,
                 error: "Unauthorized"
             });
         }
@@ -959,7 +964,7 @@ app.put('/modify-sale', authenticateToken , async (req, res) => {
         console.error('Error in /modify-sale:', err);
         res.status(500).json({ 
             success: false,
-            message: 'Ismeretlen hiba történt',
+            message: jj,
             error: err.message
         });
     }
@@ -988,7 +993,7 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
         if (sale.length === 0) {
             return res.status(404).json({
                 success: false,
-				message: "Nem található ilyen hirdetés.",
+				message: jj,
                 error: "Sale not found",
                 data: null
             });
@@ -997,7 +1002,7 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
         if (sale[0].Uid !== userId) {
             return res.status(403).json({
                 success: false,
-				message: "Ismeretlen hiba",
+				message: jj,
                 error: "Unauthorized - you can only delete your own sales",
                 data: null
             });
@@ -1039,7 +1044,7 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
         console.error('Error in /delete-sale:', err);
         res.status(500).json({ 
             success: false,
-            message: 'Internal server error',
+            message: jj,
             error: err.message
         });
     }
@@ -1060,7 +1065,7 @@ app.post('/delete-images', authenticateToken, async (req, res) => {
         if (!saleFolder || !Array.isArray(imageNames) || imageNames.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "Hiba történt, próbáld újra később",
+                message: jj,
 				error: "saleFolder and non-empty imageNames array are required"
             });
         }
@@ -1087,7 +1092,7 @@ app.post('/delete-images', authenticateToken, async (req, res) => {
         console.error('Error in /delete-images:', err);
         res.status(500).json({
             success: false,
-            message: 'Internal server error',
+            message: bb,
             error: err.message
         });
     }
@@ -1123,7 +1128,7 @@ app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
         console.error('Error in /search-sales:', err);
         res.status(500).json({
             success: false,
-            message: 'Server error',
+            message: bb,
             data: null
         });
     }
@@ -1167,7 +1172,7 @@ app.post('/get-sale-images', async (req, res) => {
     if (results.length === 0) {
         return res.status(404).json({ 
 		success: false, 
-		message: 'Ismeretlen hiba',
+		message: jj,
 		error:	'Sale not found'	});
     }
 
@@ -1202,8 +1207,8 @@ app.use((err, req, res, next) => {
         // An unknown error occurred
         return res.status(500).json({
             success: false,
-			error: 'Unknown multer error',
-            message: 'Ismeretlen hiba történt'
+			
+            message: jj
         });
     }
     next();
@@ -1238,7 +1243,8 @@ app.post('/initiate-chat', authenticateToken , async (req, res) => {
         if (!sellerId || !buyerId || !saleId) {
             return res.status(400).json({
                 success: false,
-                message: "Missing required fields (sellerId, buyerId, saleId)"
+                error: "Missing required fields (sellerId, buyerId, saleId)",
+				message: "Kérjük töltsön ki minden mezőt."
             });
         }
 		
@@ -1247,7 +1253,8 @@ app.post('/initiate-chat', authenticateToken , async (req, res) => {
         if (  !validator.isInt(String(sellerId)) || !validator.isInt(String(buyerId)) || !validator.isInt(String(saleId)) ) {
 				return res.status(400).json({
 					success: false,
-					message: "Sending request error"
+					message: jj,
+					error: "Sending request error"
 				});
 		}
 
@@ -1262,7 +1269,8 @@ app.post('/initiate-chat', authenticateToken , async (req, res) => {
                 success: true, 
                 chatId: existingChat[0].ChatID,
                 isNew: false,
-                message: "Chat already exists"
+                message: jj,
+				error: "Chat already exists"
             });
         }
 
@@ -1280,14 +1288,15 @@ app.post('/initiate-chat', authenticateToken , async (req, res) => {
             success: true, 
             chatId: result.insertId,
             isNew: true,
-            message: "Chat created successfully"
+            message: "Chat sikeresen létrehozva"
         });
 
     } catch (err) {
         console.error('Error initiating chat:', err);
         res.status(500).json({ 
             success: false, 
-            message: 'Failed to initiate chat: ' + err.message 
+			message: jj,
+            error: err.error
         });
     }
 });
@@ -1301,7 +1310,8 @@ app.post('/load-user-chats', authenticateToken , async (req, res) => {
         if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "User ID required",
+				message: jj,
+                error: "User ID required",
                 data: []
             });
         }
@@ -1311,7 +1321,8 @@ app.post('/load-user-chats', authenticateToken , async (req, res) => {
 
         res.json({
             success: true,
-            message: results.length ? "Chats found" : "No chats found",
+            message: results.length ? "Chat-ek találhatóak" : "Nem található chat",
+			error: results.length ? "Chats found" : "No chats found",
             data: results
         });
 
@@ -1319,7 +1330,8 @@ app.post('/load-user-chats', authenticateToken , async (req, res) => {
         console.error('Error loading chats:', err);
         res.status(500).json({ 
             success: false, 
-            message: 'Failed to load chats: ' + err.message,
+			message: jj,
+            
             data: []
         });
     }
@@ -1334,7 +1346,8 @@ app.post('/search-username', authenticateToken , async (req, res) => {
         if (!searchParam) {
             return res.status(400).json({
                 success: false,
-                message: "Search parameter is required",
+                error: "Search parameter is required",
+				message: jj,
                 data: null
             });
         }
@@ -1350,14 +1363,15 @@ app.post('/search-username', authenticateToken , async (req, res) => {
 			if (results2.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: "User not found",
+                message: jj,
+				error: "User not found",
                 data: null
             });
 			}
 			
 			return res.json({
             success: true,
-            message: "User was deleted",
+            message: "Sikeres törlés",
             Fullname: "Deleted User"
            	});
 
@@ -1365,7 +1379,6 @@ app.post('/search-username', authenticateToken , async (req, res) => {
 
         res.json({
             success: true,
-            message: "Username found",
             Fullname: results[0].Fullname
            
         });
@@ -1374,7 +1387,8 @@ app.post('/search-username', authenticateToken , async (req, res) => {
         console.error('Error searching username:', err);
         res.status(500).json({ 
             success: false, 
-            message: 'Failed to search username: ' + err.message,
+			message: jj,
+            
             data: null
         });
     }
@@ -1502,7 +1516,8 @@ app.put('/modify-user-phone', authenticateToken , async (req, res) => {
 		if (!userId) {
 			return res.status(400).json({
 				success: false,
-				message: "Missing userId"
+				message: jj,
+				error: "Missing userId"
 			});
 		}
 		
@@ -1515,7 +1530,7 @@ app.put('/modify-user-phone', authenticateToken , async (req, res) => {
 			if (userResult.length === 0) {
 			  return res.status(404).json({
 				success: false,
-				message: "User not found"
+				message: jj
 			  });
 			}
 		
@@ -1565,7 +1580,7 @@ app.put('/modify-user-phone', authenticateToken , async (req, res) => {
 		 console.error('Error modifying user account: ', err)
 		         res.status(500).json({ 
             success: false,
-            message: 'Internal server error',
+            message: jj,
             error: err.message
         });
 	}
@@ -1640,7 +1655,7 @@ app.post('/request-user-email-change', authenticateToken , async (req, res) => {
         console.error('Error in /request-user-email-change:', err);
         res.status(500).json({
             success: false,
-            message: 'Internal server error',
+            message: jj,
             error: err.message
         });
     }
@@ -1668,7 +1683,7 @@ app.put('/confirm-user-email-change', authenticateToken , async (req, res) => {
         if (rows.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: 'No pending email change found'
+                message: jj
             });
         }
 
@@ -1696,6 +1711,7 @@ app.put('/confirm-user-email-change', authenticateToken , async (req, res) => {
 
 		if (activeSessions[0].count > 1) {
 			return res.status(400).json({
+				message: jj,
 				error: 'More than 1 active session.'
 			});
 		}
@@ -1719,7 +1735,7 @@ app.put('/confirm-user-email-change', authenticateToken , async (req, res) => {
         console.error('Error in /confirm-user-email-change:', err);
         res.status(500).json({
             success: false,
-            message: 'Internal server error',
+            message: jj,
             error: err.message
         });
     }
@@ -1797,7 +1813,11 @@ app.post('/request-password-change', authenticateToken , async (req, res) => {
 
     } catch (err) {
         console.error('Error in request-password-change:', err);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ 
+			success: false,
+            message: jj,
+            error: err.message
+		});
     }
 });
 
@@ -1857,7 +1877,11 @@ app.put('/confirm-password-change', authenticateToken , async (req, res) => {
 
     } catch (err) {
         console.error('Error in confirm-password-change:', err);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ 
+			success: false,
+            message: jj,
+            error: err.message
+			});
     }
 });
 
@@ -1877,7 +1901,7 @@ app.post('/request-phoneNumber-change', authenticateToken , async (req, res) => 
         const [results] = await connection.promise().query(query, [userId]);
 
         if (results.length === 0) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: jj });
         }
 
         const user = results[0];
@@ -1904,7 +1928,11 @@ app.post('/request-phoneNumber-change', authenticateToken , async (req, res) => 
 
     } catch (err) {
         console.error('Error in request-phoneNumber-change:', err);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ 
+			success: false,
+            message: jj,
+            error: err.message
+		});
     }
 });
 
@@ -1918,13 +1946,13 @@ app.put('/confirm-phoneNumber-change', authenticateToken , async (req, res) => {
         }
 		
 		if (phoneNumber.trim().length != 11) {
-			return res.status(400).json({ error: 'Phone number format invalid.' });
+			return res.status(400).json({ message: 'Telefonszám formátuma nem megfelelő' });
 		}
 	
 		const phoneRegex = /^06\d{9}$/;
 		if (!phoneRegex.test(phoneNumber)) {
 			return res.status(400).json({
-				message: "Phone number format invalid."
+				message: 'Telefonszám formátuma nem megfelelő'
 			});
 		}
 		
@@ -1964,7 +1992,11 @@ app.put('/confirm-phoneNumber-change', authenticateToken , async (req, res) => {
 
     } catch (err) {
         console.error('Error in confirm-phoneNumber-change:', err);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ 
+			success: false,
+            message: jj,
+            error: err.message
+		});
     }
 });
 
@@ -1982,13 +2014,14 @@ app.post('/request-delete-user', authenticateToken , async (req, res) => {
         const [results] = await connection.promise().query(query, [userId]);
 
         if (results.length === 0) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: jj });
         }
 	
         if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "UserId are missing"
+				message: jj,
+                error: "UserId are missing"
             });
         }
 		
@@ -2019,8 +2052,12 @@ app.post('/request-delete-user', authenticateToken , async (req, res) => {
         });
 		
 	} catch (err) {
-		 console.error('Error in request-delete-account:', err);
-        res.status(500).json({ message: 'Internal server error' });
+		console.error('Error in request-delete-account:', err);
+        res.status(500).json({ 
+			success: false,
+            message: jj,
+            error: err.message
+		});
 	}
 });
 
@@ -2032,7 +2069,8 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 		  if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "UserId are missing"
+				message: jj,
+                error: "UserId are missing"
             });
         }
 		
@@ -2043,7 +2081,7 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
         );
 		
 		 if (rows.length === 0) {
-            return res.status(404).json({ message: 'No pending account deletion found' });
+            return res.status(404).json({ error: 'No pending account deletion found' });
         }
 
         const request = rows[0];
@@ -2119,8 +2157,12 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 		
 		
 	} catch (err) {
-			  console.error('Error in confirm-delete-account:', err);
-        res.status(500).json({ message: 'Internal server error' });
+		console.error('Error in confirm-delete-account:', err);
+        res.status(500).json({ 
+			success: false,
+            message: jj,
+            error: err.message
+		});
 	}
 });
 
