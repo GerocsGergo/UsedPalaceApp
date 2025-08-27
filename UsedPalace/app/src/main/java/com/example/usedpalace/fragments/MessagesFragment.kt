@@ -58,15 +58,25 @@ class MessagesFragment : Fragment() {
         setupViews(view)
         initialize()
         setupClickListeners(apiService, containerLayout, inflater)
-        fetchChats(apiService, containerLayout, inflater, "activeChats")
+        //fetchChats(apiService, containerLayout, inflater, "activeChats")
 
         return view
     }
+
+    override fun onResume() {
+        super.onResume()
+        val containerLayout = view?.findViewById<LinearLayout>(R.id.container)
+        containerLayout?.removeAllViews()
+        fetchChats(apiService, containerLayout, layoutInflater, "activeChats")
+    }
+
 
     private fun setupViews(view: View) {
         allChats = view.findViewById(R.id.allChats)
         deletedChats = view.findViewById(R.id.deletedChats)
         activeChats  = view.findViewById(R.id.activeChats)
+
+
     }
 
 
@@ -218,6 +228,14 @@ class MessagesFragment : Fragment() {
             for (chat in chats) {
                 val itemView = inflater.inflate(R.layout.item_fragment_messages, containerLayout, false)
                 var username:String? = null
+
+                val unreadProductDot = itemView.findViewById<View>(R.id.unread_dot_product)
+
+                 if (chat.unreadCount > 0) {
+                    unreadProductDot.visibility = View.VISIBLE
+                } else {
+                    unreadProductDot.visibility = View.GONE
+                }
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
                         username = if (userId == chat.buyerId){
@@ -249,6 +267,7 @@ class MessagesFragment : Fragment() {
                         }
                         if (sale.success && sale.data != null) {
                             itemView.findViewById<TextView>(R.id.product_name).text = sale.data.Name
+
                             val imageView: ImageView = itemView.findViewById(R.id.image1)
 
                             try {
@@ -305,6 +324,14 @@ class MessagesFragment : Fragment() {
             for (chat in chats) {
                 val itemView = inflater.inflate(R.layout.item_fragment_messages, containerLayout, false)
                 var username:String?
+
+
+                val unreadProductDot = itemView.findViewById<View>(R.id.unread_dot_product)
+                if (chat.unreadCount > 0) {
+                    unreadProductDot.visibility = View.VISIBLE
+                } else {
+                    unreadProductDot.visibility = View.GONE
+                }
 
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
@@ -429,12 +456,12 @@ class MessagesFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     if (response.success) {
                         if (response.data.isNotEmpty()) {
-                            val sortedChats = response.data.sortedByDescending { it.lastMessageAt }
+                            //val sortedChats = response.data.sortedByDescending { it.lastMessageAt }
                             when (flag) {
-                                "activeChats" -> displayActiveChats(apiService, sortedChats, containerLayout, inflater)
-                                "deletedChats" -> displayDeletedChats(apiService, sortedChats, containerLayout, inflater)
-                                "allChats" -> displayChats(apiService, sortedChats, containerLayout, inflater)
-                                else -> displayActiveChats(apiService, sortedChats, containerLayout, inflater)
+                                "activeChats" -> displayActiveChats(apiService, response.data, containerLayout, inflater)
+                                "deletedChats" -> displayDeletedChats(apiService, response.data, containerLayout, inflater)
+                                "allChats" -> displayChats(apiService, response.data, containerLayout, inflater)
+                                else -> displayActiveChats(apiService, response.data, containerLayout, inflater)
                             }
 
                         } else {

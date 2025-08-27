@@ -7,4 +7,5 @@ data class MessageResponse(
     @SerializedName("message") val message: String,
     @SerializedName("messageId") val messageId: Int,
     @SerializedName("sentAt") val sentAt: String,
+    @SerializedName("isRead") val isRead: Boolean
 )

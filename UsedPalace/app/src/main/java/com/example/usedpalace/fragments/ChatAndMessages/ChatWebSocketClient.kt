@@ -127,4 +127,17 @@ class ChatWebSocketClient(
         webSocket.send(msgJson)
     }
 
+    fun markAsRead(readerId: Int) {
+        val msgJson = """
+        {
+            "type": "mark-as-read",
+            "chatId": $chatId,
+            "readerId": $readerId
+        }
+    """.trimIndent()
+        webSocket.send(msgJson)
+    }
+
+
+
 }

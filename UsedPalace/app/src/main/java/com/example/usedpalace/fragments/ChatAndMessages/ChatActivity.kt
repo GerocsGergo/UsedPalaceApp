@@ -62,6 +62,8 @@ class ChatActivity : AppCompatActivity() {
         initializeViews()
         setupToolbar(toolbarUsername)
         initializeMessages()
+        val currentUserId = UserSession.getUserId() ?: return
+        webSocketClient.markAsRead(currentUserId)
         setupSendButton()
         getSaleItemText()
 
@@ -89,6 +91,8 @@ class ChatActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+
 
     private fun getSaleItemText() {
         CoroutineScope(Dispatchers.IO).launch {

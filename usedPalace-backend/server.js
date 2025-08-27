@@ -1302,40 +1302,56 @@ app.post('/initiate-chat', authenticateToken , async (req, res) => {
 });
 
 //Load all chats for user
-app.post('/load-user-chats', authenticateToken , async (req, res) => {
+// Load all chats for user with unread message count
+app.post('/load-user-chats', authenticateToken, async (req, res) => {
     try {
         const { userId } = req.body;
-        console.log('Received load chats request for user: ', userId);
-		
+
         if (!userId) {
             return res.status(400).json({
                 success: false,
-				message: jj,
+                message: "User ID required",
                 error: "User ID required",
                 data: []
             });
         }
 
-        const query = 'SELECT * FROM Chats WHERE BuyerID = ? OR SellerID = ?';
-        const [results] = await connection.promise().query(query, [userId, userId]);
+        // Lekérdezzük a chat-eket és az olvasatlan üzenetek számát
+        const query = `
+			SELECT 
+				c.ChatID,
+				c.SellerID,
+				c.BuyerID,
+				c.SaleID,
+				c.CreatedAt,
+				c.LastMessageAt,
+				SUM(CASE WHEN m.SenderID != ? AND m.isRead = 0 THEN 1 ELSE 0 END) AS unreadCount
+			FROM Chats c
+			LEFT JOIN Messages m ON c.ChatID = m.ChatID
+			WHERE c.BuyerID = ? OR c.SellerID = ?
+			GROUP BY c.ChatID, c.SellerID, c.BuyerID, c.SaleID, c.CreatedAt, c.LastMessageAt
+			ORDER BY c.LastMessageAt DESC
+		`;
 
+
+        const [results] = await connection.promise().query(query, [userId, userId, userId]);
         res.json({
             success: true,
             message: results.length ? "Chat-ek találhatóak" : "Nem található chat",
-			error: results.length ? "Chats found" : "No chats found",
+            error: results.length ? "" : "No chats found",
             data: results
         });
 
     } catch (err) {
         console.error('Error loading chats:', err);
-        res.status(500).json({ 
-            success: false, 
-			message: jj,
-            
+        res.status(500).json({
+            success: false,
+            message: "Hiba történt a chat-ek betöltésekor",
             data: []
         });
     }
 });
+
 
 //Search Username
 app.post('/search-username', authenticateToken , async (req, res) => {
@@ -1428,9 +1444,10 @@ wss.on('connection', (ws) => {
 
       try {
         const [result] = await connection.promise().query(
-          'INSERT INTO Messages (ChatID, SenderID, Content) VALUES (?, ?, ?)',
-          [chatId, senderId, content]
-        );
+		  'INSERT INTO Messages (ChatID, SenderID, Content, isRead) VALUES (?, ?, ?, 0)',
+		  [chatId, senderId, content]
+		);
+
         await connection.promise().query(
           'UPDATE Chats SET LastMessageAt = CURRENT_TIMESTAMP WHERE ChatID = ?',
           [chatId]
@@ -1479,6 +1496,19 @@ wss.on('connection', (ws) => {
       }
       return;
     }
+	
+	if (data.type === 'mark-as-read') {
+		const { chatId, readerId } = data;
+		try {
+			await connection.promise().query(
+				'UPDATE Messages SET isRead = 1 WHERE ChatID = ? AND SenderID != ?',
+				[chatId, readerId]
+			);
+		} catch (err) {
+			console.error('Failed to mark messages as read:', err);
+		}
+	}
+
 
     ws.send(JSON.stringify({ type: 'error', message: 'Unknown message type' }));
   });
@@ -1493,6 +1523,28 @@ wss.on('connection', (ws) => {
     }
   });
 });
+
+
+const admin = require('firebase-admin');
+
+admin.initializeApp({
+    credential: admin.credential.cert(require('./serviceAccountKey.json'))
+});
+
+async function sendChatNotification(fcmToken, chatId, senderName, content) {
+    const message = {
+        token: fcmToken,
+        data: { chatId: chatId.toString(), senderName, content },
+        notification: { title: senderName, body: content },
+    };
+
+    try {
+        await admin.messaging().send(message);
+        console.log('Notification sent');
+    } catch (err) {
+        console.error('Error sending notification:', err);
+    }
+}
 
 
 

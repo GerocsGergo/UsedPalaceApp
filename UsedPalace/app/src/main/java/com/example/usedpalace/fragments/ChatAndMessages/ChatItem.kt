@@ -8,6 +8,6 @@ data class ChatItem(
     @SerializedName("BuyerID") val buyerId: Int, //Same as User id
     @SerializedName("SaleID") val saleId: Int,
     @SerializedName("CreatedAt") val createdAt: String,
-    @SerializedName("LastMessageAt") val lastMessageAt: String
-
+    @SerializedName("LastMessageAt") val lastMessageAt: String,
+    @SerializedName("unreadCount") val unreadCount: Int = 0
 )
