@@ -6,11 +6,15 @@
 
     <color name="colorPrimary">#4ABC4B</color>
     <color name="colorPrimaryRipple">#334ABC4B</color>
-    <color name="colorBackground">#F5F5F5</color>
+    <color name="colorBackground">#D8F4DB</color>
     <color name="colorBackgroundDelete">#FA3636</color>
     <color name="colorText">#000000</color>
     <color name="colorTextButton">#F5F5F5</color>
     <color name="colorOutline">#33000000</color>
+    <color name="colorSurface">#ADFFAF</color>
+    <color name="boxStrokeColor">#000000</color>
+    <color name="boxBackgroundColor">#D7EFD7</color>
+
 
     <color name="colorTextReceivedName">#000000</color>
     <color name="colorBackgroundMessageReceived">#C0C0C0</color>

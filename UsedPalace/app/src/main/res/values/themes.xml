@@ -7,11 +7,13 @@
         <item name="android:windowBackground">@color/colorBackground</item>
         <item name="android:textColor">@color/colorText</item>
         <item name="rippleColor">@color/colorPrimaryRipple</item>
-
+        <item name="colorSurface">@color/colorSurface</item>
         <item name="colorOnSurface">@color/colorText</item>
         <item name="colorOnSurfaceVariant">@color/colorPrimary</item>
         <item name="colorSurfaceContainerHighest">@color/colorBackground</item>
         <item name="colorOutline">@color/colorOutline</item>
+
+        <item name="textInputStyle">@style/Widget.Material3.TextInputLayout.UsedPalace</item>
 
     </style>
 
@@ -42,7 +44,10 @@
         <item name="boxCornerRadiusTopEnd">12dp</item>
         <item name="boxCornerRadiusBottomStart">12dp</item>
         <item name="boxCornerRadiusBottomEnd">12dp</item>
-        <item name="boxStrokeColor">@color/colorPrimary</item>
+        <item name="boxStrokeColor">@color/boxStrokeColor</item>
+        <item name="boxBackgroundColor">@color/boxBackgroundColor</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
     </style>
 
     <style name="Widget.UsedPalace.ChatInputEditText" parent="Widget.Material3.TextInputEditText.OutlinedBox">
