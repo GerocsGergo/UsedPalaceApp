@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:261649315147:android:03c4aa585b530f323f64ce",
+        "mobilesdk_app_id": "1:261649315147:android:b703268c3925bfd03f64ce",
         "android_client_info": {
-          "package_name": "com.example.UsedPalaceChat"
+          "package_name": "com.example.usedpalace"
         }
       },
       "oauth_client": [],

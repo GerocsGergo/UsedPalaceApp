@@ -11,9 +11,10 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const WebSocket = require('ws');
+const admin = require('firebase-admin');
 
-const jj = "Ismeretlen hiba történt!"; // A felhasználónak hiba esetén ezeket küldi vissza
-const bb = "Szerver hiba, próbálja újra később";
+const userApiErrorMessage = "Ismeretlen hiba történt!"; // A felhasználónak hiba esetén ezeket küldi vissza
+const userServerErrorMessage = "Szerver hiba, próbálja újra későuserServerErrorMessage";
 
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -146,7 +147,7 @@ app.post('/forgot-password', async (req, res) => {
         if (users.length === 0) {
             return res.status(404).json({ 
                 error: 'User not found', 
-                message: jj
+                message: userApiErrorMessage
 
             });
         }
@@ -173,7 +174,7 @@ app.post('/forgot-password', async (req, res) => {
                 console.error('Error sending email:', err);
                 return res.status(500).json({ 
                     error: 'Failed to send email', 
-                    message: jj 
+                    message: userApiErrorMessage 
                 });
             }
             res.json({ 
@@ -184,8 +185,8 @@ app.post('/forgot-password', async (req, res) => {
     } catch (err) {
         console.error('Error in /forgot-password:', err);
         res.status(500).json({ 
-             
-            message: bb
+             error: err.message,
+            message: userServerErrorMessage
         });
     }
 });
@@ -214,7 +215,7 @@ app.post('/confirm-forgot-password', async (req, res) => {
         if (newPassword.trim().length < 8) {
             return res.status(400).json({ 
                 error: 'Password must be at least 8 characters.', 
-                message: 'A jelszónak legalább 8 karakter hosszúnak kell lennie.' 
+                message: 'A jelszónak legaláuserServerErrorMessage 8 karakter hosszúnak kell lennie.' 
             });
         }
 
@@ -222,7 +223,7 @@ app.post('/confirm-forgot-password', async (req, res) => {
         if (!passwordRegex.test(newPassword)) {
             return res.status(400).json({
                 error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
-                message: 'A jelszónak tartalmaznia kell legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.'
+                message: 'A jelszónak tartalmaznia kell legaláuserServerErrorMessage egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.'
             });
         }
 
@@ -261,8 +262,8 @@ app.post('/confirm-forgot-password', async (req, res) => {
     } catch (err) {
         console.error('Error in /confirm-forgot-password:', err);
         res.status(500).json({ 
-             
-            message: bb 
+             error: err.message,
+            message: userServerErrorMessage 
         });
     }
 });
@@ -337,8 +338,8 @@ app.post('/login', async (req, res) => {
     } catch (err) {
         console.error('Error in /login:', err);
         res.status(500).json({ 
-			
-			message: bb
+			error: err.message,
+			message: userServerErrorMessage
 		});
     }
 });
@@ -398,7 +399,7 @@ app.delete('/logout', authenticateToken, async (req, res) => {
     if (!token) {
         return res.status(400).json({ 
             error: 'No token provided', 
-            message: jj
+            message: userApiErrorMessage
         });
     }
 
@@ -411,8 +412,8 @@ app.delete('/logout', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error('Error in /logout:', err);
         res.status(500).json({ 
-             
-            message: bb 
+             error: err.message,
+            message: userServerErrorMessage 
         });
     }
 });
@@ -440,7 +441,7 @@ app.post('/register', async (req, res) => {
     if (password.trim().length < 8) {
         return res.status(400).json({ 
             error: 'Password too short', 
-            message: 'A jelszónak legalább 8 karakter hosszúnak kell lennie.' 
+            message: 'A jelszónak legaláuserServerErrorMessage 8 karakter hosszúnak kell lennie.' 
         });
     }
 
@@ -448,7 +449,7 @@ app.post('/register', async (req, res) => {
     if (!passwordRegex.test(password)) {
         return res.status(400).json({ 
             error: 'Password complexity invalid', 
-            message: 'A jelszónak tartalmaznia kell legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.' 
+            message: 'A jelszónak tartalmaznia kell legaláuserServerErrorMessage egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.' 
         });
     }
 
@@ -500,8 +501,8 @@ app.post('/register', async (req, res) => {
     } catch (error) {
         console.error('Error in /register:', error);
         res.status(500).json({ 
-             
-            message: bb 
+             error: err.message,
+            message: userServerErrorMessage 
         });
     }
 });
@@ -530,7 +531,7 @@ app.post('/send-verify-email', async (req, res) => {
         if (users.length === 0) {
             return res.status(404).json({ 
                 error: 'User not found', 
-                message: jj 
+                message: userApiErrorMessage 
             });
         }
 
@@ -558,7 +559,7 @@ app.post('/send-verify-email', async (req, res) => {
                 console.error('Error sending email:', err);
                 return res.status(500).json({ 
                     error: 'Failed to send email', 
-                    message: 'Nem sikerült elküldeni az ellenőrző emailt. Próbáld újra később.' 
+                    message: 'Nem sikerült elküldeni az ellenőrző emailt. Próbáld újra későuserServerErrorMessage.' 
                 });
             }
             res.json({ message: 'Az ellenőrző kód elküldve az email címedre.' });
@@ -567,8 +568,8 @@ app.post('/send-verify-email', async (req, res) => {
     } catch (err) {
         console.error('Error in /send-verify-email:', err);
         res.status(500).json({ 
-             
-            message: bb 
+             error: err.message,
+            message: userServerErrorMessage 
         });
     }
 });
@@ -628,11 +629,60 @@ app.post('/verify-email', async (req, res) => {
     } catch (err) {
         console.error('Error in /verify-email:', err);
         res.status(500).json({ 
-             
-            message: bb 
+             error: err.message,
+            message: userServerErrorMessage 
         });
     }
 });
+
+
+app.post('/get-safe-user-data', authenticateToken , async (req, res) => {
+    try {
+        const { userID } = req.body;
+
+        if (!userID) {
+            return res.status(400).json({
+                success: false,
+                error: "Search parameter is missing",
+                message: "Töltsd ki a keresési mezőt.",
+                data: null
+            });
+        }
+
+        const query = 'SELECT Email, Fullname, PhoneNumber FROM Users WHERE Uid = ?';
+        const [results] = await connection.promise().query(query, [userID]);
+
+        if (results.length === 0) {
+            return res.json({
+                success: false,
+                error: "There are no users with this ID",
+                message:  userApiErrorMessage,
+                data: null
+            });
+        }
+
+        const user = results[0];
+
+        res.json({
+            success: true,
+            data: {
+                email: user.Email,
+                fullname: user.Fullname,
+                phoneNumber: user.PhoneNumber
+            }
+        });
+
+    } catch (err) {
+        console.error('Error in /get-safe-user-data:', err);
+        res.status(500).json({
+            success: false,
+            message: userServerErrorMessage,
+			error: err.message,
+            data: null 
+        });
+    }
+});
+
 
 
 
@@ -659,7 +709,7 @@ app.get('/getSales', authenticateToken, async (req, res) => {
         console.error('Error in /getSales:', err);
         res.status(500).json({
             
-            message: bb
+            message: userServerErrorMessage
         });
     }
 });
@@ -693,7 +743,7 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
         if (results.length === 0) {
             return res.json({
                 success: true,
-                message: jj,
+                message: userApiErrorMessage,
 				error:"No product found with this ID",
                 data: null
             });
@@ -715,7 +765,7 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
         console.error('Error in /search-sales-withSID:', err);
         res.status(500).json({
             success: false,
-			message: jj,
+			message: userApiErrorMessage,
             data: null 
         });
     }
@@ -744,7 +794,7 @@ app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) =>
         if (results.length === 0) {
             return res.json({
                 success: true,
-                message: jj,
+                message: userApiErrorMessage,
 				error:"No product found with this ID",
                 data: null 
             });
@@ -761,7 +811,7 @@ app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) =>
         res.status(500).json({
             success: false,
             
-			message: jj,
+			message: userApiErrorMessage,
             data: null 
         });
     }
@@ -799,7 +849,45 @@ app.post('/search-sales-withSaleName', authenticateToken , async (req, res) => {
         res.status(500).json({
             success: false,
             
-			message: jj,
+			message: userApiErrorMessage,
+            data: []
+        });
+    }
+});
+
+app.post('/search-sales-withCategory', authenticateToken , async (req, res) => {
+    try {
+        const { searchParam } = req.body;
+        console.log('Received search request:', searchParam);
+
+        if (!searchParam) {
+            return res.status(400).json({
+                success: false,
+                error: "Search parameter is missing",
+                message: "Töltsd ki a keresési mezőt.",
+                data: []
+            });
+        }
+
+        const query = 'SELECT * FROM Sales WHERE BigCategory LIKE ? OR SmallCategory LIKE ?';
+        const searchValue = `%${searchParam}%`;
+
+        const [results] = await connection.promise().query(query, [searchValue, searchValue]);
+
+        // Ensure we always return the same structure
+        res.json({
+            success: true,
+			message: results.length ? "Találat" : "Nincs találat",
+            error: results.length ? "Products found" : "No products found",
+            data: results
+        });
+        
+    } catch (err) {
+        console.error('Error in /search-sales:', err);
+        res.status(500).json({
+            success: false,
+            
+			message: userApiErrorMessage,
             data: []
         });
     }
@@ -825,7 +913,7 @@ app.post('/search-salesID', authenticateToken , async (req, res) => {
         if (results.length === 0) {
             return res.status(404).json({
                 success: true,
-                message: jj,
+                message: userApiErrorMessage,
                 error: "No product found with this ID",
                 data: []
             });
@@ -840,7 +928,7 @@ app.post('/search-salesID', authenticateToken , async (req, res) => {
         console.error('Error in /search-salesID:', err);
         res.status(500).json({
             success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message,
             data: []
         });
@@ -901,7 +989,7 @@ app.post('/create-sale', authenticateToken , (req, res) =>  {
         console.error('Error in /create-sale:', err);
         res.status(500).json({ 
             success: false,
-            message: jj,
+            message: userApiErrorMessage,
 			error: err.message
         });
     }
@@ -931,7 +1019,7 @@ app.put('/modify-sale', authenticateToken , async (req, res) => {
         if (sale.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: jj,
+                message: userApiErrorMessage,
 				error: "Sale not found"
             });
         }
@@ -939,7 +1027,7 @@ app.put('/modify-sale', authenticateToken , async (req, res) => {
         if (sale[0].Uid !== userId) {
             return res.status(403).json({
                 success: false,
-				message: jj,
+				message: userApiErrorMessage,
                 error: "Unauthorized"
             });
         }
@@ -964,7 +1052,7 @@ app.put('/modify-sale', authenticateToken , async (req, res) => {
         console.error('Error in /modify-sale:', err);
         res.status(500).json({ 
             success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
         });
     }
@@ -993,7 +1081,7 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
         if (sale.length === 0) {
             return res.status(404).json({
                 success: false,
-				message: jj,
+				message: userApiErrorMessage,
                 error: "Sale not found",
                 data: null
             });
@@ -1002,7 +1090,7 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
         if (sale[0].Uid !== userId) {
             return res.status(403).json({
                 success: false,
-				message: jj,
+				message: userApiErrorMessage,
                 error: "Unauthorized - you can only delete your own sales",
                 data: null
             });
@@ -1044,7 +1132,7 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
         console.error('Error in /delete-sale:', err);
         res.status(500).json({ 
             success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
         });
     }
@@ -1065,7 +1153,7 @@ app.post('/delete-images', authenticateToken, async (req, res) => {
         if (!saleFolder || !Array.isArray(imageNames) || imageNames.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: jj,
+                message: userApiErrorMessage,
 				error: "saleFolder and non-empty imageNames array are required"
             });
         }
@@ -1092,7 +1180,7 @@ app.post('/delete-images', authenticateToken, async (req, res) => {
         console.error('Error in /delete-images:', err);
         res.status(500).json({
             success: false,
-            message: bb,
+            message: userServerErrorMessage,
             error: err.message
         });
     }
@@ -1128,7 +1216,7 @@ app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
         console.error('Error in /search-sales:', err);
         res.status(500).json({
             success: false,
-            message: bb,
+            message: userServerErrorMessage,
             data: null
         });
     }
@@ -1172,7 +1260,7 @@ app.post('/get-sale-images', async (req, res) => {
     if (results.length === 0) {
         return res.status(404).json({ 
 		success: false, 
-		message: jj,
+		message: userApiErrorMessage,
 		error:	'Sale not found'	});
     }
 
@@ -1208,7 +1296,7 @@ app.use((err, req, res, next) => {
         return res.status(500).json({
             success: false,
 			
-            message: jj
+            message: userApiErrorMessage
         });
     }
     next();
@@ -1253,7 +1341,7 @@ app.post('/initiate-chat', authenticateToken , async (req, res) => {
         if (  !validator.isInt(String(sellerId)) || !validator.isInt(String(buyerId)) || !validator.isInt(String(saleId)) ) {
 				return res.status(400).json({
 					success: false,
-					message: jj,
+					message: userApiErrorMessage,
 					error: "Sending request error"
 				});
 		}
@@ -1269,7 +1357,7 @@ app.post('/initiate-chat', authenticateToken , async (req, res) => {
                 success: true, 
                 chatId: existingChat[0].ChatID,
                 isNew: false,
-                message: jj,
+                message: userApiErrorMessage,
 				error: "Chat already exists"
             });
         }
@@ -1295,7 +1383,7 @@ app.post('/initiate-chat', authenticateToken , async (req, res) => {
         console.error('Error initiating chat:', err);
         res.status(500).json({ 
             success: false, 
-			message: jj,
+			message: userApiErrorMessage,
             error: err.error
         });
     }
@@ -1363,7 +1451,7 @@ app.post('/search-username', authenticateToken , async (req, res) => {
             return res.status(400).json({
                 success: false,
                 error: "Search parameter is required",
-				message: jj,
+				message: userApiErrorMessage,
                 data: null
             });
         }
@@ -1379,7 +1467,7 @@ app.post('/search-username', authenticateToken , async (req, res) => {
 			if (results2.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: jj,
+                message: userApiErrorMessage,
 				error: "User not found",
                 data: null
             });
@@ -1403,7 +1491,7 @@ app.post('/search-username', authenticateToken , async (req, res) => {
         console.error('Error searching username:', err);
         res.status(500).json({ 
             success: false, 
-			message: jj,
+			message: userApiErrorMessage,
             
             data: null
         });
@@ -1473,6 +1561,27 @@ wss.on('connection', (ws) => {
             clientWs.send(JSON.stringify(outgoingMsg));
           }
         });
+		
+		// --- PUSH ÉRTESÍTÉS ---
+		// Lekérjük a chat résztvevőit (pl. UserFcmTokens táblából)
+		const [tokens] = await connection.promise().query(
+		  `SELECT FcmToken 
+		   FROM UserFcmTokens 
+		   WHERE UserID != ? 
+			 AND UserID IN (
+				 SELECT DISTINCT SenderID 
+				 FROM Messages 
+				 WHERE ChatID = ?
+			 )`,
+		  [senderId, chatId]
+		);
+
+		for (const row of tokens) {
+			console.log('row of token:', row.FcmToken);
+			await sendChatNotification(row.FcmToken, chatId, `User ${senderId}`, content);
+		}
+		
+		
       } catch (err) {
         ws.send(JSON.stringify({ type: 'error', message: 'DB error: ' + err.message }));
       }
@@ -1525,7 +1634,6 @@ wss.on('connection', (ws) => {
 });
 
 
-const admin = require('firebase-admin');
 
 admin.initializeApp({
     credential: admin.credential.cert(require('./serviceAccountKey.json'))
@@ -1533,10 +1641,11 @@ admin.initializeApp({
 
 async function sendChatNotification(fcmToken, chatId, senderName, content) {
     const message = {
-        token: fcmToken,
-        data: { chatId: chatId.toString(), senderName, content },
-        notification: { title: senderName, body: content },
-    };
+		token: fcmToken,
+		data: { chatId: chatId.toString(), senderName, content },
+		notification: { title: senderName, body: content },
+	};
+
 
     try {
         await admin.messaging().send(message);
@@ -1545,6 +1654,37 @@ async function sendChatNotification(fcmToken, chatId, senderName, content) {
         console.error('Error sending notification:', err);
     }
 }
+
+app.post('/save-fcm-token', authenticateToken, async (req, res) => {
+    const { userId, fcmToken } = req.body;
+    if (!userId || !fcmToken) return res.status(400).json({ success: false });
+
+    try {
+        // Ellenőrizd, hogy már létezik-e a token
+        const [existing] = await connection.promise().query(
+            'SELECT * FROM UserFcmTokens WHERE UserID = ? AND FcmToken = ?',
+            [userId, fcmToken]
+        );
+
+        if (existing.length === 0) {
+            await connection.promise().query(
+                'INSERT INTO UserFcmTokens (UserID, FcmToken) VALUES (?, ?)',
+                [userId, fcmToken]
+            );
+        } else {
+            await connection.promise().query(
+                'UPDATE UserFcmTokens SET UpdatedAt = CURRENT_TIMESTAMP WHERE UserID = ? AND FcmToken = ?',
+                [userId, fcmToken]
+            );
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
 
 
 
@@ -1568,7 +1708,7 @@ app.put('/modify-user-phone', authenticateToken , async (req, res) => {
 		if (!userId) {
 			return res.status(400).json({
 				success: false,
-				message: jj,
+				message: userApiErrorMessage,
 				error: "Missing userId"
 			});
 		}
@@ -1582,7 +1722,7 @@ app.put('/modify-user-phone', authenticateToken , async (req, res) => {
 			if (userResult.length === 0) {
 			  return res.status(404).json({
 				success: false,
-				message: jj
+				message: userApiErrorMessage
 			  });
 			}
 		
@@ -1632,7 +1772,7 @@ app.put('/modify-user-phone', authenticateToken , async (req, res) => {
 		 console.error('Error modifying user account: ', err)
 		         res.status(500).json({ 
             success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
         });
 	}
@@ -1707,7 +1847,7 @@ app.post('/request-user-email-change', authenticateToken , async (req, res) => {
         console.error('Error in /request-user-email-change:', err);
         res.status(500).json({
             success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
         });
     }
@@ -1735,7 +1875,7 @@ app.put('/confirm-user-email-change', authenticateToken , async (req, res) => {
         if (rows.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: jj
+                message: userApiErrorMessage
             });
         }
 
@@ -1763,7 +1903,7 @@ app.put('/confirm-user-email-change', authenticateToken , async (req, res) => {
 
 		if (activeSessions[0].count > 1) {
 			return res.status(400).json({
-				message: jj,
+				message: userApiErrorMessage,
 				error: 'More than 1 active session.'
 			});
 		}
@@ -1787,7 +1927,7 @@ app.put('/confirm-user-email-change', authenticateToken , async (req, res) => {
         console.error('Error in /confirm-user-email-change:', err);
         res.status(500).json({
             success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
         });
     }
@@ -1867,7 +2007,7 @@ app.post('/request-password-change', authenticateToken , async (req, res) => {
         console.error('Error in request-password-change:', err);
         res.status(500).json({ 
 			success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
 		});
     }
@@ -1931,7 +2071,7 @@ app.put('/confirm-password-change', authenticateToken , async (req, res) => {
         console.error('Error in confirm-password-change:', err);
         res.status(500).json({ 
 			success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
 			});
     }
@@ -1953,7 +2093,7 @@ app.post('/request-phoneNumber-change', authenticateToken , async (req, res) => 
         const [results] = await connection.promise().query(query, [userId]);
 
         if (results.length === 0) {
-            return res.status(404).json({ message: jj });
+            return res.status(404).json({ message: userApiErrorMessage });
         }
 
         const user = results[0];
@@ -1982,7 +2122,7 @@ app.post('/request-phoneNumber-change', authenticateToken , async (req, res) => 
         console.error('Error in request-phoneNumber-change:', err);
         res.status(500).json({ 
 			success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
 		});
     }
@@ -2046,7 +2186,7 @@ app.put('/confirm-phoneNumber-change', authenticateToken , async (req, res) => {
         console.error('Error in confirm-phoneNumber-change:', err);
         res.status(500).json({ 
 			success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
 		});
     }
@@ -2066,13 +2206,13 @@ app.post('/request-delete-user', authenticateToken , async (req, res) => {
         const [results] = await connection.promise().query(query, [userId]);
 
         if (results.length === 0) {
-            return res.status(404).json({ message: jj });
+            return res.status(404).json({ message: userApiErrorMessage });
         }
 	
         if (!userId) {
             return res.status(400).json({
                 success: false,
-				message: jj,
+				message: userApiErrorMessage,
                 error: "UserId are missing"
             });
         }
@@ -2107,7 +2247,7 @@ app.post('/request-delete-user', authenticateToken , async (req, res) => {
 		console.error('Error in request-delete-account:', err);
         res.status(500).json({ 
 			success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
 		});
 	}
@@ -2121,7 +2261,7 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 		  if (!userId) {
             return res.status(400).json({
                 success: false,
-				message: jj,
+				message: userApiErrorMessage,
                 error: "UserId are missing"
             });
         }
@@ -2212,7 +2352,7 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 		console.error('Error in confirm-delete-account:', err);
         res.status(500).json({ 
 			success: false,
-            message: jj,
+            message: userApiErrorMessage,
             error: err.message
 		});
 	}

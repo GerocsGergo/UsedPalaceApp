@@ -3,13 +3,13 @@ package com.example.usedpalace.fragments
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
@@ -39,12 +39,13 @@ class HomeFragment : Fragment() {
 
 
     private lateinit var containerLayout: LinearLayout
-
     private lateinit var exampleText: TextView
-
     private lateinit var searchView: SearchView
-
     private lateinit var clearButton :Button
+    private lateinit var filterButton: ImageView
+
+    // default filter: mindkettő
+    private var currentFilter: Int = R.id.filter_both
 
 
     override fun onCreateView(
@@ -67,6 +68,7 @@ class HomeFragment : Fragment() {
         clearButton = view.findViewById(R.id.clearSearchButton)
         exampleText = view.findViewById(R.id.forExample)
         searchView = view.findViewById(R.id.searchBar)
+        filterButton = view.findViewById(R.id.filterButton)
     }
 
     private fun initialize() {
@@ -109,6 +111,18 @@ class HomeFragment : Fragment() {
             clearButton.visibility = View.GONE
             exampleText.visibility = View.VISIBLE
         }
+
+        filterButton.setOnClickListener { v ->
+            val popup = PopupMenu(requireContext(), v)
+            popup.menuInflater.inflate(R.menu.search_filter_menu, popup.menu)
+
+            popup.setOnMenuItemClickListener { item ->
+                currentFilter = item.itemId
+                Toast.makeText(requireContext(), "Szűrés: ${item.title}", Toast.LENGTH_SHORT).show()
+                true
+            }
+            popup.show()
+        }
     }
 
 
@@ -120,13 +134,28 @@ class HomeFragment : Fragment() {
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Clear previous results
                 withContext(Dispatchers.Main) {
                     containerLayout?.removeAllViews()
                 }
 
-                // Make API call
-                val response = apiService.searchSales(SearchRequestName(searchParam))
+                val response = when (currentFilter) {
+                    R.id.filter_category -> apiService.searchSalesCategory(SearchRequestName(searchParam))
+                    R.id.filter_name     -> apiService.searchSales(SearchRequestName(searchParam))
+                    else -> {
+                        // Mindkettő -> lekérjük mindkét endpointot és összefűzzük
+                        val nameResponse = apiService.searchSales(SearchRequestName(searchParam))
+                        val catResponse = apiService.searchSalesCategory(SearchRequestName(searchParam))
+                        // siker esetén merge
+                        if (nameResponse.success || catResponse.success) {
+                            val merged = mutableListOf<SaleWithSid>()
+                            if (nameResponse.success) merged.addAll(nameResponse.data)
+                            if (catResponse.success) merged.addAll(catResponse.data)
+                            nameResponse.copy(success = true, data = merged)
+                        } else {
+                            nameResponse // egyik sem sikerült
+                        }
+                    }
+                }
 
                 withContext(Dispatchers.Main) {
                     if (response.success) {
@@ -136,19 +165,18 @@ class HomeFragment : Fragment() {
                             showNoProductsMessage(containerLayout, inflater, response.message)
                         }
                     } else {
-                        //Toast.makeText(context, "Search failed: ${response.message}", Toast.LENGTH_SHORT).show()
                         ErrorHandler.handleApiError(requireContext(), null, response.message)
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    //Toast.makeText(context, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
                     showNoProductsMessage(containerLayout, inflater, "Connection error")
                     ErrorHandler.handleNetworkError(requireContext(), e)
                 }
             }
         }
     }
+
 
 
     private fun showNoProductsMessage(

@@ -13,7 +13,12 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.usedpalace.databinding.MainMenuBinding
 import com.example.usedpalace.fragments.ProfileFragment
 import com.example.usedpalace.loginMenus.LogActivity
+import com.example.usedpalace.requests.SaveFcmTokenRequest
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class MainMenuActivity : AppCompatActivity() {
@@ -31,7 +36,6 @@ class MainMenuActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        Log.d("MainMenuActivity", "onCreate called")
         val navView:BottomNavigationView = binding.navView
         val navController = findNavController(R.id.fragmentContainerView)
         navView.setupWithNavController(navController)
@@ -42,26 +46,20 @@ class MainMenuActivity : AppCompatActivity() {
         }
 
 
+
+
         // Back button dispatcher
         onBackPressedDispatcher.addCallback(this) {
-            Log.d("BackPress", "Back button pressed in MainMenuActivity")
 
             if (!navController.popBackStack()) {
                 val prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
                 val token = prefs.getString("token", null)
-                Log.d("BackPress", "Token before navigating to LogActivity: $token")
 
                 val intent = Intent(this@MainMenuActivity, LogActivity::class.java)
                 startActivity(intent)
                 finish()
             }
         }
-
-        // Optional: listen to nav changes (debug logging)
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            Log.d("NavController", "Navigated to: ${destination.label}")
-        }
-
 
     }
 

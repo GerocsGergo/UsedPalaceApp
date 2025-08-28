@@ -74,6 +74,34 @@
                 android:layout_marginBottom="16dp"
                 android:backgroundTint="@color/colorBackgroundDelete"
                 android:textColor="@color/colorTextButton" />
+
+            <TextView
+                android:id="@+id/userFullname"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Név: "
+                android:textSize="18sp"
+                android:textColor="@color/colorText"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/userEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Email: "
+                android:textSize="18sp"
+                android:textColor="@color/colorText"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/userPhone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Telefon: "
+                android:textSize="18sp"
+                android:textColor="@color/colorText"
+                android:layout_marginBottom="16dp"/>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

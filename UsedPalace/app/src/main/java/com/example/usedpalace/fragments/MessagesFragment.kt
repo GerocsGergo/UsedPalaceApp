@@ -23,7 +23,9 @@ import com.example.usedpalace.fragments.ChatAndMessages.ChatHelper
 import com.example.usedpalace.fragments.ChatAndMessages.ChatItem
 import com.example.usedpalace.fragments.ChatAndMessages.Requests.SearchChatRequest
 import com.example.usedpalace.requests.GetSaleImagesRequest
+import com.example.usedpalace.requests.SaveFcmTokenRequest
 import com.example.usedpalace.requests.SearchRequestID
+import com.google.firebase.messaging.FirebaseMessaging
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -68,6 +70,18 @@ class MessagesFragment : Fragment() {
         val containerLayout = view?.findViewById<LinearLayout>(R.id.container)
         containerLayout?.removeAllViews()
         fetchChats(apiService, containerLayout, layoutInflater, "activeChats")
+
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val currentToken = task.result
+                ErrorHandler.logToLogcat("firebase token","firebase token: $currentToken")
+                // Küldjük el a szerverre
+                CoroutineScope(Dispatchers.IO).launch {
+                    apiService.saveFcmToken(SaveFcmTokenRequest(UserSession.getUserId()!!, currentToken))
+                }
+            }
+        }
     }
 
 

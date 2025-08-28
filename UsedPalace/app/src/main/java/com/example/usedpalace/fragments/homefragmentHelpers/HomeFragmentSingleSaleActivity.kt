@@ -99,6 +99,8 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
                         if (response.chatId != null) {
                             val intent = Intent(this@HomeFragmentSingleSaleActivity, ChatActivity::class.java).apply {
                                 putExtra("CHAT_ID", response.chatId)
+                                putExtra("SALE_ID", saleId)
+                                putExtra("SELLER_ID", sellerId)
                                 val userId = UserSession.getUserId()
                                 val username = if (userId == buyerId){
                                     fetchUsername(sellerId)
@@ -166,7 +168,9 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
             ErrorHandler.logToLogcat("ChatActivity", "Hiba: saleId: $saleId", ErrorHandler.LogLevel.ERROR)
             finish()
         }
+
         sellerId = intent.getIntExtra("SELLER_ID", -1)
+
         if (sellerId == -1) {
             ErrorHandler.toaster(this,"Ismeretlen hiba történt")
             ErrorHandler.logToLogcat("ChatActivity", "Hiba: sellerId: $sellerId", ErrorHandler.LogLevel.ERROR)

@@ -4,13 +4,20 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
 import com.example.usedpalace.RetrofitClient
+import com.example.usedpalace.UserSession
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import network.ApiService
 
 class ProfileActivity : AppCompatActivity() {
@@ -20,6 +27,11 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var buttonModifyEmail: Button
     private lateinit var buttonModifyPassword: Button
     private lateinit var buttonDeleteUser: Button
+
+    private lateinit var userFullname: TextView
+    private lateinit var userEmail: TextView
+    private lateinit var userPhone: TextView
+
 
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
@@ -38,6 +50,7 @@ class ProfileActivity : AppCompatActivity() {
         setupViewItems()
         setupRetrofit()
         setupClickListeners()
+        loadUserData(UserSession.getUserId()!!)
 
     }
 
@@ -48,7 +61,36 @@ class ProfileActivity : AppCompatActivity() {
         buttonModifyEmail = findViewById(R.id.modifyEmail)
         buttonModifyPassword = findViewById(R.id.modifyPassword)
         buttonDeleteUser = findViewById(R.id.deleteUser)
+
+        userFullname = findViewById(R.id.userFullname)
+        userEmail = findViewById(R.id.userEmail)
+        userPhone = findViewById(R.id.userPhone)
     }
+
+    private fun loadUserData(userID: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = apiService.getSafeUserData(mapOf("userID" to userID))
+
+                withContext(Dispatchers.Main) {
+                    if (response.success && response.data != null) {
+                        val user = response.data
+                        userFullname.text = "Név: ${user.fullname}"
+                        userEmail.text = "Email: ${user.email}"
+                        userPhone.text = "Telefon: ${user.phoneNumber}"
+                    } else {
+                        ErrorHandler.handleApiError(this@ProfileActivity, null, response.message)
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    ErrorHandler.handleNetworkError(this@ProfileActivity, e)
+                }
+            }
+        }
+    }
+
+
 
     private fun setupClickListeners(){
         buttonBack.setOnClickListener {

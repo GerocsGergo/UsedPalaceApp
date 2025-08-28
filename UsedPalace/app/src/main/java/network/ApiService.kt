@@ -31,12 +31,14 @@ import com.example.usedpalace.requests.ConfirmPhoneNumberChangeRequest
 import com.example.usedpalace.requests.DeleteAccountRequest
 import com.example.usedpalace.requests.DeleteImagesRequest
 import com.example.usedpalace.requests.GetSaleImagesRequest
+import com.example.usedpalace.requests.SaveFcmTokenRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.responses.ApiResponseForDeletedSaleWithEverything
 import com.example.usedpalace.responses.DeleteImagesResponse
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
 import com.example.usedpalace.responses.ResponseGetImages
+import com.example.usedpalace.responses.UserDataResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
@@ -78,6 +80,9 @@ interface ApiService {
     @POST("verify-email")
     fun verifyEmail(@Body request: EmailVerificationWithCodeRequest): Call<ResponseMessage>
 
+    @POST("/get-safe-user-data")
+    suspend fun getSafeUserData(@Body request: Map<String, Int>): UserDataResponse
+
 
     //Sales
     @GET("getSales")
@@ -85,6 +90,10 @@ interface ApiService {
 
     @POST("search-sales-withSaleName")
     suspend fun searchSales(@Body request: SearchRequestName): ApiResponseForSearchSales
+
+    @POST("search-sales-withCategory")
+    suspend fun searchSalesCategory(@Body request: SearchRequestName): ApiResponseForSearchSales
+
 
     @POST("search-salesID")
     suspend fun searchSalesID(@Body request: SearchRequestID): ApiResponseForSearchSales   //USER ID-vel keresi a Saleket
@@ -135,6 +144,8 @@ interface ApiService {
     @POST("search-username")
     suspend fun searchUsername(@Body request: SearchRequestID): UsernameResponse
 
+    @POST("save-fcm-token")
+    suspend fun saveFcmToken(@Body request: SaveFcmTokenRequest): ApiResponseGeneric
 
     //Profil menu
     @POST("request-user-email-change")

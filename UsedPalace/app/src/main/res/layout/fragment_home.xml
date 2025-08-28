@@ -32,6 +32,15 @@
                 android:queryHint="Keresés..."
                 android:iconifiedByDefault="false" />
 
+            <ImageButton
+                android:id="@+id/filterButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/baseline_delete_40"
+                android:contentDescription="Szűrés"
+                app:tint="@color/colorText"/>
+
             <Button
                 android:id="@+id/clearSearchButton"
                 android:layout_width="wrap_content"
