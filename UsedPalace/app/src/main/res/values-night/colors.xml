@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#4ABC4B</color>
-    <color name="colorBackground">#98022404</color>
+    <color name="colorBackground">#98000000</color>
     <color name="colorText">#FFFFFF</color>
     <color name="colorTextButton">#121212</color>
+
+    <color name="colorButtonBackground">#398E3C</color>
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
@@ -13,7 +15,7 @@
     <color name="boxBackgroundColor">#9C0E380E</color>
 
     <color name="colorPrimaryRipple">#332A922A</color>
-    <color name="colorBackgroundDelete">#FA3636</color>
+    <color name="colorBackgroundDelete">#BC2B2B</color>
     <color name="colorOutline">#33000000</color>
 
     <color name="colorTextReceivedName">#000000</color>
@@ -21,7 +23,7 @@
     <color name="colorTextMessageReceived">#000000</color>
 
     <color name="colorTextMessageSent">#ffffff</color>
-    <color name="colorBackgroundMessageSent">#4ABC4B</color>
+    <color name="colorBackgroundMessageSent">#398E3C</color>
 
     <color name="colorTextMessageDate">#C0C0C0</color>
 

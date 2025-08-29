@@ -20,6 +20,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="?attr/actionBarSize"
 			android:background="?attr/colorPrimary"
+			android:backgroundTint="@color/colorButtonBackground"
 			android:titleTextColor="@color/white"
 			app:navigationIconTint="@color/white"
 			app:title="Chat"
@@ -37,7 +38,7 @@
 			android:text="Termék név"
 			android:textSize="16sp"
 			android:textColor="@color/white"
-			android:background="@color/colorPrimary" />
+			android:background="@color/colorButtonBackground" />
 
 	</com.google.android.material.appbar.AppBarLayout>
 

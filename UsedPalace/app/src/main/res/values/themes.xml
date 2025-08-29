@@ -18,14 +18,28 @@
     </style>
 
     <style name="Widget.Material3.Button.UsedPalace" parent="Widget.Material3.Button">
-        <item name="backgroundTint">@color/colorPrimary</item>
+        <item name="backgroundTint">@color/colorButtonBackground</item>
         <item name="android:textColor">@color/colorTextButton</item>
         <item name="cornerRadius">16dp</item>
         <item name="android:textSize">18sp</item>
     </style>
 
     <style name="Widget.Material3.Button.UsedPalace.ProfileMenuItem" parent="Widget.Material3.Button">
-        <item name="backgroundTint">@color/colorPrimary</item>
+        <item name="backgroundTint">@color/colorButtonBackground</item>
+        <item name="android:textColor">@color/colorTextButton</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textSize">24sp</item>
+        <item name="iconPadding">16dp</item>
+        <item name="android:drawablePadding">16dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="android:textAlignment">viewStart</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="iconTint">@color/colorTextButton</item>
+        <item name="iconSize">32dp</item>
+    </style>
+
+    <style name="Widget.Material3.Button.UsedPalace.ProfileMenuItemDelete" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/colorBackgroundDelete</item>
         <item name="android:textColor">@color/colorTextButton</item>
         <item name="cornerRadius">16dp</item>
         <item name="android:textSize">24sp</item>

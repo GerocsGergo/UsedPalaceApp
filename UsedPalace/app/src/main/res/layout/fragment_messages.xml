@@ -24,6 +24,7 @@
                     android:layout_height="48dp"
                     android:layout_weight="1"
                     android:text="Minden"
+                    style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
                     android:textColor="@color/colorTextButton"
                     app:cornerRadius="12dp"
                     app:iconPadding="8dp"
@@ -36,6 +37,7 @@
                     android:layout_height="48dp"
                     android:layout_weight="1"
                     android:text="Törölt"
+                    style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
                     android:textColor="@color/colorTextButton"
                     app:cornerRadius="12dp"
                     app:iconPadding="8dp"
@@ -48,6 +50,7 @@
                     android:layout_height="48dp"
                     android:layout_weight="1"
                     android:text="Aktív"
+                    style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
                     android:textColor="@color/colorTextButton"
                     app:cornerRadius="12dp"
                     app:iconPadding="8dp" />

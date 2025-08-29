@@ -15,6 +15,7 @@
     <color name="boxStrokeColor">#000000</color>
     <color name="boxBackgroundColor">#D7EFD7</color>
 
+    <color name="colorButtonBackground">#4ABC4B</color>
 
     <color name="colorTextReceivedName">#000000</color>
     <color name="colorBackgroundMessageReceived">#C0C0C0</color>

@@ -46,11 +46,14 @@
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Vissza" />
+            android:textAlignment="center"
+            android:text="Vissza"
+            style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+            />
 
     </LinearLayout>
 

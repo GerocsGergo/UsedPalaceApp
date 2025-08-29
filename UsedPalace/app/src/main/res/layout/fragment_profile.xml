@@ -53,7 +53,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/logout"
-                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItemDelete"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Kijelentkezés"
@@ -78,7 +78,7 @@
                 style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Ajánlat létrehozása"
+                android:text="Hirdetés létrehozása"
                 android:layout_marginBottom="12dp" />
 
             <com.google.android.material.button.MaterialButton
