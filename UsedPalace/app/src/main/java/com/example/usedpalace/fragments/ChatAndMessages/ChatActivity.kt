@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
-import com.example.usedpalace.RetrofitClient
+import network.RetrofitClient
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.requests.SearchRequestID
 import kotlinx.coroutines.CoroutineScope

@@ -215,7 +215,7 @@ app.post('/confirm-forgot-password', async (req, res) => {
         if (newPassword.trim().length < 8) {
             return res.status(400).json({ 
                 error: 'Password must be at least 8 characters.', 
-                message: 'A jelszónak legaláuserServerErrorMessage 8 karakter hosszúnak kell lennie.' 
+                message: 'A jelszónak legalább 8 karakter hosszúnak kell lennie.' 
             });
         }
 
@@ -223,7 +223,7 @@ app.post('/confirm-forgot-password', async (req, res) => {
         if (!passwordRegex.test(newPassword)) {
             return res.status(400).json({
                 error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
-                message: 'A jelszónak tartalmaznia kell legaláuserServerErrorMessage egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.'
+                message: 'A jelszónak tartalmaznia kell legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.'
             });
         }
 
@@ -441,7 +441,7 @@ app.post('/register', async (req, res) => {
     if (password.trim().length < 8) {
         return res.status(400).json({ 
             error: 'Password too short', 
-            message: 'A jelszónak legaláuserServerErrorMessage 8 karakter hosszúnak kell lennie.' 
+            message: 'A jelszónak legalább 8 karakter hosszúnak kell lennie.' 
         });
     }
 
@@ -449,7 +449,7 @@ app.post('/register', async (req, res) => {
     if (!passwordRegex.test(password)) {
         return res.status(400).json({ 
             error: 'Password complexity invalid', 
-            message: 'A jelszónak tartalmaznia kell legaláuserServerErrorMessage egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.' 
+            message: 'A jelszónak tartalmaznia kell legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.' 
         });
     }
 
@@ -691,7 +691,20 @@ app.post('/get-safe-user-data', authenticateToken , async (req, res) => {
 // Fetch sales data
 app.get('/getSales', authenticateToken, async (req, res) => {
     try {
-        const [results] = await connection.promise().query('SELECT * FROM Sales');
+        const page = parseInt(req.query.page) || 1;   // alapértelmezett: 1. oldal
+        const limit = parseInt(req.query.limit) || 10; // alapértelmezett: 10 elem
+        const offset = (page - 1) * limit;
+		console.log('get sales:', page, limit);
+        // Összes rekord megszámolása (oldalszámhoz)
+        const [[{ total }]] = await connection.promise().query(
+            'SELECT COUNT(*) AS total FROM Sales'
+        );
+
+        // Csak adott oldal lekérdezése
+        const [results] = await connection.promise().query(
+            'SELECT * FROM Sales LIMIT ? OFFSET ?',
+            [limit, offset]
+        );
 
         if (results.length === 0) {
             return res.status(404).json({
@@ -702,17 +715,20 @@ app.get('/getSales', authenticateToken, async (req, res) => {
 
         res.json({
             success: true,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            totalItems: total,
             data: results
         });
 
     } catch (err) {
         console.error('Error in /getSales:', err);
         res.status(500).json({
-            
             message: userServerErrorMessage
         });
     }
 });
+
 
 
 
@@ -1565,7 +1581,7 @@ wss.on('connection', (ws) => {
 		// --- PUSH ÉRTESÍTÉS ---
 		// Lekérjük a chat résztvevőit (pl. UserFcmTokens táblából)
 		const [tokens] = await connection.promise().query(
-		  `SELECT FcmToken 
+		  `SELECT FcmToken,username 
 		   FROM UserFcmTokens 
 		   WHERE UserID != ? 
 			 AND UserID IN (
@@ -1578,7 +1594,7 @@ wss.on('connection', (ws) => {
 
 		for (const row of tokens) {
 			console.log('row of token:', row.FcmToken);
-			await sendChatNotification(row.FcmToken, chatId, `User ${senderId}`, content);
+			await sendChatNotification(row.FcmToken, chatId, row.username, content);
 		}
 		
 		
@@ -1660,6 +1676,15 @@ app.post('/save-fcm-token', authenticateToken, async (req, res) => {
     if (!userId || !fcmToken) return res.status(400).json({ success: false });
 
     try {
+		
+		const [userRows] = await connection.promise().query(
+            'SELECT Fullname FROM Users WHERE Uid = ?',
+            [userId]
+        );
+
+        if (userRows.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
+
+        const username = userRows[0].Fullname;
         // Ellenőrizd, hogy már létezik-e a token
         const [existing] = await connection.promise().query(
             'SELECT * FROM UserFcmTokens WHERE UserID = ? AND FcmToken = ?',
@@ -1668,8 +1693,8 @@ app.post('/save-fcm-token', authenticateToken, async (req, res) => {
 
         if (existing.length === 0) {
             await connection.promise().query(
-                'INSERT INTO UserFcmTokens (UserID, FcmToken) VALUES (?, ?)',
-                [userId, fcmToken]
+                'INSERT INTO UserFcmTokens (UserID, FcmToken, username) VALUES (?, ?, ?)',
+                [userId, fcmToken, username]
             );
         } else {
             await connection.promise().query(

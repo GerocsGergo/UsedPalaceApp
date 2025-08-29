@@ -16,7 +16,7 @@ import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import androidx.fragment.app.Fragment
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
-import com.example.usedpalace.RetrofitClient
+import network.RetrofitClient
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.fragments.ChatAndMessages.ChatActivity
 import com.example.usedpalace.fragments.ChatAndMessages.ChatHelper

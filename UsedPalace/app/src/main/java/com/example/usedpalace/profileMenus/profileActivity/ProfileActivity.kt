@@ -12,7 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.MainMenuActivity
 import com.example.usedpalace.R
-import com.example.usedpalace.RetrofitClient
+import network.RetrofitClient
 import com.example.usedpalace.UserSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

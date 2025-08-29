@@ -4,11 +4,9 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -17,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
-import com.example.usedpalace.RetrofitClient
+import network.RetrofitClient
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.profileMenus.SaleManagerHelper
 import com.example.usedpalace.dataClasses.SaleWithEverything

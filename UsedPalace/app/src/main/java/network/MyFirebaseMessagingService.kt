@@ -3,18 +3,18 @@ package network
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
-import com.example.usedpalace.RetrofitClient
 import com.example.usedpalace.UserSession
 import com.example.usedpalace.requests.SaveFcmTokenRequest
+import com.example.usedpalace.requests.SearchRequestID
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
@@ -45,20 +45,30 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     private fun sendTokenToServer(token: String) {
         initialize()
-        val userId = UserSession.getUserId()!!
+        val userId = UserSession.getUserId() ?: return
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = apiService.saveFcmToken(SaveFcmTokenRequest(userId, token))
-                if (response.success) {
-                    ErrorHandler.logToLogcat("FCM", "Token saved successfully",ErrorHandler.LogLevel.DEBUG)
+                    // Most mentjük az FCM tokent a username-mel
+                    val response = apiService.saveFcmToken(SaveFcmTokenRequest(userId, token))
+                    if (response.success) {
+                        withContext(Dispatchers.Main) {
+                            ErrorHandler.logToLogcat("FCM", "Token saved successfully", ErrorHandler.LogLevel.DEBUG)
+                        }
+                    }
+                 else {
+                    withContext(Dispatchers.Main) {
+                        ErrorHandler.logToLogcat("FCM", "Failed to fetch username", ErrorHandler.LogLevel.ERROR)
+                    }
                 }
             } catch (e: Exception) {
-                ErrorHandler.logToLogcat("FCM", "Failed to save token: ${e.message}")
-
+                withContext(Dispatchers.Main) {
+                    ErrorHandler.logToLogcat("FCM", "Failed to save token: ${e.message}")
+                }
             }
         }
     }
+
 
 
     private fun showNotification(title: String?, message: String?) {

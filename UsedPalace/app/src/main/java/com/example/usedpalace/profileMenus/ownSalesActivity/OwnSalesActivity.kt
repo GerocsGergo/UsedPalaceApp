@@ -9,7 +9,6 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -20,7 +19,7 @@ import com.example.usedpalace.requests.DeleteSaleRequest
 import com.example.usedpalace.MainMenuActivity
 
 import com.example.usedpalace.R
-import com.example.usedpalace.RetrofitClient
+import network.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.UserSession

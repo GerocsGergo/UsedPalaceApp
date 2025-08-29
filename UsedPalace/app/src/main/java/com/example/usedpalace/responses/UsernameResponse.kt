@@ -1,4 +1,4 @@
-package com.example.usedpalace.fragments.ChatAndMessages.responses
+package com.example.usedpalace.responses
 
 import com.google.gson.annotations.SerializedName
 

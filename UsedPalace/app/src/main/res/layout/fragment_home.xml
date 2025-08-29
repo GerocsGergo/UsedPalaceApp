@@ -1,91 +1,87 @@
-<!-- res/layout/fragment_home.xml -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground"
-    tools:context=".fragments.HomeFragment">
+    android:background="@color/colorBackground">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/main"
+    <!-- Top Section -->
+    <LinearLayout
+        android:id="@+id/topSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/colorBackground"
+        android:elevation="4dp">
+
+        <SearchView
+            android:id="@+id/searchBar"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:queryHint="Keresés..."
+            android:iconifiedByDefault="false" />
+
+        <ImageButton
+            android:id="@+id/filterButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_settings_40"
+            android:contentDescription="Szűrés"
+            app:tint="@color/colorText" />
+
+        <ImageButton
+            android:id="@+id/clearSearchButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:src="@drawable/baseline_delete_40"
+            android:contentDescription="Vissza"
+            app:tint="@color/colorText" />
+
+
+    </LinearLayout>
+    <!-- RecyclerView alatta scrollozik -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewSales"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MainMenuActivity">
+        android:clipToPadding="false"
+        android:paddingTop="112dp"
+        android:paddingBottom="72dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
-        <!-- Top Section: Menu and Search Bar -->
-        <LinearLayout
-            android:id="@+id/topSection"
-            android:layout_width="0dp"
+    <!-- Pagination Buttons, mindig alul -->
+    <LinearLayout
+        android:id="@+id/paginationLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp"
+        android:background="@color/colorBackground"
+        android:layout_gravity="bottom"
+        android:elevation="4dp">
+
+        <Button
+            android:id="@+id/prevPageButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:text="Előző"/>
 
-            <SearchView
-                android:id="@+id/searchBar"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:queryHint="Keresés..."
-                android:iconifiedByDefault="false" />
+        <TextView
+            android:id="@+id/pageIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1 / 1"
+            android:padding="16dp"/>
 
-            <ImageButton
-                android:id="@+id/filterButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/baseline_delete_40"
-                android:contentDescription="Szűrés"
-                app:tint="@color/colorText"/>
+        <Button
+            android:id="@+id/nextPageButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Következő"/>
+    </LinearLayout>
 
-            <Button
-                android:id="@+id/clearSearchButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:textSize="18sp"
-                android:textColor="@color/colorText"
-                android:text="Bezárás"
-                android:padding="8dp"
-                android:visibility="gone"/>
-
-        </LinearLayout>
-
-        <!-- Scrollable Content -->
-        <ScrollView
-            android:id="@+id/middleSection"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/topSection"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-            <LinearLayout
-                android:id="@+id/container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp" >
-
-                <TextView
-                    android:id="@+id/forExample"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Önnek ajánljuk:"
-                    android:textColor="@color/colorText"
-                    android:textSize="20sp"/>
-
-                <LinearLayout
-                    android:id="@+id/productList"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"/>
-            </LinearLayout>
-        </ScrollView>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -16,12 +16,11 @@ import com.example.usedpalace.requests.ResetPasswordRequest
 import com.example.usedpalace.responses.ResponseMessage
 import com.example.usedpalace.responses.ResponseMessageWithFolder
 import com.example.usedpalace.responses.ResponseMessageWithUser
-import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.fragments.ChatAndMessages.responses.ChatListResponse
 import com.example.usedpalace.fragments.ChatAndMessages.Requests.InitiateChatRequest
 import com.example.usedpalace.fragments.ChatAndMessages.responses.InitiateChatResponse
 import com.example.usedpalace.fragments.ChatAndMessages.Requests.SearchChatRequest
-import com.example.usedpalace.fragments.ChatAndMessages.responses.UsernameResponse
+import com.example.usedpalace.responses.UsernameResponse
 import com.example.usedpalace.requests.ChangeEmailRequest
 import com.example.usedpalace.requests.ChangePasswordRequest
 import com.example.usedpalace.requests.ChangePhoneNumberRequest
@@ -35,6 +34,7 @@ import com.example.usedpalace.requests.SaveFcmTokenRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.responses.ApiResponseForDeletedSaleWithEverything
+import com.example.usedpalace.responses.ApiResponseForLoadSales
 import com.example.usedpalace.responses.DeleteImagesResponse
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
 import com.example.usedpalace.responses.ResponseGetImages
@@ -51,6 +51,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.Query
 
 interface ApiService {
 
@@ -86,7 +87,11 @@ interface ApiService {
 
     //Sales
     @GET("getSales")
-    suspend fun getSales(): ApiResponseForSearchSales
+    suspend fun getSales(
+        @Query("page") page: Int,
+        @Query("limit") limit: Int = 20
+    ): ApiResponseForLoadSales
+
 
     @POST("search-sales-withSaleName")
     suspend fun searchSales(@Body request: SearchRequestName): ApiResponseForSearchSales

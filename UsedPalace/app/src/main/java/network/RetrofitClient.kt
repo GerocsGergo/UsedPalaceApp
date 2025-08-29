@@ -1,8 +1,7 @@
-package com.example.usedpalace
+package network
 
 import android.content.Context
 import android.content.SharedPreferences
-import network.ApiService
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit

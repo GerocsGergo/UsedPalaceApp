@@ -10,7 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
-import com.example.usedpalace.RetrofitClient
+import network.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithEverything
 import com.example.usedpalace.fragments.homeFragmentHelpers.ImageSliderAdapter
 import com.example.usedpalace.requests.GetSaleImagesRequest
