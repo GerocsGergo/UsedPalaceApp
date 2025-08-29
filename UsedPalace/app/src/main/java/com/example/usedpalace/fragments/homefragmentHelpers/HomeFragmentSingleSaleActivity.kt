@@ -40,6 +40,7 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
     private lateinit var mainLayout: ConstraintLayout
     private lateinit var messageButton: Button
     private lateinit var backButton: Button
+    private lateinit var imageCounter: TextView
 
 
 
@@ -148,6 +149,7 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
         productPrice = findViewById(R.id.productPrice)
         productDescription = findViewById(R.id.productDescription)
         mainLayout = findViewById(R.id.main)
+        imageCounter = findViewById(R.id.imageCounter)
 
         backButton = findViewById(R.id.backButton)
         messageButton = findViewById(R.id.messageButton)
@@ -188,6 +190,15 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
                         val imageUrls = imageResponse.images
                         val adapter = ImageSliderAdapter(this@HomeFragmentSingleSaleActivity, imageUrls)
                         imageSlider.adapter = adapter
+
+                        imageCounter.text = "1/${imageUrls.size}"
+
+                        imageSlider.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+                            override fun onPageSelected(position: Int) {
+                                super.onPageSelected(position)
+                                imageCounter.text = "${position + 1}/${imageUrls.size}"
+                            }
+                        })
                     } else {
                         // Ha nincs kép, adj egy default képet vagy üzenetet
                         val adapter = ImageSliderAdapter(this@HomeFragmentSingleSaleActivity, listOf())

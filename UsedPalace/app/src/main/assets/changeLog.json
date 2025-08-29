@@ -124,6 +124,15 @@
         "Release version, with smoother colors"
       ]
     }
+  ,
+    {
+      "version": "1.2.0",
+      "changes": [
+        "New profile menu",
+        "Added notifications for chat messages",
+        "Added paging to main screen"
+      ]
+    }
   ]
 }
 

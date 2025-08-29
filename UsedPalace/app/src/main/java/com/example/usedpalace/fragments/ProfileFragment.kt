@@ -1,13 +1,19 @@
 package com.example.usedpalace.fragments
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
+import com.example.usedpalace.UserSession
 import com.example.usedpalace.loginMenus.LogActivity
 import com.example.usedpalace.profileMenus.AboutActivity
 import com.example.usedpalace.profileMenus.CreateSaleActivity
@@ -17,10 +23,19 @@ import com.example.usedpalace.profileMenus.SettingsActivity
 import com.example.usedpalace.profileMenus.SupportActivity
 import com.example.usedpalace.profileMenus.ownSalesActivity.OwnSalesActivity
 import com.example.usedpalace.profileMenus.profileActivity.ProfileActivity
+import com.example.usedpalace.requests.SearchRequestID
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import network.ApiService
+import network.RetrofitClient
 
 
 class ProfileFragment : Fragment() {
-    private lateinit var buttonProfile: Button
+    private lateinit var buttonProfile: ImageButton
+    private lateinit var textUsername: TextView
+
     private lateinit var buttonCreateSale: Button
     private lateinit var buttonOwnSales: Button
     private lateinit var buttonHelp: Button
@@ -29,6 +44,8 @@ class ProfileFragment : Fragment() {
     private lateinit var buttonAbout: Button
     private lateinit var buttonContacts: Button
     private lateinit var buttonLogout: Button
+    private lateinit var apiService: ApiService
+    private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,13 +58,20 @@ class ProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        val view =  inflater.inflate(R.layout.fragment_profile, container, false)
+        val view = inflater.inflate(R.layout.fragment_profile, container, false)
 
+        initialize()
         setupViews(view)
         setupClickListeners()
-
+        setUsername()
 
         return view
+    }
+
+    private fun initialize() {
+        prefs = requireContext().getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
+        RetrofitClient.init(requireContext().applicationContext)
+        apiService = RetrofitClient.apiService
     }
 
     private fun setupViews(view: View) {
@@ -61,6 +85,7 @@ class ProfileFragment : Fragment() {
         buttonAbout = view.findViewById(R.id.about)
         buttonContacts = view.findViewById(R.id.contacts)
         buttonLogout = view.findViewById(R.id.logout)
+        textUsername = view.findViewById(R.id.username)
     }
 
     private fun setupClickListeners() {
@@ -99,5 +124,38 @@ class ProfileFragment : Fragment() {
 
         }
     }
+
+
+    private fun setUsername() {
+        val userId = UserSession.getUserId() ?: return
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = apiService.searchUsername(SearchRequestID(userId))
+                val username: String
+
+                if (response.success && response.fullname != null) {
+                    username = response.fullname
+                } else {
+                    username = "Felhasználó" // fallback név
+                    // Hibakezelés külön
+                    withContext(Dispatchers.Main) {
+                        ErrorHandler.handleApiError(requireContext(), null, response.message)
+                    }
+                }
+
+                withContext(Dispatchers.Main) {
+                    textUsername.text = username
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    textUsername.text = "Felhasználó"
+                    ErrorHandler.handleNetworkError(requireContext(), e)
+                }
+            }
+        }
+    }
+
+
 
 }

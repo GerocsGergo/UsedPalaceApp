@@ -32,6 +32,7 @@ class OpenSaleActivity : AppCompatActivity() {
     private lateinit var productPrice: TextView
     private lateinit var productDescription: TextView
     private lateinit var mainLayout: ConstraintLayout
+    private lateinit var imageCounter: TextView
 
     private lateinit var backButton: Button
 
@@ -62,6 +63,7 @@ class OpenSaleActivity : AppCompatActivity() {
         productPrice = findViewById(R.id.productPrice)
         productDescription = findViewById(R.id.productDescription)
         mainLayout = findViewById(R.id.main)
+        imageCounter = findViewById(R.id.imageCounter)
 
         backButton = findViewById(R.id.backButton)
     }
@@ -123,6 +125,15 @@ class OpenSaleActivity : AppCompatActivity() {
                         val imageUrls = imageResponse.images
                         val adapter = ImageSliderAdapter(this@OpenSaleActivity, imageUrls)
                         imageSlider.adapter = adapter
+
+                        imageCounter.text = "1/${imageUrls.size}"
+
+                        imageSlider.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+                            override fun onPageSelected(position: Int) {
+                                super.onPageSelected(position)
+                                imageCounter.text = "${position + 1}/${imageUrls.size}"
+                            }
+                        })
                     } else {
                         // Ha nincs kép, adj egy default képet vagy üzenetet
                         val adapter = ImageSliderAdapter(this@OpenSaleActivity, listOf())

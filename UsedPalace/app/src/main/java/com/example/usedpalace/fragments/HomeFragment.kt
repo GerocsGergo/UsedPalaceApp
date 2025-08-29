@@ -37,10 +37,6 @@ import network.ApiService
 class HomeFragment : Fragment() {
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
-    private val baseImageUrl = "http://10.224.83.75:3000/sales"
-
-    //private val baseImageUrl = "http://10.0.2.2:3000"
-
 
     private lateinit var searchView: SearchView
     private lateinit var clearButton :ImageButton
@@ -49,7 +45,6 @@ class HomeFragment : Fragment() {
     private lateinit var prevPageButton: Button
     private lateinit var nextPageButton: Button
     private lateinit var pageIndicator: TextView
-
 
     private var currentPage = 1
     private val pageSize = 10
