@@ -20,9 +20,10 @@ class ChatWebSocketClient(
 
     fun connect() {
         val request = Request.Builder()
-            //.url("ws://10.0.2.2:8080")
+            .url("ws://10.0.2.2:8080")
             //.url("ws://10.224.83.75:8080")
-            .url("ws://10.224.86.54:8080")
+            //.url("ws://10.224.86.54:8080")
+            //.url("ws://192.168.1.85:8080")
             .build()
 
         //Log.e("ws connect request", "Request: $request")

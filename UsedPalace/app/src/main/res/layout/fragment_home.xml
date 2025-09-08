@@ -29,6 +29,7 @@
             android:layout_height="wrap_content"
             android:src="@drawable/baseline_settings_40"
             android:contentDescription="Szűrés"
+            android:background="@android:color/transparent"
             app:tint="@color/colorText" />
 
         <ImageButton
