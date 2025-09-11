@@ -6,7 +6,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
+//Modify sale activity-ben is át kell írni, salesAdapterben is átkell irni, jelenleg minden elvileg localhost maradjon is igy
 private const val BASE_URL = "http://10.0.2.2:3000/"
 
 //private const val BASE_URL = "http://10.224.83.75:3000/"

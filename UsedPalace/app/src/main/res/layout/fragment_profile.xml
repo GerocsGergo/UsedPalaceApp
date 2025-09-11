@@ -51,14 +51,7 @@
                     android:layout_marginTop="8dp"/>
             </LinearLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/logout"
-                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItemDelete"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Kijelentkezés"
-                android:backgroundTint="@color/colorBackgroundDelete"
-                android:layout_marginBottom="12dp" />
+
 
             <!-- Profil szekció -->
             <TextView
@@ -153,6 +146,14 @@
                 android:text="Információk"
                 android:layout_marginBottom="12dp" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/logout"
+                style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItemDelete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Kijelentkezés"
+                android:backgroundTint="@color/colorBackgroundDelete"
+                android:layout_marginBottom="12dp" />
 
 
         </LinearLayout>

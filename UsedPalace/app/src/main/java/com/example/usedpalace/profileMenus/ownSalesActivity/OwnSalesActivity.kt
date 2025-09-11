@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -23,6 +24,8 @@ import network.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.UserSession
+import com.example.usedpalace.requests.GetSaleImagesRequest
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -71,8 +74,6 @@ class OwnSalesActivity : AppCompatActivity() {
         apiService = RetrofitClient.apiService
     }
 
-    //TODO search for ID not product name OR FOR USER NAME?
-    //Functions from HomeFragment.kt, but modified
     private fun fetchSalesDataSearch(
         apiService: ApiService,
         containerLayout: LinearLayout
@@ -121,14 +122,36 @@ class OwnSalesActivity : AppCompatActivity() {
             for (sale in sales) {
                 val itemView = inflater.inflate(R.layout.item_own_sales, containerLayout, false)
 
-                itemView.findViewById<TextView>(R.id.productName).text = sale.Name
+                val productName = itemView.findViewById<TextView>(R.id.productName)
+                val thumbnail = itemView.findViewById<ImageView>(R.id.productThumbnail)
+                val open = itemView.findViewById<Button>(R.id.open)
+                val modify = itemView.findViewById<Button>(R.id.modify)
+                val delete = itemView.findViewById<Button>(R.id.delete)
 
-                val open = itemView.findViewById<ImageButton>(R.id.open)
-                val modify = itemView.findViewById<ImageButton>(R.id.modify)
-                val delete = itemView.findViewById<ImageButton>(R.id.delete)
-
+                productName.text = sale.Name
                 containerLayout.addView(itemView)
 
+                // --- Thumbnail betöltése ---
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val response = apiService.getThumbnail(GetSaleImagesRequest(sale.Sid))
+                        withContext(Dispatchers.Main) {
+                            if (response.success && response.thumbnail.isNotEmpty()) {
+                                Picasso.get()
+                                    .load(response.thumbnail)
+                                    .placeholder(R.drawable.baseline_loading_24)
+                                    .error(R.drawable.baseline_error_24)
+                                    .into(thumbnail)
+                            } else {
+                                thumbnail.setImageResource(R.drawable.baseline_eye_40)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            thumbnail.setImageResource(R.drawable.baseline_home_filled_24)
+                        }
+                    }
+                }
                 val saleId = sale.Sid
                 // Add event listeners
                 open.setOnClickListener {

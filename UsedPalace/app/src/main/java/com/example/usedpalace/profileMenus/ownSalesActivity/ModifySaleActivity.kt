@@ -34,8 +34,7 @@ class ModifySaleActivity : AppCompatActivity() {
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
     private var saleId: Int = -1
-    //private val baseImageUrl = "http://10.224.83.75:3000/sales"
-    private val baseImageUrl = "http://10.224.86.54:3000/sales" // Zsolti tablethez
+    private val baseImageUrl = "http://10.0.2.2:3000/sales"
 
     // Képkezelő listák
     private val oldImages = mutableListOf<Uri>()      // szerverről betöltött képek

@@ -12,6 +12,7 @@ const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const WebSocket = require('ws');
 const admin = require('firebase-admin');
+const sharp = require('sharp');
 
 const userApiErrorMessage = "Ismeretlen hiba történt!"; // A felhasználónak hiba esetén ezeket küldi vissza
 const userServerErrorMessage = "Szerver hiba, próbálja újra későuserServerErrorMessage";
@@ -1159,37 +1160,70 @@ app.delete('/delete-sale', authenticateToken , async (req, res) => {
 
 //Image Uploader and stuff for it
 
+
+// helper a delete imagesnek: thumbnail újragenerálás
+async function regenerateThumbnail(folderPath) {
+    const files = fs.readdirSync(folderPath)
+        .filter(file => !file.toLowerCase().includes('_thumb')); // csak eredeti képek
+
+    if (files.length === 0) {
+        return null; // nincs kép → nincs thumbnail
+    }
+
+    const firstFile = files[0];
+    const thumbName = path.basename(firstFile, path.extname(firstFile)) + '_thumb.jpg';
+    const thumbPath = path.join(folderPath, thumbName);
+
+    await sharp(path.join(folderPath, firstFile))
+        .resize(300, 300, { fit: 'inside' })
+        .jpeg({ quality: 80 })
+        .toFile(thumbPath);
+
+    return thumbName;
+}
+
 // Delete multiple images by filenames
 app.post('/delete-images', authenticateToken, async (req, res) => {
     try {
-		
         const { saleFolder, imageNames } = req.body;
-		console.log('Image deletion in this folder: ', saleFolder);
+        console.log('Image deletion in this folder: ', saleFolder);
 
         if (!saleFolder || !Array.isArray(imageNames) || imageNames.length === 0) {
             return res.status(400).json({
                 success: false,
                 message: userApiErrorMessage,
-				error: "saleFolder and non-empty imageNames array are required"
+                error: "saleFolder and non-empty imageNames array are required"
+            });
+        }
+
+        const folderPath = path.join('sales', saleFolder);
+        if (!fs.existsSync(folderPath)) {
+            return res.status(404).json({
+                success: false,
+                message: "Folder not found",
+                error: "Invalid saleFolder"
             });
         }
 
         const deletedImages = [];
 
         imageNames.forEach(name => {
-            // Biztonsági okokból tisztítsuk a fájlnevet, hogy ne lehessen könyvtárat átugrani
-            const safeName = path.basename(name);
-            const imagePath = path.join('sales', saleFolder, safeName);
+            const safeName = path.basename(name); // biztonság
+            const imagePath = path.join(folderPath, safeName);
             if (fs.existsSync(imagePath)) {
                 fs.unlinkSync(imagePath);
                 deletedImages.push(safeName);
             }
         });
 
+        // Thumbnail frissítés törlés után
+        const newThumbnail = await regenerateThumbnail(folderPath);
+
         return res.json({
             success: true,
             message: "Sikeres törlés",
-            deletedImages
+            deletedImages,
+            thumbnail: newThumbnail
         });
 
     } catch (err) {
@@ -1203,8 +1237,7 @@ app.post('/delete-images', authenticateToken, async (req, res) => {
 });
 
 
-
-//Get images for modify
+// Get images for modify
 app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
     try {
         const { searchParam } = req.body;
@@ -1213,7 +1246,7 @@ app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "Kérjük töltsön ki minden mezőt",
-				error: "Search parameter is required",
+                error: "Search parameter is required",
                 data: null
             });
         }
@@ -1221,15 +1254,42 @@ app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
         const query = 'SELECT * FROM Sales WHERE Sid = ? LIMIT 1';
         const [results] = await connection.promise().query(query, [searchParam]);
 
+        if (!results.length) {
+            return res.json({
+                success: false,
+                message: "Nem található hirdetés",
+                error: "No product found",
+                data: null
+            });
+        }
+
+        const sale = results[0];
+        const saleFolder = sale.SaleFolder;
+        const folderPath = path.join('sales', saleFolder);
+
+        let imageUrls = [];
+        if (fs.existsSync(folderPath)) {
+            // thumbnail-ek kiszűrése
+            const files = fs.readdirSync(folderPath)
+                .filter(file => !file.toLowerCase().includes('_thumb'));
+
+            imageUrls = files.map(file =>
+                `${req.protocol}://${req.get('host')}/sales/${saleFolder}/${file}`
+            );
+        }
+
         res.json({
             success: true,
-            message: results.length ? "Hirdetés megtalálva" : "Nem található hirdetés",
-			error: results.length ? "Product found" : "No product found",
-            data: results[0] || null // Return single object or null
+            message: "Hirdetés megtalálva",
+            error: "Product found",
+            data: {
+                ...sale,
+                images: imageUrls // képek hozzácsapása az eredményhez
+            }
         });
         
     } catch (err) {
-        console.error('Error in /search-sales:', err);
+        console.error('Error in /get-images-with-saleId:', err);
         res.status(500).json({
             success: false,
             message: userServerErrorMessage,
@@ -1237,6 +1297,7 @@ app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
         });
     }
 });
+
 
 // Dinamikus tárolási útvonal
 const storage = multer.diskStorage({
@@ -1255,19 +1316,51 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.post('/upload-sale-images', authenticateToken, upload.array('images', 10), (req, res) => {
-    const files = req.files.map(file => file.filename);
-    res.json({
-        success: true,
-        message: 'Képek sikeresen feltöltve',
-        files: files
-    });
-});
+app.post(
+    '/upload-sale-images',
+    authenticateToken,
+    upload.array('images', 10),
+    async (req, res) => {
+        try {
+            const files = req.files.map(file => file.filename);
+
+            if (req.files.length > 0) {
+                const firstFile = req.files[0];
+                const folderPath = path.dirname(firstFile.path);
+
+                // thumbnail neve (pl. első kép + "_thumb.jpg")
+                const thumbName = path.basename(firstFile.filename, path.extname(firstFile.filename)) + '_thumb.jpg';
+                const thumbPath = path.join(folderPath, thumbName);
+
+                await sharp(firstFile.path)
+                    .resize(300, 300, { fit: 'inside' }) // max 300px oldalhossz
+                    .jpeg({ quality: 80 })
+                    .toFile(thumbPath);
+
+                return res.json({
+                    success: true,
+                    message: 'Képek és thumbnail sikeresen feltöltve',
+                    files: files,
+                    thumbnail: thumbName
+                });
+            }
+
+            res.json({
+                success: true,
+                message: 'Nem érkezett fájl',
+                files: []
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, message: 'Hiba történt a feltöltés során' });
+        }
+    }
+);
 
 
 
 app.post('/get-sale-images', async (req, res) => {
-	const { sid } = req.body;
+    const { sid } = req.body;
 
     const [results] = await connection.promise().query(
         'SELECT SaleFolder FROM Sales WHERE Sid = ?', [sid]
@@ -1275,9 +1368,10 @@ app.post('/get-sale-images', async (req, res) => {
 
     if (results.length === 0) {
         return res.status(404).json({ 
-		success: false, 
-		message: userApiErrorMessage,
-		error:	'Sale not found'	});
+            success: false, 
+            message: userApiErrorMessage,
+            error: 'Sale not found' 
+        });
     }
 
     const saleFolder = results[0].SaleFolder;
@@ -1287,14 +1381,71 @@ app.post('/get-sale-images', async (req, res) => {
         return res.json({ success: true, images: [] });
     }
 
-    const files = fs.readdirSync(folderPath);
-    const imageUrls = files.map(file => `${req.protocol}://${req.get('host')}/sales/${saleFolder}/${file}`);
-	//const imageUrls = files.map(file => `http://10.224.83.75:3000/sales/${saleFolder}/${file}`);
+    // thumbnail fájlok kiszűrése
+    const files = fs.readdirSync(folderPath)
+        .filter(file => !file.toLowerCase().includes('_thumb'));
+
+    const imageUrls = files.map(file => 
+        `${req.protocol}://${req.get('host')}/sales/${saleFolder}/${file}`
+    );
 
     res.json({ 
-	success: true, 
-	images: imageUrls });
+        success: true, 
+        images: imageUrls 
+    });
 });
+
+app.post('/get-thumbnail-for-sale', async (req, res) => {
+    const { sid } = req.body;
+
+    if (!sid) {
+        return res.status(400).json({ success: false, message: "sid is required" });
+    }
+
+    try {
+        const [results] = await connection.promise().query(
+            'SELECT SaleFolder FROM Sales WHERE Sid = ?', [sid]
+        );
+
+        if (results.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "Sale not found",
+                error: 'Sale not found' 
+            });
+        }
+
+        const saleFolder = results[0].SaleFolder;
+        const folderPath = path.join('sales', saleFolder);
+
+        if (!fs.existsSync(folderPath)) {
+            return res.json({ success: true, thumbnail: null });
+        }
+
+        // csak a thumbnail fájlok
+        const thumbFiles = fs.readdirSync(folderPath)
+            .filter(file => file.toLowerCase().includes('_thumb'));
+
+        const thumbnail = thumbFiles.length > 0 
+            ? `${req.protocol}://${req.get('host')}/sales/${saleFolder}/${thumbFiles[0]}`
+            : null;
+
+        res.json({
+            success: true,
+            thumbnail
+        });
+
+    } catch (err) {
+        console.error('Error in /get-thumbnail-for-sale:', err);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: err.message
+        });
+    }
+});
+
+
 
 
 

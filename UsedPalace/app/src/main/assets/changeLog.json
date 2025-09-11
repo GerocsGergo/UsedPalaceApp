@@ -131,6 +131,13 @@
         "New profile menu",
         "Added notifications for chat messages",
         "Added paging to main screen"
+      ],
+      ,
+    {
+      "version": "1.3.0",
+      "changes": [
+        "Added thumbnails for better performance",
+        "Added product images to own sales menu"
       ]
     }
   ]

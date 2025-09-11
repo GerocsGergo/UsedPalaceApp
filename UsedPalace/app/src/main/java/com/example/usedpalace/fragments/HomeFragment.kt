@@ -39,8 +39,8 @@ class HomeFragment : Fragment() {
     private lateinit var prefs: SharedPreferences
 
     private lateinit var searchView: SearchView
-    private lateinit var clearButton :ImageButton
-    private lateinit var filterButton: ImageView
+    private lateinit var clearButton :Button
+    private lateinit var filterButton: Button
 
     private lateinit var prevPageButton: Button
     private lateinit var nextPageButton: Button
@@ -136,9 +136,7 @@ class HomeFragment : Fragment() {
         clearButton.setOnClickListener {
             searchView.setQuery("", false)
             searchView.clearFocus()
-            //containerLayout.removeAllViews()
             fetchSalesData()
-            //fetchSalesData(apiService, containerLayout, inflater)
             clearButton.visibility = View.GONE
         }
 

@@ -23,23 +23,30 @@
             android:queryHint="Keresés..."
             android:iconifiedByDefault="false" />
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/filterButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/baseline_settings_40"
-            android:contentDescription="Szűrés"
-            android:background="@android:color/transparent"
-            app:tint="@color/colorText" />
+            android:text="Szűrés"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:cornerRadius="12dp"
+            app:iconPadding="8dp"
+            app:icon="@drawable/baseline_settings_40"
+            app:iconTint="@color/colorText"
+            android:textColor="@color/colorText" />
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/clearSearchButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Vissza"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:cornerRadius="12dp"
             android:visibility="gone"
-            android:src="@drawable/baseline_delete_40"
-            android:contentDescription="Vissza"
-            app:tint="@color/colorText" />
+            app:iconPadding="8dp"
+            app:icon="@drawable/baseline_delete_40"
+            app:iconTint="@color/colorText"
+            android:textColor="@color/colorText" />
 
 
     </LinearLayout>

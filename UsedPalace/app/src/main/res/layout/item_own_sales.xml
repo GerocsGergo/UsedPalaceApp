@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -8,56 +7,84 @@
     android:background="@drawable/item_background"
     android:padding="12dp">
 
+    <!-- Product Name on top -->
     <TextView
         android:id="@+id/productName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="placeholder"
+        android:text="Termék neve"
         android:textSize="20sp"
-        android:textColor="@color/colorTextButton"
+        android:textColor="@color/colorText"
         android:maxLines="2"
         android:ellipsize="end"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/buttonGroup"
-        app:layout_constraintVertical_bias="0.5"
-        android:layout_marginEnd="8dp"/>
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"/>
 
+    <!-- Thumbnail below the product name -->
+    <ImageView
+        android:id="@+id/productThumbnail"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="Termék thumbnail"
+        app:layout_constraintTop_toBottomOf="@id/productName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <!-- Buttons on the right side, vertical -->
     <LinearLayout
         android:id="@+id/buttonGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
+        android:gravity="center"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:gravity="center"
-        android:layout_marginStart="8dp">
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="4dp">
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/open"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@null"
-            app:srcCompat="@drawable/baseline_eye_40"
-            android:contentDescription="Megnyitás"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Megnyitás"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:cornerRadius="12dp"
+            app:iconPadding="8dp"
+            app:icon="@drawable/baseline_eye_40"
+            app:iconTint="@color/colorText"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="8dp"/>
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/modify"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@null"
-            app:srcCompat="@drawable/baseline_edit_40"
-            android:contentDescription="Szerkesztés"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Szerkesztés"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:cornerRadius="12dp"
+            app:iconPadding="8dp"
+            app:icon="@drawable/baseline_edit_40"
+            app:iconTint="@color/colorText"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="8dp"/>
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/delete"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@null"
-            app:srcCompat="@drawable/baseline_delete_40"
-            android:contentDescription="Törlés"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Törlés"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:cornerRadius="12dp"
+            app:iconPadding="8dp"
+            app:icon="@drawable/baseline_delete_40"
+            app:iconTint="@color/colorText"
+            android:textColor="@color/colorText"/>
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

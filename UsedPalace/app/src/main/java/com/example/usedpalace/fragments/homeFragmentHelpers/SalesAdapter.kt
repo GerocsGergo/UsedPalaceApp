@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.requests.GetSaleImagesRequest
@@ -40,14 +41,14 @@ class SalesAdapter(
         holder.price.text = "${sale.Cost} Ft"
         holder.desc.text = sale.Description
 
-        // képek betöltése Picasso-val
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val imageResponse = RetrofitClient.apiService.getSaleImages(GetSaleImagesRequest(sale.Sid))
+                val response = RetrofitClient.apiService.getThumbnail(GetSaleImagesRequest(sale.Sid))
                 withContext(Dispatchers.Main) {
-                    if (imageResponse.success && !imageResponse.images.isNullOrEmpty()) {
+                    if (response.success && response.thumbnail.isNotEmpty()) {
+                        val thumbnailUrl = response.thumbnail
                         Picasso.get()
-                            .load(imageResponse.images.first())
+                            .load(thumbnailUrl)
                             .placeholder(R.drawable.baseline_loading_24)
                             .error(R.drawable.baseline_error_24)
                             .into(holder.image)
@@ -64,6 +65,7 @@ class SalesAdapter(
 
         holder.itemView.setOnClickListener { onItemClick(sale) }
     }
+
 
     override fun getItemCount(): Int = sales.size
 

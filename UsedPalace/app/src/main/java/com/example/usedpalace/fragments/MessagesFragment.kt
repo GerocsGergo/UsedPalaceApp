@@ -39,9 +39,9 @@ class MessagesFragment : Fragment() {
     private lateinit var prefs: SharedPreferences
     private var userId: Int = -1
 
-    private lateinit var allChats: Button
-    private lateinit var deletedChats: Button
-    private lateinit var activeChats: Button
+    private var currentFilter: Int = R.id.filter_active
+
+    private lateinit var filterButton: Button
     private val baseImageUrl = "http://10.224.83.75:3000"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,9 +86,9 @@ class MessagesFragment : Fragment() {
 
 
     private fun setupViews(view: View) {
-        allChats = view.findViewById(R.id.allChats)
-        deletedChats = view.findViewById(R.id.deletedChats)
-        activeChats  = view.findViewById(R.id.activeChats)
+        filterButton = view.findViewById(R.id.filterButton)
+        //deletedChats = view.findViewById(R.id.deletedChats)
+        //activeChats  = view.findViewById(R.id.activeChats)
 
 
     }
@@ -101,22 +101,24 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupClickListeners(apiService: ApiService, containerLayout: LinearLayout?, inflater: LayoutInflater) {
-        allChats.setOnClickListener {
-            allChats.isEnabled = false
-            fetchChats(apiService, containerLayout, inflater, "allChats")
-            allChats.isEnabled = true
-        }
 
-        deletedChats.setOnClickListener {
-            deletedChats.isEnabled = false
-            fetchChats(apiService, containerLayout, inflater, "deletedChats")
-            deletedChats.isEnabled = true
-        }
+        filterButton.setOnClickListener { v ->
+            val popup = android.widget.PopupMenu(requireContext(), v)
+            popup.menuInflater.inflate(R.menu.chats_filter_menu, popup.menu)
 
-        activeChats.setOnClickListener {
-            activeChats.isEnabled = false
-            fetchChats(apiService, containerLayout, inflater, "activeChats")
-            activeChats.isEnabled = true
+            popup.setOnMenuItemClickListener { item ->
+                currentFilter = item.itemId
+                when (item.itemId) {
+                    R.id.filter_active -> {
+                        fetchChats(apiService, containerLayout, inflater, "activeChats")
+                    }
+                    R.id.filter_deleted -> {
+                        fetchChats(apiService, containerLayout, inflater, "deletedChats")
+                    }
+                }
+                true
+            }
+            popup.show()
         }
     }
 
@@ -285,25 +287,19 @@ class MessagesFragment : Fragment() {
                             val imageView: ImageView = itemView.findViewById(R.id.image1)
 
                             try {
-                                val imageResponse = apiService.getSaleImages(
-                                    GetSaleImagesRequest(chat.saleId)
-                                )
+                                val response = RetrofitClient.apiService.getThumbnail(GetSaleImagesRequest(chat.saleId))
                                 withContext(Dispatchers.Main) {
-                                    if (imageResponse.success) {
-                                        val images = imageResponse.images
-                                        if (images.isNotEmpty()) {
-                                            Picasso.get()
-                                                .load(images.first()) // az első képet betöltöd
-                                                .placeholder(R.drawable.baseline_loading_24)
-                                                .error(R.drawable.baseline_error_24)
+                                    if (response.success && response.thumbnail.isNotEmpty()) {
+                                        val thumbnailUrl = response.thumbnail
+                                        Picasso.get()
+                                            .load(thumbnailUrl)
+                                            .placeholder(R.drawable.baseline_loading_24)
+                                            .error(R.drawable.baseline_error_24)
                                                 .into(imageView)
                                         } else {
                                             imageView.setImageResource(R.drawable.baseline_eye_40) // nincs kép
                                         }
-                                    } else {
-                                        imageView.setImageResource(R.drawable.baseline_info_outline_40)
                                     }
-                                }
                             } catch (e: Exception) {
                                 withContext(Dispatchers.Main) {
                                     imageView.setImageResource(R.drawable.baseline_home_filled_24)
@@ -328,104 +324,6 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    private fun displayChats(apiService: ApiService, chats: List<ChatItem>, containerLayout: LinearLayout?, inflater: LayoutInflater){
-        if (chats.isEmpty()) {
-
-            showErrorMessage(containerLayout, inflater)
-        } else {
-            containerLayout?.removeAllViews()
-
-            for (chat in chats) {
-                val itemView = inflater.inflate(R.layout.item_fragment_messages, containerLayout, false)
-                var username:String?
-
-
-                val unreadProductDot = itemView.findViewById<View>(R.id.unread_dot_product)
-                if (chat.unreadCount > 0) {
-                    unreadProductDot.visibility = View.VISIBLE
-                } else {
-                    unreadProductDot.visibility = View.GONE
-                }
-
-                CoroutineScope(Dispatchers.Main).launch {
-                    try {
-                         username = if (userId == chat.buyerId){
-                            fetchUsername(chat.sellerId)
-
-                        }else{
-                            fetchUsername(chat.buyerId)
-
-                        }
-                        if (username != null) {
-                            itemView.findViewById<TextView>(R.id.profile_name).text = username
-                        } else {
-                            ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
-                        }
-
-
-                        itemView.setOnClickListener {
-                            onProductClick(chat.chatId, username, chat.saleId, chat.sellerId)
-                        }
-                    }catch (e: Exception){
-                        ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
-                    }
-                }
-
-                itemView.findViewById<TextView>(R.id.last_message_date).text = ChatHelper.formatDateString(chat.lastMessageAt)
-                CoroutineScope(Dispatchers.Main).launch {
-                    try {
-                        val sale = withContext(Dispatchers.IO) {
-                            apiService.searchSalesSID(SearchRequestID(chat.saleId))
-                        }
-                        if (sale.success && sale.data != null) {
-                            itemView.findViewById<TextView>(R.id.product_name).text = sale.data.Name
-
-                            val imageView: ImageView = itemView.findViewById(R.id.image1)
-                            try {
-                                val imageResponse = apiService.getSaleImages(
-                                    GetSaleImagesRequest(chat.saleId)
-                                )
-                                withContext(Dispatchers.Main) {
-                                    if (imageResponse.success) {
-                                        val images = imageResponse.images ?: emptyList()
-                                        if (images.isNotEmpty()) {
-                                            Picasso.get()
-                                                .load(images.first()) // az első képet betöltöd
-                                                .placeholder(R.drawable.baseline_loading_24)
-                                                .error(R.drawable.baseline_error_24)
-                                                .into(imageView)
-                                        } else {
-                                            imageView.setImageResource(R.drawable.baseline_eye_40) // nincs kép
-                                        }
-                                    } else {
-                                        imageView.setImageResource(R.drawable.baseline_info_outline_40)
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                withContext(Dispatchers.Main) {
-                                    imageView.setImageResource(R.drawable.baseline_home_filled_24)
-                                }
-                            }
-                        } else {
-                            //Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
-                            //ErrorHandler.handleApiError(requireContext(),null, "No chat found with this saleID: " + chat.saleId)
-                            ErrorHandler.logToLogcat("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
-
-                            itemView.findViewById<TextView>(R.id.product_name).text = "Warning! This sale has been deleted!"
-                        }
-                    } catch (e: Exception) {
-                        //Log.e("MessagesFragment", "Error loading chat details", e)
-                        ErrorHandler.handleNetworkError(requireContext(),e)
-                        showErrorMessage(containerLayout, inflater, message = "Ismeretlen hiba, kérjük probáld újra később.")
-                    }
-                }
-
-                containerLayout?.addView(itemView)
-
-            }
-        }
-    }
-
     private fun onProductClick(chatId: Int, username: String?, saleId: Int, sellerId: Int) {
         val intent = Intent(context, ChatActivity::class.java).apply {
             putExtra("CHAT_ID", chatId)
@@ -443,12 +341,10 @@ class MessagesFragment : Fragment() {
             if (response.success && response.fullname != null) {
                 response.fullname
             } else {
-                //Log.e("Search", "Username not found: ${response.message}")
                 ErrorHandler.logToLogcat("Search", "Username not found: ${response.message}", ErrorHandler.LogLevel.ERROR)
                 null // Return null if not found
             }
         } catch (e: Exception) {
-            //Log.e("Search", "Error fetching username", e)
             ErrorHandler.logToLogcat("Search", "Error fetching username", ErrorHandler.LogLevel.ERROR, e)
             null // Return null on error
         }
@@ -470,11 +366,9 @@ class MessagesFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     if (response.success) {
                         if (response.data.isNotEmpty()) {
-                            //val sortedChats = response.data.sortedByDescending { it.lastMessageAt }
                             when (flag) {
                                 "activeChats" -> displayActiveChats(apiService, response.data, containerLayout, inflater)
                                 "deletedChats" -> displayDeletedChats(apiService, response.data, containerLayout, inflater)
-                                "allChats" -> displayChats(apiService, response.data, containerLayout, inflater)
                                 else -> displayActiveChats(apiService, response.data, containerLayout, inflater)
                             }
 
@@ -484,10 +378,8 @@ class MessagesFragment : Fragment() {
                             showErrorMessage(containerLayout, inflater, response.message)
                         }
                     } else {
-                        //Log.e("MessagesFragment", "API Error: ${response.message}")
                         ErrorHandler.handleApiError(requireContext(),null, response.message)
-                        //Toast.makeText(context, "Search failed: ${response.message}", Toast.LENGTH_SHORT).show()
-                    }
+                     }
                 }
             } catch (e: Exception) {
                 Log.e("MessagesFragment fetch", "Network error", e)

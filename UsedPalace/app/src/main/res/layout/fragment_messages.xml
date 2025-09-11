@@ -9,52 +9,38 @@
     android:background="@color/colorBackground"
     tools:context=".fragments.MessagesFragment">
 
-        <!-- Top Material Buttons bar -->
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/top_button_group"
+        <!-- Top bar: Title + Filter button -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            app:singleSelection="true"
-            app:selectionRequired="true">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/allChats"
+                <!-- Title -->
+                <TextView
+                    android:id="@+id/messagesTitle"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Minden"
-                    style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
-                    android:textColor="@color/colorTextButton"
+                    android:text="Üzeneteid"
+                    android:textColor="@color/colorText"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <!-- Filter button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/filterButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Szűrés"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     app:cornerRadius="12dp"
                     app:iconPadding="8dp"
-
-                    />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/deletedChats"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:text="Törölt"
-                    style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
-                    android:textColor="@color/colorTextButton"
-                    app:cornerRadius="12dp"
-                    app:iconPadding="8dp"
-
-                    />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/activeChats"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:text="Aktív"
-                    style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
-                    android:textColor="@color/colorTextButton"
-                    app:cornerRadius="12dp"
-                    app:iconPadding="8dp" />
-        </com.google.android.material.button.MaterialButtonToggleGroup>
+                    app:icon="@drawable/baseline_settings_40"
+                    app:iconTint="@color/colorText"
+                    android:textColor="@color/colorText" />
+        </LinearLayout>
 
         <!-- Scrollable chats container -->
         <ScrollView

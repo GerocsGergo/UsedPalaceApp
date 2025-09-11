@@ -38,6 +38,7 @@ import com.example.usedpalace.responses.ApiResponseForLoadSales
 import com.example.usedpalace.responses.DeleteImagesResponse
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
 import com.example.usedpalace.responses.ResponseGetImages
+import com.example.usedpalace.responses.ResponseGetThumbnail
 import com.example.usedpalace.responses.UserDataResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -124,13 +125,14 @@ interface ApiService {
         @Body request: GetSaleImagesRequest
     ): ResponseGetImages
 
+    @POST("/get-thumbnail-for-sale")
+    suspend fun getThumbnail(
+        @Body request: GetSaleImagesRequest
+    ): ResponseGetThumbnail
 
 
     @HTTP(method = "DELETE", path = "delete-sale", hasBody = true)
     suspend fun deleteSale(@Body request: DeleteSaleRequest): ApiResponseGeneric
-
-    @POST("get-images-with-saleId")
-    suspend fun getImages(@Body request: SearchRequestID): ApiResponseForSalesWithEverything
 
     @PUT("modify-sale")
     suspend fun modifySale(@Body request: ModifySaleRequest): ResponseMessageWithFolder
