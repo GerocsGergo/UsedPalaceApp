@@ -15,6 +15,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.requests.DeleteSaleRequest
 import com.example.usedpalace.MainMenuActivity
@@ -24,6 +26,7 @@ import network.RetrofitClient
 import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.requests.SearchRequestID
 import com.example.usedpalace.UserSession
+import com.example.usedpalace.fragments.homeFragmentHelpers.SalesAdapter
 import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +39,17 @@ class OwnSalesActivity : AppCompatActivity() {
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
 
-    private lateinit var containerLayout: LinearLayout
+    private var currentPage = 1
+    private val pageSize = 10
+    private var totalPages = 1
+    private lateinit var prevPageButton: Button
+    private lateinit var nextPageButton: Button
+    private lateinit var pageIndicator: TextView
+    private lateinit var adapter: OwnSalesAdapter
+    private var isLoading = false
+    private lateinit var noSalesMessage: TextView
+
+    private lateinit var recyclerView: RecyclerView
     private lateinit var buttonBack: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,15 +63,47 @@ class OwnSalesActivity : AppCompatActivity() {
         }
 
         setupViews()
+        setupPagination()
         setupClickListeners()
 
 
         initialize()
-        fetchSalesDataSearch(apiService, containerLayout)
+        fetchSalesDataSearch()
     }
-    private fun setupViews(){
+    private fun setupViews() {
         buttonBack = findViewById(R.id.buttonBack)
-        containerLayout = findViewById(R.id.container)
+        recyclerView = findViewById(R.id.recyclerViewOwnSales)
+        noSalesMessage = findViewById(R.id.noSalesMessage)
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        adapter = OwnSalesAdapter(
+            mutableListOf(),
+            onOpen = { sale -> onOpenClick(sale) },
+            onModify = { sale -> onModifyClick(sale) },
+            onDelete = { sale -> deleteSale(apiService, sale.Sid) }
+        )
+        recyclerView.adapter = adapter
+    }
+
+
+    private fun setupPagination() {
+        prevPageButton = findViewById(R.id.prevPageButton)
+        nextPageButton = findViewById(R.id.nextPageButton)
+        pageIndicator = findViewById(R.id.pageIndicator)
+
+        prevPageButton.setOnClickListener {
+            if (currentPage > 1 && !isLoading) {
+                currentPage--
+                fetchSalesDataSearch()
+            }
+        }
+
+        nextPageButton.setOnClickListener {
+            if (currentPage < totalPages && !isLoading) {
+                currentPage++
+                fetchSalesDataSearch()
+            }
+        }
     }
 
     private fun setupClickListeners(){
@@ -74,98 +119,109 @@ class OwnSalesActivity : AppCompatActivity() {
         apiService = RetrofitClient.apiService
     }
 
-    private fun fetchSalesDataSearch(
-        apiService: ApiService,
-        containerLayout: LinearLayout
-    ) {
+    private fun fetchSalesDataSearch() {
+        isLoading = true
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Clear previous results
-                withContext(Dispatchers.Main) {
-                    containerLayout.removeAllViews()
-                }
-
-                val searchParamId = UserSession.getUserId() ?: return@launch
-                // Make API call
-                val response = apiService.searchSalesID(SearchRequestID(searchParamId))
+                val userId = UserSession.getUserId() ?: return@launch
+                val response = apiService.searchSalesID(
+                    userId = userId,
+                    page = currentPage,
+                    limit = pageSize
+                )
 
                 withContext(Dispatchers.Main) {
                     if (response.success) {
-                        if (response.data.isNotEmpty()) {
-                            displaySales(apiService, response.data, containerLayout)
+                        val sales = response.data
+                        totalPages = response.totalPages.coerceAtLeast(1) // legalább 1 oldal
+
+                        if (sales.isNotEmpty()) {
+                            hideNoProductsMessage()
+                            adapter.setSales(sales)
                         } else {
-                            showNoProductsMessage(containerLayout, response.message)
+                            showNoProductsMessage("Nincs hirdetésed.")
+                            adapter.setSales(emptyList())
                         }
+
+                        // Pagination gombok frissítése
+                        pageIndicator.text = "$currentPage / $totalPages"
+                        prevPageButton.isEnabled = currentPage > 1
+                        nextPageButton.isEnabled = currentPage < totalPages
                     } else {
-                        ErrorHandler.handleApiError(this@OwnSalesActivity, null, response.message)
-                        //Toast.makeText(this@OwnSalesActivity, "Search failed: ${response.message}", Toast.LENGTH_SHORT).show()
+                        showNoProductsMessage("Hiba történt: ${response.message}")
+                        adapter.setSales(emptyList())
                     }
+
+                    isLoading = false
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    ErrorHandler.handleNetworkError(this@OwnSalesActivity,e)
-                    //Toast.makeText(this@OwnSalesActivity, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
-                    showNoProductsMessage(containerLayout, "Ismeretlen hiba történt.")
+                    ErrorHandler.handleNetworkError(this@OwnSalesActivity, e)
+                    showNoProductsMessage("Ismeretlen hiba történt.")
+                    isLoading = false
                 }
             }
         }
     }
 
-    private fun displaySales(apiService: ApiService, sales: List<SaleWithSid>, containerLayout: LinearLayout) {
-        val inflater = LayoutInflater.from(this)
 
-        if (sales.isEmpty()) {
-            // Create and show "No products found" message
-            val noProductsView = inflater.inflate(R.layout.show_error_message, containerLayout, false)
-            containerLayout.addView(noProductsView)
-        } else {
-            for (sale in sales) {
-                val itemView = inflater.inflate(R.layout.item_own_sales, containerLayout, false)
 
-                val productName = itemView.findViewById<TextView>(R.id.productName)
-                val thumbnail = itemView.findViewById<ImageView>(R.id.productThumbnail)
-                val open = itemView.findViewById<Button>(R.id.open)
-                val modify = itemView.findViewById<Button>(R.id.modify)
-                val delete = itemView.findViewById<Button>(R.id.delete)
 
-                productName.text = sale.Name
-                containerLayout.addView(itemView)
-
-                // --- Thumbnail betöltése ---
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        val response = apiService.getThumbnail(GetSaleImagesRequest(sale.Sid))
-                        withContext(Dispatchers.Main) {
-                            if (response.success && response.thumbnail.isNotEmpty()) {
-                                Picasso.get()
-                                    .load(response.thumbnail)
-                                    .placeholder(R.drawable.baseline_loading_24)
-                                    .error(R.drawable.baseline_error_24)
-                                    .into(thumbnail)
-                            } else {
-                                thumbnail.setImageResource(R.drawable.baseline_eye_40)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) {
-                            thumbnail.setImageResource(R.drawable.baseline_home_filled_24)
-                        }
-                    }
-                }
-                val saleId = sale.Sid
-                // Add event listeners
-                open.setOnClickListener {
-                    onOpenClick(sale)
-                }
-                modify.setOnClickListener {
-                    onModifyClick(sale)
-                }
-                delete.setOnClickListener {
-                    showDeleteConfirmationDialog(apiService, saleId, itemView, containerLayout)
-                }
-            }
-        }
-    }
+//    private fun displaySales(apiService: ApiService, sales: List<SaleWithSid>, containerLayout: LinearLayout) {
+//        val inflater = LayoutInflater.from(this)
+//
+//        if (sales.isEmpty()) {
+//            // Create and show "No products found" message
+//            val noProductsView = inflater.inflate(R.layout.show_error_message, containerLayout, false)
+//            containerLayout.addView(noProductsView)
+//        } else {
+//            for (sale in sales) {
+//                val itemView = inflater.inflate(R.layout.item_own_sales, containerLayout, false)
+//
+//                val productName = itemView.findViewById<TextView>(R.id.productName)
+//                val thumbnail = itemView.findViewById<ImageView>(R.id.productThumbnail)
+//                val open = itemView.findViewById<Button>(R.id.open)
+//                val modify = itemView.findViewById<Button>(R.id.modify)
+//                val delete = itemView.findViewById<Button>(R.id.delete)
+//
+//                productName.text = sale.Name
+//                containerLayout.addView(itemView)
+//
+//                // --- Thumbnail betöltése ---
+//                CoroutineScope(Dispatchers.IO).launch {
+//                    try {
+//                        val response = apiService.getThumbnail(GetSaleImagesRequest(sale.Sid))
+//                        withContext(Dispatchers.Main) {
+//                            if (response.success && response.thumbnail.isNotEmpty()) {
+//                                Picasso.get()
+//                                    .load(response.thumbnail)
+//                                    .placeholder(R.drawable.baseline_loading_24)
+//                                    .error(R.drawable.baseline_error_24)
+//                                    .into(thumbnail)
+//                            } else {
+//                                thumbnail.setImageResource(R.drawable.baseline_eye_40)
+//                            }
+//                        }
+//                    } catch (e: Exception) {
+//                        withContext(Dispatchers.Main) {
+//                            thumbnail.setImageResource(R.drawable.baseline_home_filled_24)
+//                        }
+//                    }
+//                }
+//                val saleId = sale.Sid
+//                // Add event listeners
+//                open.setOnClickListener {
+//                    onOpenClick(sale)
+//                }
+//                modify.setOnClickListener {
+//                    onModifyClick(sale)
+//                }
+//                delete.setOnClickListener {
+//                    showDeleteConfirmationDialog(apiService, saleId)
+//                }
+//            }
+//        }
+//    }
 
     private fun onModifyClick(sale: SaleWithSid) {
         val saleId = sale.Sid
@@ -184,23 +240,24 @@ class OwnSalesActivity : AppCompatActivity() {
     }
 
 
-    private fun showNoProductsMessage(
-        containerLayout: LinearLayout?,
-        message: String = "Nem található hirdetés."
-    ) {
-        containerLayout?.removeAllViews()
-        val noProductsView = LayoutInflater.from(this).inflate(R.layout.show_error_message, containerLayout, false)
-        noProductsView.findViewById<TextView>(R.id.messageText).text = message
-        containerLayout?.addView(noProductsView)
+    private fun showNoProductsMessage(message: String) {
+        noSalesMessage.text = message
+        noSalesMessage.visibility = View.VISIBLE
+        recyclerView.visibility = View.GONE
+    }
+
+    private fun hideNoProductsMessage() {
+        noSalesMessage.visibility = View.GONE
+        recyclerView.visibility = View.VISIBLE
     }
 
     //For delete modify and open
-    private fun showDeleteConfirmationDialog(apiService: ApiService, saleId: Int, itemView: View, containerLayout: LinearLayout) {
+    private fun showDeleteConfirmationDialog(apiService: ApiService, saleId: Int) {
         AlertDialog.Builder(this)
             .setTitle("Hirdetés Törlése")
             .setMessage("Biztosan törölni akarod?")
             .setPositiveButton("Törlés") { dialog, _ ->
-                deleteSale(apiService, saleId, itemView, containerLayout)
+                deleteSale(apiService, saleId)
                 dialog.dismiss()
             }
             .setNegativeButton("Mégsem") { dialog, _ ->
@@ -210,35 +267,33 @@ class OwnSalesActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun deleteSale(apiService: ApiService, saleId: Int, itemView: View, containerLayout: LinearLayout) {
+    private fun deleteSale(apiService: ApiService, saleId: Int) {
         val userId = UserSession.getUserId()!!
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = apiService.deleteSale(DeleteSaleRequest(saleId, userId))
                 withContext(Dispatchers.Main) {
                     if (response.success) {
-                        // Remove from UI
-                        containerLayout.removeView(itemView)
-
-                        ErrorHandler.toaster(this@OwnSalesActivity,"Sikeresen törölve")
-
-                        // Refresh the list or show empty state if needed
-                        if (containerLayout.childCount == 0) {
-                            showNoProductsMessage(containerLayout, "Nem található hirdetés")
+                        val currentList = adapter.sales.toMutableList()
+                        val toRemove = currentList.find { it.Sid == saleId }
+                        if (toRemove != null) {
+                            currentList.remove(toRemove)
+                            adapter.setSales(currentList)
                         }
-                    } else {
 
+                        ErrorHandler.toaster(this@OwnSalesActivity, "Sikeresen törölve")
+                    } else {
                         ErrorHandler.handleApiError(this@OwnSalesActivity, null, response.message)
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-
-                    ErrorHandler.handleNetworkError(this@OwnSalesActivity,e)
+                    ErrorHandler.handleNetworkError(this@OwnSalesActivity, e)
                 }
             }
         }
     }
+
 
     //For navigation
     private fun navigateBackToProfile() {

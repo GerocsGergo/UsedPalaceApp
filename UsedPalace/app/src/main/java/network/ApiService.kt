@@ -101,8 +101,12 @@ interface ApiService {
     suspend fun searchSalesCategory(@Body request: SearchRequestName): ApiResponseForSearchSales
 
 
-    @POST("search-salesID")
-    suspend fun searchSalesID(@Body request: SearchRequestID): ApiResponseForSearchSales   //USER ID-vel keresi a Saleket
+    @GET("search-salesID")
+    suspend fun searchSalesID(
+        @Query("userId") userId: Int,
+        @Query("page") page: Int,
+        @Query("limit") limit: Int = 20
+    ): ApiResponseForLoadSales
 
     @POST("search-sales-withSID")
     suspend fun searchSalesSID(@Body request: SearchRequestID): ApiResponseForSalesWithEverything //Sales SID-el keresi a Saleket

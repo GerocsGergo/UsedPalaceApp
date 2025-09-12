@@ -910,47 +910,51 @@ app.post('/search-sales-withCategory', authenticateToken , async (req, res) => {
     }
 });
 
-app.post('/search-salesID', authenticateToken , async (req, res) => {
+app.get('/search-salesID', authenticateToken, async (req, res) => {
     try {
-        const { searchParam } = req.body;
-        console.log('Received search request:', searchParam);
+        const userId = parseInt(req.query.userId);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
 
-        if (!searchParam) {
+        if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "Töltsd ki a keresési mezőt.",
-                error: "Search parameter is missing",
+                message: "Felhasználó ID hiányzik.",
                 data: []
             });
         }
 
-        const query = 'SELECT * FROM Sales WHERE Uid = ?';
-        const [results] = await connection.promise().query(query, [searchParam]);
+        // Összes találat számolása
+        const [[{ total }]] = await connection.promise().query(
+            'SELECT COUNT(*) AS total FROM Sales WHERE Uid = ?',
+            [userId]
+        );
 
-        if (results.length === 0) {
-            return res.status(404).json({
-                success: true,
-                message: userApiErrorMessage,
-                error: "No product found with this ID",
-                data: []
-            });
-        }
+        // Adott oldal lekérdezése
+        const [results] = await connection.promise().query(
+            'SELECT * FROM Sales WHERE Uid = ? LIMIT ? OFFSET ?',
+            [userId, limit, offset]
+        );
 
         res.json({
             success: true,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            totalItems: total,
             data: results
         });
-        
     } catch (err) {
         console.error('Error in /search-salesID:', err);
         res.status(500).json({
             success: false,
-            message: userApiErrorMessage,
+            message: "Szerver hiba történt.",
             error: err.message,
             data: []
         });
     }
 });
+
 
 
 
@@ -2432,6 +2436,7 @@ app.post('/request-delete-user', authenticateToken , async (req, res) => {
 app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 	try {
 		const { userId, password, email, code } = req.body;
+
 		console.log('Received deletion confirm request for user: ', userId);
 		
 		  if (!userId) {
@@ -2456,7 +2461,8 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 		
 		const createdAt = new Date(request.CreatedAt);
 		const now = new Date();
-		const diffMinutes = (now - createdAt) / 100 / 60; //ez 10 perc
+		const diffMinutes = (now - createdAt) / 1000 / 60; //ez 10 perc
+
 
 		if (diffMinutes > 10) {
 			return res.status(400).json({ message: 'Verification code expired' });
@@ -2486,12 +2492,13 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 			`SELECT COUNT(*) AS count FROM sessions WHERE UserId = ? AND ExpiresAt > NOW()`,
 			[userId]
 		);
-
+	
 		if (activeSessions[0].count > 1) {
 			return res.status(400).json({
 				error: 'More than 1 active session.'
 			});
 		}
+
 
 		//End
 		
