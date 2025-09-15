@@ -149,8 +149,12 @@ interface ApiService {
     @POST("initiate-chat")
     suspend fun initiateChat(@Body request: InitiateChatRequest): InitiateChatResponse
 
-    @POST("load-user-chats")
-    suspend fun getAllChats(@Body request: SearchChatRequest): ChatListResponse
+    @GET("load-user-chats")
+    suspend fun loadChats(
+        @Query("userId") userId: Int,
+        @Query("page") page: Int,
+        @Query("limit") limit: Int = 20
+    ): ChatListResponse
 
     @POST("search-username")
     suspend fun searchUsername(@Body request: SearchRequestID): UsernameResponse

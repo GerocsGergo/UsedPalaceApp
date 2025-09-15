@@ -1560,56 +1560,73 @@ app.post('/initiate-chat', authenticateToken , async (req, res) => {
     }
 });
 
-//Load all chats for user
-// Load all chats for user with unread message count
-app.post('/load-user-chats', authenticateToken, async (req, res) => {
+
+// Load all chats for user with unread message count + pagination
+app.get('/load-user-chats', authenticateToken, async (req, res) => {
     try {
-        const { userId } = req.body;
+        const userId = parseInt(req.query.userId);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
 
         if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "User ID required",
-                error: "User ID required",
+                message: "Felhasználó ID hiányzik.",
                 data: []
             });
         }
 
-        // Lekérdezzük a chat-eket és az olvasatlan üzenetek számát
-        const query = `
-			SELECT 
-				c.ChatID,
-				c.SellerID,
-				c.BuyerID,
-				c.SaleID,
-				c.CreatedAt,
-				c.LastMessageAt,
-				SUM(CASE WHEN m.SenderID != ? AND m.isRead = 0 THEN 1 ELSE 0 END) AS unreadCount
-			FROM Chats c
-			LEFT JOIN Messages m ON c.ChatID = m.ChatID
-			WHERE c.BuyerID = ? OR c.SellerID = ?
-			GROUP BY c.ChatID, c.SellerID, c.BuyerID, c.SaleID, c.CreatedAt, c.LastMessageAt
-			ORDER BY c.LastMessageAt DESC
-		`;
+        // Összes chat számolása a userhez
+        const [[{ total }]] = await connection.promise().query(
+            `
+            SELECT COUNT(*) AS total
+            FROM Chats c
+            WHERE c.BuyerID = ? OR c.SellerID = ?
+            `,
+            [userId, userId]
+        );
 
+        // Adott oldal lekérdezése olvasatlan üzenetszámmal
+        const [results] = await connection.promise().query(
+            `
+            SELECT 
+                c.ChatID,
+                c.SellerID,
+                c.BuyerID,
+                c.SaleID,
+                c.CreatedAt,
+                c.LastMessageAt,
+                COALESCE(SUM(CASE WHEN m.SenderID != ? AND m.isRead = 0 THEN 1 ELSE 0 END), 0) AS unreadCount
+            FROM Chats c
+            LEFT JOIN Messages m ON c.ChatID = m.ChatID
+            WHERE c.BuyerID = ? OR c.SellerID = ?
+            GROUP BY c.ChatID, c.SellerID, c.BuyerID, c.SaleID, c.CreatedAt, c.LastMessageAt
+            ORDER BY c.LastMessageAt DESC
+            LIMIT ? OFFSET ?
+            `,
+            [userId, userId, userId, limit, offset]
+        );
 
-        const [results] = await connection.promise().query(query, [userId, userId, userId]);
         res.json({
             success: true,
-            message: results.length ? "Chat-ek találhatóak" : "Nem található chat",
-            error: results.length ? "" : "No chats found",
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            totalItems: total,
             data: results
         });
 
     } catch (err) {
-        console.error('Error loading chats:', err);
+        console.error('Error in /load-user-chats:', err);
         res.status(500).json({
             success: false,
-            message: "Hiba történt a chat-ek betöltésekor",
+            message: "Szerver hiba történt a chat-ek betöltésekor.",
+            error: err.message,
             data: []
         });
     }
 });
+
 
 
 //Search Username

@@ -6,5 +6,8 @@ import com.google.gson.annotations.SerializedName
 data class ChatListResponse(
     @SerializedName("success") val success: Boolean,
     @SerializedName("message") val message: String,
-    @SerializedName("data") val data: List<ChatItem>
+    @SerializedName("data") val data: List<ChatItem>,
+    @SerializedName("currentPage") val currentPage: Int,
+    @SerializedName("totalPages") val totalPages: Int,
+    @SerializedName("totalItems") val totalItems: Int,
 )

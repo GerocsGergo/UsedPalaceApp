@@ -42,19 +42,51 @@
                     android:textColor="@color/colorText" />
         </LinearLayout>
 
-        <!-- Scrollable chats container -->
-        <ScrollView
+        <!-- RecyclerView alatta scrollozik -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewSales"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:padding="8dp">
+            android:clipToPadding="false"
+            android:paddingTop="40dp"
+            android:paddingBottom="72dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
-                <LinearLayout
-                    android:id="@+id/container"
-                    android:layout_width="match_parent"
+        <!-- Pagination Buttons, mindig alul -->
+        <LinearLayout
+            android:id="@+id/paginationLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="8dp"
+            android:background="@color/colorBackground"
+            android:layout_gravity="bottom"
+            android:elevation="4dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prevPageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:textSize="16sp"
+                    style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                    android:text="Előző"/>
+
+                <TextView
+                    android:id="@+id/pageIndicator"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingBottom="16dp"/>
-        </ScrollView>
+                    android:text="1 / 1"
+                    android:padding="16dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/nextPageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:textSize="16sp"
+                    style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+                    android:text="Következő"/>
+        </LinearLayout>
 
 </LinearLayout>
