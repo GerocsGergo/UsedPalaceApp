@@ -125,8 +125,12 @@ class CreateSaleActivity : AppCompatActivity() {
         val (bigCategory, smallCategory) = saleManagerHelper.getSelectedCategories(mainCategory, subCategory)
 
         if (name.isEmpty() || description.isEmpty() || cost <= 0 || bigCategory == null) {
-            //Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show()
             ErrorHandler.toaster(this,"Kérjük töltsön ki minden mezőt!")
+            return
+        }
+
+        if (imageUris.isEmpty()) {
+            ErrorHandler.toaster(this,"Kérjük töltsön fel legalább 1 db képet!")
             return
         }
 
