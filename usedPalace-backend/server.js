@@ -1627,6 +1627,76 @@ app.get('/load-user-chats', authenticateToken, async (req, res) => {
     }
 });
 
+// Load only unread chats for user with unread message count + pagination
+app.get('/load-user-unread-chats', authenticateToken, async (req, res) => {
+    try {
+        const userId = parseInt(req.query.userId);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "Felhasználó ID hiányzik.",
+                data: []
+            });
+        }
+
+        // Összes olvasatlan chat számolása
+        const [[{ total }]] = await connection.promise().query(
+            `
+            SELECT COUNT(*) AS total
+            FROM Chats c
+            LEFT JOIN Messages m ON c.ChatID = m.ChatID
+            WHERE (c.BuyerID = ? OR c.SellerID = ?) AND m.SenderID != ? AND m.isRead = 0
+            GROUP BY c.ChatID
+            `,
+            [userId, userId, userId]
+        );
+
+        // Adott oldal lekérdezése olvasatlan üzenetszámmal
+        const [results] = await connection.promise().query(
+            `
+            SELECT 
+                c.ChatID,
+                c.SellerID,
+                c.BuyerID,
+                c.SaleID,
+                c.CreatedAt,
+                c.LastMessageAt,
+                COALESCE(SUM(CASE WHEN m.SenderID != ? AND m.isRead = 0 THEN 1 ELSE 0 END), 0) AS unreadCount
+            FROM Chats c
+            LEFT JOIN Messages m ON c.ChatID = m.ChatID
+            WHERE (c.BuyerID = ? OR c.SellerID = ?) 
+            GROUP BY c.ChatID, c.SellerID, c.BuyerID, c.SaleID, c.CreatedAt, c.LastMessageAt
+            HAVING unreadCount > 0
+            ORDER BY c.LastMessageAt DESC
+            LIMIT ? OFFSET ?
+            `,
+            [userId, userId, userId, limit, offset]
+        );
+
+        res.json({
+            success: true,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            totalItems: total,
+            data: results
+        });
+
+    } catch (err) {
+        console.error('Error in /load-user-chats-unread:', err);
+        res.status(500).json({
+            success: false,
+            message: "Szerver hiba történt a chat-ek betöltésekor.",
+            error: err.message,
+            data: []
+        });
+    }
+});
+
+
 
 
 //Search Username

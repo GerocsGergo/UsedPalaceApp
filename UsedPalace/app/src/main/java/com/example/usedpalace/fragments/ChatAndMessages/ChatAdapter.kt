@@ -6,16 +6,29 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
+import com.example.usedpalace.UserSession
+import com.example.usedpalace.fragments.ChatAndMessages.ChatItem
+import com.example.usedpalace.fragments.ChatAndMessages.ChatHelper
+import com.example.usedpalace.requests.GetSaleImagesRequest
+import com.example.usedpalace.requests.SearchRequestID
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import network.RetrofitClient
 
 class ChatAdapter(
-    private var chats: List<ChatItem>,
-    private val onClick: (ChatItem) -> Unit
+    private val onChatClick: (ChatItem) -> Unit
 ) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
 
-    fun updateData(newChats: List<ChatItem>) {
-        chats = newChats
+    private val chatList = mutableListOf<ChatItem>()
+
+    fun setData(newChats: List<ChatItem>) {
+        chatList.clear()
+        chatList.addAll(newChats)
         notifyDataSetChanged()
     }
 
@@ -25,40 +38,69 @@ class ChatAdapter(
         return ChatViewHolder(view)
     }
 
+    override fun getItemCount(): Int = chatList.size
+
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
-        val chat = chats[position]
-        holder.bind(chat)
-        holder.itemView.setOnClickListener { onClick(chat) }
+        holder.bind(chatList[position])
     }
 
-    override fun getItemCount() = chats.size
-
-    class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val nameView: TextView = itemView.findViewById(R.id.profile_name)
-        private val dateView: TextView = itemView.findViewById(R.id.last_message_date)
-        private val productNameView: TextView = itemView.findViewById(R.id.product_name)
-        private val imageView: ImageView = itemView.findViewById(R.id.image1)
+    inner class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val profileName: TextView = itemView.findViewById(R.id.profile_name)
+        private val productName: TextView = itemView.findViewById(R.id.product_name)
+        private val lastMessageDate: TextView = itemView.findViewById(R.id.last_message_date)
         private val unreadDot: View = itemView.findViewById(R.id.unread_dot_product)
+        private val imageView: ImageView = itemView.findViewById(R.id.image1)
 
         fun bind(chat: ChatItem) {
-            nameView.text = chat.username ?: "Ismeretlen felhasználó"
-            dateView.text = ChatHelper.formatDateString(chat.lastMessageAt)
-            productNameView.text = chat.productName ?: "Ismeretlen termék"
+            lastMessageDate.text = ChatHelper.formatDateString(chat.lastMessageAt)
+            unreadDot.visibility = if (chat.unreadCount > 0) View.VISIBLE else View.GONE
 
-            unreadDot.visibility = if (chat.unreadCount > 0 && chat.isActive) View.VISIBLE else View.GONE
+            profileName.text = chat.username?.takeIf { it != "Deleted User" } ?: "Ismeretlen"
 
-            if (chat.productImage != null) {
-                Picasso.get()
-                    .load(chat.productImage)
-                    .placeholder(R.drawable.baseline_loading_24)
-                    .error(R.drawable.baseline_error_24)
-                    .into(imageView)
-            } else {
-                imageView.setImageResource(
-                    if (chat.isActive) R.drawable.baseline_eye_40
-                    else R.drawable.baseline_info_outline_40
-                )
+            chat.saleId.let { saleId ->
+                CoroutineScope(Dispatchers.Main).launch {
+                    try {
+                        val saleResponse = withContext(Dispatchers.IO) {
+                            RetrofitClient.apiService.searchSalesSID(SearchRequestID(saleId))
+                        }
+
+                        if (saleResponse.success && saleResponse.data != null) {
+                            productName.text = saleResponse.data.Name
+
+                            val imagesResponse = withContext(Dispatchers.IO) {
+                                RetrofitClient.apiService.getSaleImages(GetSaleImagesRequest(saleId))
+                            }
+
+                            if (imagesResponse.success && imagesResponse.images.isNotEmpty()) {
+                                Picasso.get()
+                                    .load(imagesResponse.images.first())
+                                    .placeholder(R.drawable.baseline_loading_24)
+                                    .error(R.drawable.baseline_error_24)
+                                    .into(imageView)
+                            } else {
+                                imageView.setImageResource(R.drawable.baseline_eye_40)
+                            }
+                        } else {
+                            productName.text = "Eladott termék nem elérhető"
+                            imageView.setImageResource(R.drawable.baseline_eye_40)
+                        }
+                    } catch (e: Exception) {
+                        productName.text = "Hiba"
+                        imageView.setImageResource(R.drawable.baseline_error_24)
+                        ErrorHandler.logToLogcat(
+                            "ChatAdapter",
+                            "Hiba betöltés közben",
+                            ErrorHandler.LogLevel.ERROR,
+                            e
+                        )
+                    }
+                }
+            }
+
+            itemView.setOnClickListener {
+                onChatClick(chat)
             }
         }
+
     }
 }

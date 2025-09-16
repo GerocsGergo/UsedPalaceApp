@@ -1,400 +1,198 @@
 package com.example.usedpalace.fragments
 
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
+import android.service.controls.actions.ControlAction
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
-import network.RetrofitClient
 import com.example.usedpalace.UserSession
-import com.example.usedpalace.fragments.ChatAndMessages.ChatActivity
-import com.example.usedpalace.fragments.ChatAndMessages.ChatHelper
+import com.example.usedpalace.fragments.ChatAndMessages.ChatAdapter
 import com.example.usedpalace.fragments.ChatAndMessages.ChatItem
-import com.example.usedpalace.fragments.ChatAndMessages.Requests.SearchChatRequest
-import com.example.usedpalace.requests.GetSaleImagesRequest
+import com.example.usedpalace.fragments.ChatAndMessages.ChatActivity
 import com.example.usedpalace.requests.SaveFcmTokenRequest
 import com.example.usedpalace.requests.SearchRequestID
 import com.google.firebase.messaging.FirebaseMessaging
-import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import network.ApiService
-
+import network.RetrofitClient
 
 class MessagesFragment : Fragment() {
+
     private lateinit var apiService: ApiService
-    private lateinit var prefs: SharedPreferences
-    private var userId: Int = -1
-
-    private var currentFilter: Int = R.id.filter_active
-
+    private lateinit var chatAdapter: ChatAdapter
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var prevPageButton: Button
+    private lateinit var nextPageButton: Button
+    private lateinit var pageIndicator: TextView
     private lateinit var filterButton: Button
-    private val baseImageUrl = "http://10.224.83.75:3000"
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-        }
-    }
+    private var currentPage = 1
+    private var totalPages = 1
+    private val limit = 10
+
+    private var currentFilter: Int = R.id.filter_all // alapértelmezett
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_messages, container, false)
-        val containerLayout = view.findViewById<LinearLayout>(R.id.container)
 
-        setupViews(view)
-        initialize()
-        setupClickListeners(apiService, containerLayout, inflater)
-        //fetchChats(apiService, containerLayout, inflater, "activeChats")
+        recyclerView = view.findViewById(R.id.recyclerViewChats)
+        prevPageButton = view.findViewById(R.id.prevPageButton)
+        nextPageButton = view.findViewById(R.id.nextPageButton)
+        pageIndicator = view.findViewById(R.id.pageIndicator)
+        filterButton = view.findViewById(R.id.filterButton)
 
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        chatAdapter = ChatAdapter { chat -> onChatClick(chat) }
+        recyclerView.adapter = chatAdapter
+
+        RetrofitClient.init(requireContext().applicationContext)
+        apiService = RetrofitClient.apiService
+
+        setupListeners()
         return view
     }
 
     override fun onResume() {
         super.onResume()
-        val containerLayout = view?.findViewById<LinearLayout>(R.id.container)
-        containerLayout?.removeAllViews()
-        fetchChats(apiService, containerLayout, layoutInflater, "activeChats")
-
+        currentPage = 1
+        loadChatsPage()
 
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val currentToken = task.result
-                ErrorHandler.logToLogcat("firebase token","firebase token: $currentToken")
-                // Küldjük el a szerverre
                 CoroutineScope(Dispatchers.IO).launch {
-                    apiService.saveFcmToken(SaveFcmTokenRequest(UserSession.getUserId()!!, currentToken))
+                    apiService.saveFcmToken(
+                        SaveFcmTokenRequest(UserSession.getUserId()!!, currentToken)
+                    )
                 }
             }
         }
     }
 
-
-    private fun setupViews(view: View) {
-        filterButton = view.findViewById(R.id.filterButton)
-        //deletedChats = view.findViewById(R.id.deletedChats)
-        //activeChats  = view.findViewById(R.id.activeChats)
-
-
-    }
-
-
-    private fun initialize() {
-        prefs = requireContext().getSharedPreferences("MyAppPrefs", MODE_PRIVATE)
-        RetrofitClient.init(requireContext().applicationContext)
-        apiService = RetrofitClient.apiService
-    }
-
-    private fun setupClickListeners(apiService: ApiService, containerLayout: LinearLayout?, inflater: LayoutInflater) {
-
+    private fun setupListeners() {
         filterButton.setOnClickListener { v ->
-            val popup = android.widget.PopupMenu(requireContext(), v)
+            val popup = PopupMenu(requireContext(), v)
             popup.menuInflater.inflate(R.menu.chats_filter_menu, popup.menu)
-
             popup.setOnMenuItemClickListener { item ->
                 currentFilter = item.itemId
-                when (item.itemId) {
-                    R.id.filter_active -> {
-                        fetchChats(apiService, containerLayout, inflater, "activeChats")
-                    }
-                    R.id.filter_deleted -> {
-                        fetchChats(apiService, containerLayout, inflater, "deletedChats")
-                    }
+
+                // Frissítjük a top title-t a filter alapján
+                val titleTextView: TextView? = view?.findViewById(R.id.messagesTitle)
+                titleTextView?.text = when(currentFilter) {
+                    R.id.filter_unread -> "Olvasatlan üzeneteid"
+                    else -> "Üzeneteid"
                 }
+
+                ErrorHandler.toaster(requireContext(), "Szűrés: ${item.title}")
+                currentPage = 1
+                loadChatsPage()
                 true
             }
             popup.show()
         }
-    }
 
-    private fun showErrorMessage(
-        containerLayout: LinearLayout?,
-        inflater: LayoutInflater,
-        message: String = "Nem találhatóak üzenetek!"
-    ) {
-        containerLayout?.removeAllViews()
-        val noChatsView = inflater.inflate(R.layout.show_error_message, containerLayout, false)
-        noChatsView.findViewById<TextView>(R.id.messageText).text = message
-        containerLayout?.addView(noChatsView)
-    }
+        prevPageButton.setOnClickListener {
+            if (currentPage > 1) {
+                currentPage--
+                loadChatsPage()
+            }
+        }
 
-    private fun displayDeletedChats(apiService: ApiService, chats: List<ChatItem>, containerLayout: LinearLayout?, inflater: LayoutInflater){
-        if (chats.isEmpty()) {
-            showErrorMessage(containerLayout, inflater)
-        } else {
-            containerLayout?.removeAllViews()
-
-            for (chat in chats) {
-                val itemView = inflater.inflate(R.layout.item_fragment_messages, containerLayout, false)
-                var username:String? = null
-
-                CoroutineScope(Dispatchers.Main).launch {
-                    try {
-                         username = if (userId == chat.buyerId){
-                            fetchUsername(chat.sellerId)
-                        }else{
-                            fetchUsername(chat.buyerId)
-                        }
-                        if (username != null) {
-                            itemView.findViewById<TextView>(R.id.profile_name).text = username
-                        } else {
-                            //Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
-                            ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
-                        }
-
-                    }catch (e: Exception){
-                        //Toast.makeText(context, "Username not found", Toast.LENGTH_SHORT).show()
-                        ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
-
-                    }
-                }
-
-                itemView.findViewById<TextView>(R.id.last_message_date).text = ChatHelper.formatDateString(chat.lastMessageAt)
-
-                CoroutineScope(Dispatchers.Main).launch {
-                    try {
-                        val deletedSale = withContext(Dispatchers.IO) {
-                            apiService.searchDeletedSalesSID(SearchRequestID(chat.saleId))
-                        }
-                        if (deletedSale.success && deletedSale.data != null) {
-                            val productName = "This sale has been deleted!"
-                            itemView.findViewById<TextView>(R.id.product_name).text = productName
-                            containerLayout?.addView(itemView)
-                        } else {
-                            val activeSale = withContext(Dispatchers.IO) {
-                                apiService.searchSalesSID(SearchRequestID(chat.saleId))
-                            }
-                            if (activeSale.success && activeSale.data != null && username == "Deleted User") {
-                                itemView.findViewById<TextView>(R.id.product_name).text = activeSale.data.Name
-
-                               val imageView: ImageView = itemView.findViewById(R.id.image1)
-                                try {
-                                    val imageResponse = apiService.getSaleImages(
-                                        GetSaleImagesRequest(chat.saleId)
-                                    )
-                                    withContext(Dispatchers.Main) {
-                                        if (imageResponse.success) {
-                                            val images = imageResponse.images ?: emptyList()
-                                            if (images.isNotEmpty()) {
-                                                Picasso.get()
-                                                    .load(images.first()) // az első képet betöltöd
-                                                    .placeholder(R.drawable.baseline_loading_24)
-                                                    .error(R.drawable.baseline_error_24)
-                                                    .into(imageView)
-                                            } else {
-                                                imageView.setImageResource(R.drawable.baseline_eye_40) // nincs kép
-                                            }
-                                        } else {
-                                            imageView.setImageResource(R.drawable.baseline_info_outline_40)
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    withContext(Dispatchers.Main) {
-                                        imageView.setImageResource(R.drawable.baseline_home_filled_24)
-                                    }
-                                }
-
-
-                                containerLayout?.addView(itemView)
-
-                                itemView.setOnClickListener {
-                                    onProductClick(chat.chatId, username, chat.saleId, chat.sellerId)
-                                }
-                            } else {
-                                //Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
-                                ErrorHandler.logToLogcat("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
-                                //ErrorHandler.handleApiError(requireContext(), null, "No chat found with this saleID: " + chat.saleId)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        //Log.e("MessagesFragment", "Error loading chat details", e)
-                        ErrorHandler.handleNetworkError(requireContext(),e)
-                        showErrorMessage(containerLayout, inflater, message = "Ismeretlen hiba, kérjük próbáld újra később.")
-                    }
-                }
-
-
-
+        nextPageButton.setOnClickListener {
+            if (currentPage < totalPages) {
+                currentPage++
+                loadChatsPage()
             }
         }
     }
 
-    private fun displayActiveChats(apiService: ApiService, chats: List<ChatItem>, containerLayout: LinearLayout?, inflater: LayoutInflater){
-        if (chats.isEmpty()) {
-
-            showErrorMessage(containerLayout, inflater)
-        } else {
-            containerLayout?.removeAllViews()
-
-            for (chat in chats) {
-                val itemView = inflater.inflate(R.layout.item_fragment_messages, containerLayout, false)
-                var username:String? = null
-
-                val unreadProductDot = itemView.findViewById<View>(R.id.unread_dot_product)
-
-                 if (chat.unreadCount > 0) {
-                    unreadProductDot.visibility = View.VISIBLE
-                } else {
-                    unreadProductDot.visibility = View.GONE
-                }
-                CoroutineScope(Dispatchers.Main).launch {
-                    try {
-                        username = if (userId == chat.buyerId){
-                            fetchUsername(chat.sellerId)
-
-                        }else{
-                            fetchUsername(chat.buyerId)
-
-                        }
-                        if (username != null) {
-                            itemView.findViewById<TextView>(R.id.profile_name).text = username
-                        } else {
-                            ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
-                        }
-                        itemView.setOnClickListener {
-                            onProductClick(chat.chatId, username, chat.saleId, chat.sellerId)
-                        }
-                    }catch (e: Exception){
-                        ErrorHandler.toaster(requireContext(), "Ismeretlen hiba történt", Toast.LENGTH_SHORT)
-                    }
-                }
-
-                itemView.findViewById<TextView>(R.id.last_message_date).text = ChatHelper.formatDateString(chat.lastMessageAt)
-                // Load sale info asynchronously
-                CoroutineScope(Dispatchers.Main).launch {
-                    try {
-                        val sale = withContext(Dispatchers.IO) {
-                            apiService.searchSalesSID(SearchRequestID(chat.saleId))
-                        }
-                        if (sale.success && sale.data != null) {
-                            itemView.findViewById<TextView>(R.id.product_name).text = sale.data.Name
-
-                            val imageView: ImageView = itemView.findViewById(R.id.image1)
-
-                            try {
-                                val response = RetrofitClient.apiService.getThumbnail(GetSaleImagesRequest(chat.saleId))
-                                withContext(Dispatchers.Main) {
-                                    if (response.success && response.thumbnail.isNotEmpty()) {
-                                        val thumbnailUrl = response.thumbnail
-                                        Picasso.get()
-                                            .load(thumbnailUrl)
-                                            .placeholder(R.drawable.baseline_loading_24)
-                                            .error(R.drawable.baseline_error_24)
-                                                .into(imageView)
-                                        } else {
-                                            imageView.setImageResource(R.drawable.baseline_eye_40) // nincs kép
-                                        }
-                                    }
-                            } catch (e: Exception) {
-                                withContext(Dispatchers.Main) {
-                                    imageView.setImageResource(R.drawable.baseline_home_filled_24)
-                                }
-                            }
-                            if (username != "Deleted User") {
-                                containerLayout?.addView(itemView)
-                            }
-
-                        } else {
-                            //Log.e("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
-                            //ErrorHandler.handleApiError(requireContext(),null, "No chat found with this saleID: " + chat.saleId)
-                            ErrorHandler.logToLogcat("MessagesFragment", "No chat found with this saleID: " + chat.saleId)
-                        }
-                    } catch (e: Exception) {
-                        //Log.e("MessagesFragment", "Error loading chat details", e)
-                        ErrorHandler.handleNetworkError(requireContext(),e)
-                        showErrorMessage(containerLayout, inflater, message = "Ismeretlen hiba, kérjük próbáld újra később.")
-                    }
-                }
+    private fun onChatClick(chat: ChatItem) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val username = fetchUsername(chat)
+            val intent = Intent(context, ChatActivity::class.java).apply {
+                putExtra("CHAT_ID", chat.chatId)
+                putExtra("USERNAME", username)
+                putExtra("SALE_ID", chat.saleId)
+                putExtra("SELLER_ID", chat.sellerId)
             }
+            startActivity(intent)
         }
     }
 
-    private fun onProductClick(chatId: Int, username: String?, saleId: Int, sellerId: Int) {
-        val intent = Intent(context, ChatActivity::class.java).apply {
-            putExtra("CHAT_ID", chatId)
-            putExtra("USERNAME", username)
-            putExtra("SALE_ID", saleId)
-            putExtra("SELLER_ID", sellerId)
-        }
-        startActivity(intent)
-    }
-
-    private suspend fun fetchUsername(userId: Int): String? {
-
-        return try {
-            val response = apiService.searchUsername(SearchRequestID(userId))
-            if (response.success && response.fullname != null) {
+    private suspend fun fetchUsername(chat: ChatItem): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val userId = if (UserSession.getUserId() == chat.buyerId) chat.sellerId else chat.buyerId
+                val response = apiService.searchUsername(SearchRequestID(userId))
                 response.fullname
-            } else {
-                ErrorHandler.logToLogcat("Search", "Username not found: ${response.message}", ErrorHandler.LogLevel.ERROR)
-                null // Return null if not found
+            } catch (e: Exception) {
+                ErrorHandler.handleNetworkError(requireContext(),e)
+                null
             }
-        } catch (e: Exception) {
-            ErrorHandler.logToLogcat("Search", "Error fetching username", ErrorHandler.LogLevel.ERROR, e)
-            null // Return null on error
         }
     }
 
-
-    private fun fetchChats(apiService: ApiService, containerLayout: LinearLayout?, inflater: LayoutInflater, flag: String) {
-
+    private fun loadChatsPage() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                withContext(Dispatchers.Main) {
-                    containerLayout?.removeAllViews()
+                val userId = UserSession.getUserId()!!
+                val response = when (currentFilter) {
+                    R.id.filter_unread -> apiService.loadUnreadChats(userId, currentPage, limit)
+                    else -> apiService.loadChats(userId, currentPage, limit)
                 }
 
-                userId = UserSession.getUserId()!!
+                if (response.success) {
+                    val enrichedChats = response.data.mapNotNull { chat ->
+                        val otherUserId = if (userId == chat.buyerId) chat.sellerId else chat.buyerId
+                        val username = try {
+                            apiService.searchUsername(SearchRequestID(otherUserId)).fullname
+                        } catch (e: Exception) { "Ismeretlen" }
 
-                val response = apiService.getAllChats(SearchChatRequest(userId))
+                        if (username == "Deleted User") return@mapNotNull null
 
-                withContext(Dispatchers.Main) {
-                    if (response.success) {
-                        if (response.data.isNotEmpty()) {
-                            when (flag) {
-                                "activeChats" -> displayActiveChats(apiService, response.data, containerLayout, inflater)
-                                "deletedChats" -> displayDeletedChats(apiService, response.data, containerLayout, inflater)
-                                else -> displayActiveChats(apiService, response.data, containerLayout, inflater)
-                            }
+                        val saleResponse = try {
+                            apiService.searchSalesSID(SearchRequestID(chat.saleId))
+                        } catch (e: Exception) { null }
 
-                        } else {
-                            Log.e("MessagesFragment", "No chats found")
-                            ErrorHandler.logToLogcat("MessagesFragment", "No chats found",ErrorHandler.LogLevel.ERROR)
-                            showErrorMessage(containerLayout, inflater, response.message)
+                        if (saleResponse == null || !saleResponse.success || saleResponse.data == null) {
+                            return@mapNotNull null
                         }
-                    } else {
-                        ErrorHandler.handleApiError(requireContext(),null, response.message)
-                     }
+
+                        chat.copy(username = username)
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        totalPages = response.totalPages
+                        pageIndicator.text = "$currentPage / $totalPages"
+                        chatAdapter.setData(enrichedChats)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
+                        chatAdapter.setData(emptyList())
+                    }
                 }
             } catch (e: Exception) {
-                Log.e("MessagesFragment fetch", "Network error", e)
                 withContext(Dispatchers.Main) {
-                    ErrorHandler.handleNetworkError(requireContext(),e)
-                    showErrorMessage(containerLayout, inflater, "Connection error")
+                    Toast.makeText(requireContext(), "Hálózati hiba", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
-
-
-
-
-
 }
-
-

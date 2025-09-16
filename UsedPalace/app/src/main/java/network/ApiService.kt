@@ -105,7 +105,7 @@ interface ApiService {
     suspend fun searchSalesID(
         @Query("userId") userId: Int,
         @Query("page") page: Int,
-        @Query("limit") limit: Int = 20
+        @Query("limit") limit: Int = 10
     ): ApiResponseForLoadSales
 
     @POST("search-sales-withSID")
@@ -153,7 +153,14 @@ interface ApiService {
     suspend fun loadChats(
         @Query("userId") userId: Int,
         @Query("page") page: Int,
-        @Query("limit") limit: Int = 20
+        @Query("limit") limit: Int = 10
+    ): ChatListResponse
+
+    @GET("load-user-unread-chats")
+    suspend fun loadUnreadChats(
+        @Query("userId") userId: Int,
+        @Query("page") page: Int,
+        @Query("limit") limit: Int = 10
     ): ChatListResponse
 
     @POST("search-username")

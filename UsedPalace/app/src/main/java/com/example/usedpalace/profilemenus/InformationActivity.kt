@@ -18,19 +18,9 @@ import network.ApiService
 import org.json.JSONObject
 
 class InformationActivity : AppCompatActivity() {
-    private lateinit var apiService: ApiService
-    private lateinit var prefs: SharedPreferences
-    private var saleId: Int = -1
-    private var sellerId: Int = -1
-    private var buyerId: Int = -1
-
     // Views
-    private lateinit var imageSlider: ViewPager2
-    private lateinit var productTitle: TextView
     private lateinit var versionTextView: TextView
     private lateinit var changeLogTextView: TextView
-    private lateinit var mainLayout: ConstraintLayout
-    private lateinit var messageButton: Button
     private lateinit var buttonBack: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -123,25 +113,5 @@ class InformationActivity : AppCompatActivity() {
         textView.text = "Legutóbbi verzió: $version"
     }
 
-
-
-    private fun readChangeLog(context: Context): Pair<String, List<String>> {
-        val inputStream = context.assets.open("changeLog.json")
-        val jsonString = inputStream.bufferedReader().use { it.readText() }
-
-        val jsonObject = JSONObject(jsonString)
-        val versionsArray = jsonObject.getJSONArray("versions")
-        val firstEntry = versionsArray.getJSONObject(0)
-
-        val version = firstEntry.getString("version")
-        val changesJsonArray = firstEntry.getJSONArray("changes")
-
-        val changesList = mutableListOf<String>()
-        for (i in 0 until changesJsonArray.length()) {
-            changesList.add(changesJsonArray.getString(i))
-        }
-
-        return Pair(version, changesList)
-    }
 
 }

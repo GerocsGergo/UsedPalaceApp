@@ -9,5 +9,6 @@ data class ChatItem(
     @SerializedName("SaleID") val saleId: Int,
     @SerializedName("CreatedAt") val createdAt: String,
     @SerializedName("LastMessageAt") val lastMessageAt: String,
-    @SerializedName("unreadCount") val unreadCount: Int = 0
+    @SerializedName("unreadCount") val unreadCount: Int = 0,
+    @SerializedName("username") val username: String? = null,
 )
