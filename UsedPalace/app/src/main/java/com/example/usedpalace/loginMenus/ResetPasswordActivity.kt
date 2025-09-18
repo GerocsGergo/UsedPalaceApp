@@ -56,14 +56,12 @@ class ResetPasswordActivity : AppCompatActivity() {
 
             // Validate inputs
             if (code.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
-                //Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
                 ErrorHandler.toaster(this,"Kérjük töltsön ki minden mezőt")
                 return@setOnClickListener
             }
 
             if (newPassword != confirmPassword) {
-                //Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
-                ErrorHandler.toaster(this,"A jelszavak nem egyeznek")
+                 ErrorHandler.toaster(this,"A jelszavak nem egyeznek")
                 return@setOnClickListener
             }
 
@@ -73,22 +71,19 @@ class ResetPasswordActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
                         ErrorHandler.toaster(this@ResetPasswordActivity, "Jelszó sikeresen visszaállítva")
-                        //Toast.makeText(this@ResetPasswordActivity, "Password reset successfully", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this@ResetPasswordActivity, LogActivity::class.java)
                         startActivity(intent)
                         finishAffinity() //close and clear backstack
                     } else {
                         val errorBody = response.errorBody()?.string()
                         ErrorHandler.handleApiError(this@ResetPasswordActivity, response.code(), errorBody)
-                        //Toast.makeText(this@ResetPasswordActivity, "Failed: $errorBody", Toast.LENGTH_SHORT).show()
-                    }
+                         }
                 }
 
                 override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
                     ErrorHandler.handleNetworkError(this@ResetPasswordActivity, t)
 
-                    //Toast.makeText(this@ResetPasswordActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-                }
+                     }
             })
         }
     }

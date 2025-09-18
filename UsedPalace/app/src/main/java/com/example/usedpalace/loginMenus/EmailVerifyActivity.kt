@@ -61,7 +61,6 @@ class EmailVerifyActivity : AppCompatActivity() {
 
         // Validate inputs
         if (code.isEmpty()){
-            //Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
             ErrorHandler.toaster(this, "Kérjük töltsön ki minden mezőt")
         } else  {
             // Send request to the server
@@ -69,20 +68,17 @@ class EmailVerifyActivity : AppCompatActivity() {
             apiServiceNoAuth.verifyEmail(request).enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
-                        //Toast.makeText(this@EmailVerifyActivity, "Email verified successfully", Toast.LENGTH_SHORT).show()
                         ErrorHandler.toaster(this@EmailVerifyActivity, "Email verified successfully")
                         val intent = Intent(this@EmailVerifyActivity, LogActivity::class.java)
                         startActivity(intent)
 
                     } else {
                         val errorBody = response.errorBody()?.string()
-                        //Toast.makeText(this@EmailVerifyActivity, "Failed: $errorBody", Toast.LENGTH_SHORT).show()
-                        ErrorHandler.handleApiError(this@EmailVerifyActivity, null, errorBody)
+                         ErrorHandler.handleApiError(this@EmailVerifyActivity, null, errorBody)
                     }
                 }
                 override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-                    //Toast.makeText(this@EmailVerifyActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-                    ErrorHandler.handleNetworkError(this@EmailVerifyActivity,t)
+                     ErrorHandler.handleNetworkError(this@EmailVerifyActivity,t)
                 }
             })
         }
@@ -116,8 +112,7 @@ class EmailVerifyActivity : AppCompatActivity() {
             }
 
             if (email.isNullOrEmpty()) {
-                //Toast.makeText(this, "Kérjük, add meg az email címet", Toast.LENGTH_SHORT).show()
-                ErrorHandler.toaster(this, "Kérjük, add meg az email címet")
+                 ErrorHandler.toaster(this, "Kérjük, add meg az email címet")
                 return@setOnClickListener
             }
 

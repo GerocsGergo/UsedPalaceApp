@@ -76,7 +76,6 @@ class LogActivity : AppCompatActivity() {
             apiServiceAuth.verifyToken("Bearer $token").enqueue(object : Callback<ResponseForLoginTokenExpiration> {
                 override fun onResponse(call: Call<ResponseForLoginTokenExpiration>, response: Response<ResponseForLoginTokenExpiration>) {
                     if (response.isSuccessful) {
-                        //Log.d("JWTCheck", "Token is valid")
                         ErrorHandler.logToLogcat("JWTCheck", "Token is valid", ErrorHandler.LogLevel.DEBUG)
 
                         val savedUserName = prefs.getString("userName", null)
@@ -106,8 +105,7 @@ class LogActivity : AppCompatActivity() {
                         btnReg.visibility = View.GONE
                         buttonVerifyEmail.visibility = View.GONE
                     } else {
-                        //Log.d("JWTCheck", "Token is invalid or expired")
-                        ErrorHandler.logToLogcat("JWTCheck", "Token is invalid or expired", ErrorHandler.LogLevel.DEBUG)
+                         ErrorHandler.logToLogcat("JWTCheck", "Token is invalid or expired", ErrorHandler.LogLevel.DEBUG)
                         val errorBody = response.errorBody()?.string()
                         ErrorHandler.handleApiError(this@LogActivity, response.code(), errorBody)
                         // No token: show login inputs
@@ -227,7 +225,6 @@ class LogActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<ResponseMessageWithUser>, t: Throwable) {
                     // Handle network errors
-                    //Toast.makeText(this@LogActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
                     ErrorHandler.handleNetworkError(this@LogActivity, t)
                 }
             })
@@ -241,12 +238,9 @@ class LogActivity : AppCompatActivity() {
             apiServiceAuth.logoutUser("Bearer $token").enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
-                        //Toast.makeText(this@LogActivity, response.body()?.message ?: "Sikeres kijelentkezés", Toast.LENGTH_SHORT).show()
-                        ErrorHandler.toaster(this@LogActivity, "Sikeres kijelentkezés")
+                         ErrorHandler.toaster(this@LogActivity, "Sikeres kijelentkezés")
                     } else {
-                        //Toast.makeText(this@LogActivity, "Kijelentkezés sikertelen", Toast.LENGTH_SHORT).show()
-                        //ErrorHandler.toaster(this@LogActivity, "Sikertelen kijelentkezés")
-                        val errorBody = response.errorBody()?.string()
+                         val errorBody = response.errorBody()?.string()
                         ErrorHandler.handleApiError(this@LogActivity, response.code(), errorBody)
                     }
                     // Minden esetben töröljük a helyi adatokat és session-t
@@ -254,8 +248,7 @@ class LogActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-                    //Toast.makeText(this@LogActivity, "Hálózati hiba a kijelentkezéskor: ${t.message}", Toast.LENGTH_SHORT).show()
-                    ErrorHandler.handleNetworkError(this@LogActivity, t)
+                      ErrorHandler.handleNetworkError(this@LogActivity, t)
 
                     clearSessionAndGoToLogin()
                 }

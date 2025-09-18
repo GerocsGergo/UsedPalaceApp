@@ -66,13 +66,18 @@
                     android:text="Product Name"
                     android:textColor="@color/colorText"/>
 
-                <View
-                    android:id="@+id/unread_dot_product"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                <TextView
+                    android:id="@+id/unread_badge"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="end|center_vertical"
-                    android:background="@drawable/red_dot"
-                    android:visibility="visible"/>
+                    android:gravity="center"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    android:background="@drawable/unread_badge_bg"
+                    android:visibility="gone"/>
+
+
             </FrameLayout>
 
             <!-- Last Message Date -->

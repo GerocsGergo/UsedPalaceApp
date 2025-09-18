@@ -143,7 +143,6 @@ class ModifySaleActivity : AppCompatActivity() {
                 }
 
                 if (count > allowedToAdd) {
-                    //Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
                     ErrorHandler.toaster(this,"Maximum $MAX_IMAGES kép tölthető fel")
                 }
             } else {
@@ -151,8 +150,7 @@ class ModifySaleActivity : AppCompatActivity() {
                     if (imageUris.size < MAX_IMAGES) {
                         selectedUris.add(uri)
                     } else {
-                        //Toast.makeText(this, "Maximum $MAX_IMAGES kép tölthető fel", Toast.LENGTH_SHORT).show()
-                        ErrorHandler.toaster(this,"Maximum $MAX_IMAGES kép tölthető fel")
+                         ErrorHandler.toaster(this,"Maximum $MAX_IMAGES kép tölthető fel")
                     }
                 }
             }
@@ -171,14 +169,12 @@ class ModifySaleActivity : AppCompatActivity() {
                         displaySale(response.data)
                     } else {
                         ErrorHandler.handleApiError(this@ModifySaleActivity, null,response.message)
-                        //Toast.makeText(this@ModifySaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
-                    }
+                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     ErrorHandler.handleNetworkError(this@ModifySaleActivity,e)
-                    //Toast.makeText(this@ModifySaleActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
+                    }
             }
         }
     }
@@ -231,7 +227,6 @@ class ModifySaleActivity : AppCompatActivity() {
 
         if (name.isEmpty() || description.isEmpty() || cost <= 0 || bigCategory == null) {
             ErrorHandler.toaster(this,"Kérjük minden mezőt töltsön ki.")
-            //Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -267,16 +262,14 @@ class ModifySaleActivity : AppCompatActivity() {
                             }
                         }
                     } else {
-                        //Toast.makeText(this@ModifySaleActivity, "Error: ${response.message}", Toast.LENGTH_SHORT).show()
-                        ErrorHandler.handleApiError(this@ModifySaleActivity, null,response.message)
+                          ErrorHandler.handleApiError(this@ModifySaleActivity, null,response.message)
                         modifyButton.isEnabled = true
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     ErrorHandler.handleNetworkError(this@ModifySaleActivity,e)
-                    //Toast.makeText(this@ModifySaleActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                    modifyButton.isEnabled = true
+                     modifyButton.isEnabled = true
                 }
             }
         }

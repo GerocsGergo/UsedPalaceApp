@@ -789,51 +789,6 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
 });
 
 
-app.post('/search-deletedSales-withSID', authenticateToken , async (req, res) => {
-    try {
-		
-        const { searchParam } = req.body;
-        console.log('Received deleted sales search request:', searchParam);
-		
-        if (!searchParam) {
-            return res.status(400).json({
-                success: false,
-                error: "Search parameter is missing",
-                message: "Töltsd ki a keresési mezőt.",
-                data: null
-            });
-        }
-
-        const query = 'SELECT * FROM DeletedSales WHERE Sid = ?';
-        
-        const [results] = await connection.promise().query(query, [searchParam]);
-
-        if (results.length === 0) {
-            return res.json({
-                success: true,
-                message: userApiErrorMessage,
-				error:"No product found with this ID",
-                data: null 
-            });
-        }
-
- 
-        res.json({
-            success: true,
-            data: results[0]  
-        });
-        
-    } catch (err) {
-        console.error('Error in /search-deletedSales-withSID:', err);
-        res.status(500).json({
-            success: false,
-            
-			message: userApiErrorMessage,
-            data: null 
-        });
-    }
-});
-
 app.post('/search-sales-withSaleName', authenticateToken , async (req, res) => {
     try {
         const { searchParam } = req.body;
@@ -1241,67 +1196,6 @@ app.post('/delete-images', authenticateToken, async (req, res) => {
 });
 
 
-// Get images for modify
-app.post('/get-images-with-saleId', authenticateToken , async (req, res) => {
-    try {
-        const { searchParam } = req.body;
-        
-        if (!searchParam) {
-            return res.status(400).json({
-                success: false,
-                message: "Kérjük töltsön ki minden mezőt",
-                error: "Search parameter is required",
-                data: null
-            });
-        }
-
-        const query = 'SELECT * FROM Sales WHERE Sid = ? LIMIT 1';
-        const [results] = await connection.promise().query(query, [searchParam]);
-
-        if (!results.length) {
-            return res.json({
-                success: false,
-                message: "Nem található hirdetés",
-                error: "No product found",
-                data: null
-            });
-        }
-
-        const sale = results[0];
-        const saleFolder = sale.SaleFolder;
-        const folderPath = path.join('sales', saleFolder);
-
-        let imageUrls = [];
-        if (fs.existsSync(folderPath)) {
-            // thumbnail-ek kiszűrése
-            const files = fs.readdirSync(folderPath)
-                .filter(file => !file.toLowerCase().includes('_thumb'));
-
-            imageUrls = files.map(file =>
-                `${req.protocol}://${req.get('host')}/sales/${saleFolder}/${file}`
-            );
-        }
-
-        res.json({
-            success: true,
-            message: "Hirdetés megtalálva",
-            error: "Product found",
-            data: {
-                ...sale,
-                images: imageUrls // képek hozzácsapása az eredményhez
-            }
-        });
-        
-    } catch (err) {
-        console.error('Error in /get-images-with-saleId:', err);
-        res.status(500).json({
-            success: false,
-            message: userServerErrorMessage,
-            data: null
-        });
-    }
-});
-
 
 // Dinamikus tárolási útvonal
 const storage = multer.diskStorage({
@@ -1479,18 +1373,6 @@ app.use((err, req, res, next) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 //For the chat part
 // Get or create chat between users for a specific sale
 app.post('/initiate-chat', authenticateToken , async (req, res) => {
@@ -1561,7 +1443,7 @@ app.post('/initiate-chat', authenticateToken , async (req, res) => {
 });
 
 
-// Load all chats for user with unread message count + pagination
+// Load all chats for user with message count + pagination
 app.get('/load-user-chats', authenticateToken, async (req, res) => {
     try {
         const userId = parseInt(req.query.userId);
@@ -1644,16 +1526,18 @@ app.get('/load-user-unread-chats', authenticateToken, async (req, res) => {
         }
 
         // Összes olvasatlan chat számolása
-        const [[{ total }]] = await connection.promise().query(
-            `
-            SELECT COUNT(*) AS total
-            FROM Chats c
-            LEFT JOIN Messages m ON c.ChatID = m.ChatID
-            WHERE (c.BuyerID = ? OR c.SellerID = ?) AND m.SenderID != ? AND m.isRead = 0
-            GROUP BY c.ChatID
-            `,
-            [userId, userId, userId]
-        );
+		const [[{ total }]] = await connection.promise().query(
+			`
+			SELECT COUNT(DISTINCT c.ChatID) AS total
+			FROM Chats c
+			LEFT JOIN Messages m ON c.ChatID = m.ChatID
+			WHERE (c.BuyerID = ? OR c.SellerID = ?)
+			  AND m.SenderID != ?
+			  AND m.isRead = 0
+			`,
+			[userId, userId, userId]
+		);
+
 
         // Adott oldal lekérdezése olvasatlan üzenetszámmal
         const [results] = await connection.promise().query(
@@ -1951,16 +1835,6 @@ app.post('/save-fcm-token', authenticateToken, async (req, res) => {
         res.status(500).json({ success: false });
     }
 });
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2627,7 +2501,6 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 		});
 	}
 });
-
 
 //Start the server
 //app.listen(port, () => {

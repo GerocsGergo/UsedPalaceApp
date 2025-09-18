@@ -165,64 +165,6 @@ class OwnSalesActivity : AppCompatActivity() {
     }
 
 
-
-
-//    private fun displaySales(apiService: ApiService, sales: List<SaleWithSid>, containerLayout: LinearLayout) {
-//        val inflater = LayoutInflater.from(this)
-//
-//        if (sales.isEmpty()) {
-//            // Create and show "No products found" message
-//            val noProductsView = inflater.inflate(R.layout.show_error_message, containerLayout, false)
-//            containerLayout.addView(noProductsView)
-//        } else {
-//            for (sale in sales) {
-//                val itemView = inflater.inflate(R.layout.item_own_sales, containerLayout, false)
-//
-//                val productName = itemView.findViewById<TextView>(R.id.productName)
-//                val thumbnail = itemView.findViewById<ImageView>(R.id.productThumbnail)
-//                val open = itemView.findViewById<Button>(R.id.open)
-//                val modify = itemView.findViewById<Button>(R.id.modify)
-//                val delete = itemView.findViewById<Button>(R.id.delete)
-//
-//                productName.text = sale.Name
-//                containerLayout.addView(itemView)
-//
-//                // --- Thumbnail betöltése ---
-//                CoroutineScope(Dispatchers.IO).launch {
-//                    try {
-//                        val response = apiService.getThumbnail(GetSaleImagesRequest(sale.Sid))
-//                        withContext(Dispatchers.Main) {
-//                            if (response.success && response.thumbnail.isNotEmpty()) {
-//                                Picasso.get()
-//                                    .load(response.thumbnail)
-//                                    .placeholder(R.drawable.baseline_loading_24)
-//                                    .error(R.drawable.baseline_error_24)
-//                                    .into(thumbnail)
-//                            } else {
-//                                thumbnail.setImageResource(R.drawable.baseline_eye_40)
-//                            }
-//                        }
-//                    } catch (e: Exception) {
-//                        withContext(Dispatchers.Main) {
-//                            thumbnail.setImageResource(R.drawable.baseline_home_filled_24)
-//                        }
-//                    }
-//                }
-//                val saleId = sale.Sid
-//                // Add event listeners
-//                open.setOnClickListener {
-//                    onOpenClick(sale)
-//                }
-//                modify.setOnClickListener {
-//                    onModifyClick(sale)
-//                }
-//                delete.setOnClickListener {
-//                    showDeleteConfirmationDialog(apiService, saleId)
-//                }
-//            }
-//        }
-//    }
-
     private fun onModifyClick(sale: SaleWithSid) {
         val saleId = sale.Sid
         val intent = Intent(this, ModifySaleActivity::class.java).apply {
@@ -251,21 +193,6 @@ class OwnSalesActivity : AppCompatActivity() {
         recyclerView.visibility = View.VISIBLE
     }
 
-    //For delete modify and open
-    private fun showDeleteConfirmationDialog(apiService: ApiService, saleId: Int) {
-        AlertDialog.Builder(this)
-            .setTitle("Hirdetés Törlése")
-            .setMessage("Biztosan törölni akarod?")
-            .setPositiveButton("Törlés") { dialog, _ ->
-                deleteSale(apiService, saleId)
-                dialog.dismiss()
-            }
-            .setNegativeButton("Mégsem") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .create()
-            .show()
-    }
 
     private fun deleteSale(apiService: ApiService, saleId: Int) {
         val userId = UserSession.getUserId()!!

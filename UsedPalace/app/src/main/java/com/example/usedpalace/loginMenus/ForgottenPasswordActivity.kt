@@ -60,15 +60,13 @@ class ForgottenPasswordActivity : AppCompatActivity() {
             val phoneNumber = inputPhoneNumber.text.toString().trim()
 
             if (!phoneNumber.matches(Regex("^06\\d{9}$"))) {
-                //Toast.makeText(this, "Invalid phone number format", Toast.LENGTH_SHORT).show()
                 ErrorHandler.toaster(this, "Helytelen telefonszám formátum")
                 return@setOnClickListener
             }
 
             // Validate inputs
             if (email.isEmpty() || phoneNumber.isEmpty()) {
-                //Toast.makeText(this, "Please enter both email and phone number", Toast.LENGTH_SHORT).show()
-                ErrorHandler.toaster(this, "Kérjük töltsön ki minden mezőt")
+                 ErrorHandler.toaster(this, "Kérjük töltsön ki minden mezőt")
                 return@setOnClickListener
             }
 
@@ -77,7 +75,6 @@ class ForgottenPasswordActivity : AppCompatActivity() {
             apiServiceNoAuth.forgotPassword(request).enqueue(object : Callback<ResponseMessage> {
                 override fun onResponse(call: Call<ResponseMessage>, response: Response<ResponseMessage>) {
                     if (response.isSuccessful) {
-                        //Toast.makeText(this@ForgottenPasswordActivity, "Reset code sent to your email", Toast.LENGTH_SHORT).show()
                         ErrorHandler.toaster(this@ForgottenPasswordActivity, "A kódot elküldtük az e-mail címére.")
                         // Navigate to the reset password screen
                         val intent = Intent(this@ForgottenPasswordActivity, ResetPasswordActivity::class.java)
@@ -86,13 +83,11 @@ class ForgottenPasswordActivity : AppCompatActivity() {
                     } else {
                         val errorBody = response.errorBody()?.string()
                         ErrorHandler.handleApiError(this@ForgottenPasswordActivity, null, errorBody)
-                        //Toast.makeText(this@ForgottenPasswordActivity, "Failed: $errorBody", Toast.LENGTH_SHORT).show()
-                    }
+                        }
                 }
 
                 override fun onFailure(call: Call<ResponseMessage>, t: Throwable) {
-                    //Toast.makeText(this@ForgottenPasswordActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-                    ErrorHandler.handleNetworkError(this@ForgottenPasswordActivity,t)
+                     ErrorHandler.handleNetworkError(this@ForgottenPasswordActivity,t)
                 }
             })
         }

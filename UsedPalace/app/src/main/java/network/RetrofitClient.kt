@@ -9,15 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 //Modify sale activity-ben is át kell írni, salesAdapterben is átkell irni, jelenleg minden elvileg localhost maradjon is igy
 private const val BASE_URL = "http://10.0.2.2:3000/"
 
-//private const val BASE_URL = "http://10.224.83.75:3000/"
-//private const val BASE_URL = "http://10.224.86.54:3000/"
-//private const val BASE_URL = "http://192.168.1.85:3000/"
-
-//private const val BASE_URL = "http://100.79.233.38:3000/"
-
 object RetrofitClient {
-
-
 
     private lateinit var prefs: SharedPreferences
 

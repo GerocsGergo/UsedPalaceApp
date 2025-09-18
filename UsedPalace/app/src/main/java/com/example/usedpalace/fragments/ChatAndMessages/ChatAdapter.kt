@@ -1,5 +1,6 @@
 package com.example.usedpalace.fragments.ChatAndMessages
 
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,9 +9,6 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
-import com.example.usedpalace.UserSession
-import com.example.usedpalace.fragments.ChatAndMessages.ChatItem
-import com.example.usedpalace.fragments.ChatAndMessages.ChatHelper
 import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SearchRequestID
 import com.squareup.picasso.Picasso
@@ -48,12 +46,23 @@ class ChatAdapter(
         private val profileName: TextView = itemView.findViewById(R.id.profile_name)
         private val productName: TextView = itemView.findViewById(R.id.product_name)
         private val lastMessageDate: TextView = itemView.findViewById(R.id.last_message_date)
-        private val unreadDot: View = itemView.findViewById(R.id.unread_dot_product)
+        private val unreadBadge: TextView = itemView.findViewById(R.id.unread_badge)
         private val imageView: ImageView = itemView.findViewById(R.id.image1)
 
         fun bind(chat: ChatItem) {
             lastMessageDate.text = ChatHelper.formatDateString(chat.lastMessageAt)
-            unreadDot.visibility = if (chat.unreadCount > 0) View.VISIBLE else View.GONE
+            val isUnread = chat.unreadCount > 0
+            if (isUnread) {
+                unreadBadge.visibility = View.VISIBLE
+                unreadBadge.text = if (chat.unreadCount > 9) "9+" else chat.unreadCount.toString()
+            } else {
+                unreadBadge.visibility = View.GONE
+            }
+
+            val style = if (isUnread) Typeface.ITALIC else Typeface.NORMAL
+            profileName.setTypeface(null, style)
+            productName.setTypeface(null, style)
+            lastMessageDate.setTypeface(null, style)
 
             profileName.text = chat.username?.takeIf { it != "Deleted User" } ?: "Ismeretlen"
 

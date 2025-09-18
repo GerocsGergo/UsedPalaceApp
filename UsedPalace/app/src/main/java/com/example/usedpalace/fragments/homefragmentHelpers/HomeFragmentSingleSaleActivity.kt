@@ -73,13 +73,11 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
 
     private fun initiateChat() {
         buyerId = UserSession.getUserId() ?: run {
-            //Toast.makeText(this, "You must be logged in to message sellers", Toast.LENGTH_SHORT).show()
             ErrorHandler.toaster(this, "Ismeretlen hiba történt")
             return
         }
 
         if (sellerId == buyerId) {
-            //Toast.makeText(this, "You can't message yourself", Toast.LENGTH_SHORT).show()
             ErrorHandler.toaster(this, "Nem üzenhetsz magadnak!")
             return
         }
@@ -131,13 +129,11 @@ class HomeFragmentSingleSaleActivity : AppCompatActivity() {
             if (response.success && response.fullname != null) {
                 response.fullname
             } else {
-                //Log.e("Search", "Username not found: ${response.message}")
                 ErrorHandler.logToLogcat("Search", "Username not found: ${response.message}", ErrorHandler.LogLevel.ERROR)
                 null // Return null if not found
             }
         } catch (e: Exception) {
-            //Log.e("Search", "Error fetching username", e)
-            ErrorHandler.logToLogcat("Search", "Error fetching username", ErrorHandler.LogLevel.ERROR)
+             ErrorHandler.logToLogcat("Search", "Error fetching username", ErrorHandler.LogLevel.ERROR)
             null // Return null on error
         }
     }

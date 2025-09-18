@@ -33,7 +33,6 @@ import com.example.usedpalace.requests.GetSaleImagesRequest
 import com.example.usedpalace.requests.SaveFcmTokenRequest
 import com.example.usedpalace.requests.SearchRequestName
 import com.example.usedpalace.requests.SearchRequestID
-import com.example.usedpalace.responses.ApiResponseForDeletedSaleWithEverything
 import com.example.usedpalace.responses.ApiResponseForLoadSales
 import com.example.usedpalace.responses.DeleteImagesResponse
 import com.example.usedpalace.responses.ResponseForLoginTokenExpiration
@@ -110,9 +109,6 @@ interface ApiService {
 
     @POST("search-sales-withSID")
     suspend fun searchSalesSID(@Body request: SearchRequestID): ApiResponseForSalesWithEverything //Sales SID-el keresi a Saleket
-
-    @POST("search-deletedSales-withSID")
-    suspend fun searchDeletedSalesSID(@Body request: SearchRequestID): ApiResponseForDeletedSaleWithEverything
 
     @POST("create-sale")
     suspend fun createSale(@Body request: CreateSaleRequest): ResponseMessageWithFolder

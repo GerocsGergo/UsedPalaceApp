@@ -14,9 +14,6 @@ package com.example.usedpalace
         // Get user ID (nullable)
         fun getUserId(): Int? = userId
 
-        // Get user name (nullable)
-        fun getUserName(): String? = userName
-
         // Clear on logout
         fun clear() {
             userId = null
