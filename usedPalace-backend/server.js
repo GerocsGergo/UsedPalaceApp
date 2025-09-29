@@ -1875,7 +1875,10 @@ app.put('/modify-user-phone', authenticateToken , async (req, res) => {
 		}
 		
 		if (phoneNumber.trim().length != 11) {
-			return res.status(400).json({ error: 'Phone number format invalid.' });
+			return res.status(400).json({ 
+			success: false,
+            message: "Phone number format invalid."
+			});
 		}
 		
 		const phoneRegex = /^06\d{9}$/;
@@ -1913,8 +1916,7 @@ app.put('/modify-user-phone', authenticateToken , async (req, res) => {
 		 console.error('Error modifying user account: ', err)
 		         res.status(500).json({ 
             success: false,
-            message: userApiErrorMessage,
-            error: err.message
+            message: userApiErrorMessage
         });
 	}
 });

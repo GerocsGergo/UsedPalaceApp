@@ -123,15 +123,17 @@ class ModifyPhoneActivity : AppCompatActivity() {
     private fun confirmPhoneNumberChange(phoneNumber: String) {
         val request = ConfirmPhoneNumberChangeRequest(UserSession.getUserId()!!, phoneNumber)
 
-        apiService.confirmPhoneNumberChange(request).enqueue(object : Callback<ApiResponseGeneric> {
+        val response = apiService.confirmPhoneNumberChange(request).enqueue(object : Callback<ApiResponseGeneric> {
             override fun onResponse(call: Call<ApiResponseGeneric>, response: Response<ApiResponseGeneric>) {
                 if (response.isSuccessful) {
                     ErrorHandler.toaster(this@ModifyPhoneActivity, "Telefonszám sikeresen módosítva!")
                     val intent = Intent(this@ModifyPhoneActivity, ProfileActivity::class.java)
                     startActivity(intent)
-                    finishAffinity()
+                    finish()
                 } else {
-                    ErrorHandler.handleApiError(this@ModifyPhoneActivity, null, response.message())
+                    ErrorHandler.handleApiError(this@ModifyPhoneActivity, null,
+                        response.body()?.message
+                    )
                 }
             }
 

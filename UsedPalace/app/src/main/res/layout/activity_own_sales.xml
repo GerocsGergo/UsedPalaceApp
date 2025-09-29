@@ -34,9 +34,10 @@
         android:textSize="30sp"
         android:textAlignment="center"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/buttonBack"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"/>
 
     <!-- RecyclerView a hirdetésekhez -->
     <androidx.recyclerview.widget.RecyclerView
