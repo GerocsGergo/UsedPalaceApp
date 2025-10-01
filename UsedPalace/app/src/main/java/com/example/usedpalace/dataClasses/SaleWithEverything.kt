@@ -11,6 +11,7 @@ data class SaleWithEverything(
     @SerializedName("BigCategory") val mainCategory: String,
     @SerializedName("SmallCategory") val subCategory: String,
     @SerializedName("Uid") val Uid: Int,
+    @SerializedName("CreatedAt") val CreatedAt: String,
     @SerializedName("Images") val Images: List<String>? = emptyList()
 
 

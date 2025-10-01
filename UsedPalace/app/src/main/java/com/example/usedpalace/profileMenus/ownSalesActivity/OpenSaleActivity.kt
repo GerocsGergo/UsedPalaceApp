@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.viewpager2.widget.ViewPager2
+import com.example.usedpalace.DateHelper
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import network.RetrofitClient
@@ -30,6 +31,7 @@ class OpenSaleActivity : AppCompatActivity() {
     private lateinit var imageSlider: ViewPager2
     private lateinit var productTitle: TextView
     private lateinit var productPrice: TextView
+    private lateinit var dateText: TextView
     private lateinit var productDescription: TextView
     private lateinit var mainLayout: ConstraintLayout
     private lateinit var imageCounter: TextView
@@ -63,6 +65,7 @@ class OpenSaleActivity : AppCompatActivity() {
         productPrice = findViewById(R.id.productPrice)
         productDescription = findViewById(R.id.productDescription)
         mainLayout = findViewById(R.id.main)
+        dateText = findViewById(R.id.dateText)
         imageCounter = findViewById(R.id.imageCounter)
 
         backButton = findViewById(R.id.backButton)
@@ -105,9 +108,10 @@ class OpenSaleActivity : AppCompatActivity() {
     }
 
     private fun displaySale(sale: SaleWithEverything) {
-        productTitle.text = sale.Name
-        productPrice.text = "${sale.Cost} Ft"
+        productTitle.text = "Termék: ${sale.Name}"
+        productPrice.text = "Ár: ${sale.Cost} Ft"
         productDescription.text = sale.Description
+        dateText.text = "Létrehozás dátuma: ${DateHelper.formatCreatedAt(sale.CreatedAt)}"
 
         // Itt hívjuk meg az API-t a képek lekérésére a SaleFolder alapján
         fetchSaleImages(saleId)

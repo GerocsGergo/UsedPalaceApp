@@ -7,6 +7,9 @@
         android:id="@+id/filter_name"
         android:title="Név szerint"/>
     <item
-        android:id="@+id/filter_both"
-        android:title="Mindkettő"/>
+        android:id="@+id/filter_price"
+        android:title="Ár szűrés"/>
+    <item
+        android:id="@+id/filter_sort"
+        android:title="Rendezés"/>
 </menu>

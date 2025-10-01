@@ -49,7 +49,7 @@
             android:id="@+id/profileText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Felhasználói fiókod adatait itt láthatod és módosíthatod."
+            android:text="Itt láthatóak a felhasználó adatai, illetve az adatkezeléshez tartozó egyéb menük."
             android:textColor="@color/colorText"
             app:layout_constraintTop_toBottomOf="@id/profileTitle"
             android:layout_marginTop="4dp"
@@ -62,7 +62,7 @@
             android:id="@+id/createSaleTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Ajánlat létrehozása menü:"
+            android:text="Hirdetés létrehozása menü:"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@color/colorText"
@@ -75,7 +75,7 @@
             android:id="@+id/createSaleText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Ebben a menüben tudsz létrehozni hirdetést."
+            android:text="Ebben a menüben hozhat létre hirdetést a felhasználó."
             android:textColor="@color/colorText"
             app:layout_constraintTop_toBottomOf="@id/createSaleTitle"
             android:layout_marginTop="4dp"
@@ -101,7 +101,7 @@
             android:id="@+id/ownSalesText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Ebben a menüben láthatod hirdetéseid, módosíthatod, törölheted őket."
+            android:text="Ebben a menüben láthatóak a felhasználó hirdetései, illetve itt lehet módosítani, törölni stb.."
             android:textColor="@color/colorText"
             app:layout_constraintTop_toBottomOf="@id/ownSalesTitle"
             android:layout_marginTop="4dp"
@@ -109,31 +109,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginBottom="16dp"/>
 
-        <!-- Beállítások -->
-        <TextView
-            android:id="@+id/settingsTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Beállítások:"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp"
-            android:textColor="@color/colorText"
-            app:layout_constraintTop_toBottomOf="@id/ownSalesText"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
-
-        <TextView
-            android:id="@+id/settingsText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Applikációval kapcsolatos beállítások."
-            android:textColor="@color/colorText"
-            app:layout_constraintTop_toBottomOf="@id/settingsTitle"
-            android:layout_marginTop="4dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="16dp"/>
 
         <!-- Elérhetőségek -->
         <TextView
@@ -145,7 +120,7 @@
             android:textStyle="bold"
             android:textColor="@color/colorText"
             android:layout_marginTop="16dp"
-            app:layout_constraintTop_toBottomOf="@id/settingsText"
+            app:layout_constraintTop_toBottomOf="@id/ownSalesText"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
@@ -153,7 +128,7 @@
             android:id="@+id/supportText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Az applikációt készítő csapat elérhetőségei."
+            android:text="Az applikáció készítőjének elérhetőségei."
             android:textColor="@color/colorText"
             app:layout_constraintTop_toBottomOf="@id/supportTitle"
             android:layout_marginTop="4dp"

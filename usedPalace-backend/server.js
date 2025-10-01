@@ -789,10 +789,10 @@ app.post('/search-sales-withSID', authenticateToken , async (req, res) => {
 });
 
 
-app.post('/search-sales-withSaleName', authenticateToken , async (req, res) => {
+app.post('/search-sales-withSaleName', authenticateToken, async (req, res) => {
     try {
-        const { searchParam } = req.body;
-        console.log('Received search request:', searchParam);
+        const { searchParam, min, max } = req.body;
+        console.log('Received search request:', req.body);
 
         if (!searchParam) {
             return res.status(400).json({
@@ -803,34 +803,51 @@ app.post('/search-sales-withSaleName', authenticateToken , async (req, res) => {
             });
         }
 
-        const query = 'SELECT * FROM Sales WHERE Name LIKE ?';
-        const searchValue = `%${searchParam}%`;
+        let query = 'SELECT * FROM Sales WHERE Name LIKE ?';
+        const params = [`%${searchParam}%`];
 
-        const [results] = await connection.promise().query(query, [searchValue]);
+        // Ha meg van adva min és max, és min > max, cseréljük
+        let minValue = min;
+        let maxValue = max;
+        if (min !== undefined && max !== undefined && min > max) {
+            minValue = max;
+            maxValue = min;
+        }
 
-        // Ensure we always return the same structure
+        if (minValue !== undefined) {
+            query += ' AND Cost >= ?';
+            params.push(minValue);
+        }
+        if (maxValue !== undefined) {
+            query += ' AND Cost <= ?';
+            params.push(maxValue);
+        }
+
+        const [results] = await connection.promise().query(query, params);
+
         res.json({
             success: true,
-			message: results.length ? "Találat" : "Nincs találat",
+            message: results.length ? "Találat" : "Nincs találat",
             error: results.length ? "Products found" : "No products found",
             data: results
         });
-        
+
     } catch (err) {
-        console.error('Error in /search-sales:', err);
+        console.error('Error in /search-sales-withSaleName:', err);
         res.status(500).json({
             success: false,
-            
-			message: userApiErrorMessage,
+            message: "Hiba történt a keresés során",
             data: []
         });
     }
 });
 
-app.post('/search-sales-withCategory', authenticateToken , async (req, res) => {
+
+
+app.post('/search-sales-withCategory', authenticateToken, async (req, res) => {
     try {
-        const { searchParam } = req.body;
-        console.log('Received search request:', searchParam);
+        const { searchParam, min, max } = req.body;
+        console.log('Received search request:', req.body);
 
         if (!searchParam) {
             return res.status(400).json({
@@ -841,29 +858,45 @@ app.post('/search-sales-withCategory', authenticateToken , async (req, res) => {
             });
         }
 
-        const query = 'SELECT * FROM Sales WHERE BigCategory LIKE ? OR SmallCategory LIKE ?';
-        const searchValue = `%${searchParam}%`;
+        let query = 'SELECT * FROM Sales WHERE (BigCategory LIKE ? OR SmallCategory LIKE ?)';
+        const params = [`%${searchParam}%`, `%${searchParam}%`];
 
-        const [results] = await connection.promise().query(query, [searchValue, searchValue]);
+        // Ha meg van adva min és max, és min > max, cseréljük
+        let minValue = min;
+        let maxValue = max;
+        if (min !== undefined && max !== undefined && min > max) {
+            minValue = max;
+            maxValue = min;
+        }
 
-        // Ensure we always return the same structure
+        if (minValue !== undefined) {
+            query += ' AND Cost >= ?';
+            params.push(minValue);
+        }
+        if (maxValue !== undefined) {
+            query += ' AND Cost <= ?';
+            params.push(maxValue);
+        }
+
+        const [results] = await connection.promise().query(query, params);
+
         res.json({
             success: true,
-			message: results.length ? "Találat" : "Nincs találat",
+            message: results.length ? "Találat" : "Nincs találat",
             error: results.length ? "Products found" : "No products found",
             data: results
         });
-        
+
     } catch (err) {
-        console.error('Error in /search-sales:', err);
+        console.error('Error in /search-sales-withCategory:', err);
         res.status(500).json({
             success: false,
-            
-			message: userApiErrorMessage,
+            message: "Hiba történt a keresés során",
             data: []
         });
     }
 });
+
 
 app.get('/search-salesID', authenticateToken, async (req, res) => {
     try {
@@ -886,11 +919,13 @@ app.get('/search-salesID', authenticateToken, async (req, res) => {
             [userId]
         );
 
-        // Adott oldal lekérdezése
+        // Adott oldal lekérdezése dátum szerint rendezve
         const [results] = await connection.promise().query(
-            'SELECT * FROM Sales WHERE Uid = ? LIMIT ? OFFSET ?',
+            'SELECT * FROM Sales WHERE Uid = ? ORDER BY CreatedAt DESC LIMIT ? OFFSET ?',
             [userId, limit, offset]
         );
+        
+        console.log("Results from DB:", results);
 
         res.json({
             success: true,
@@ -909,6 +944,7 @@ app.get('/search-salesID', authenticateToken, async (req, res) => {
         });
     }
 });
+
 
 
 

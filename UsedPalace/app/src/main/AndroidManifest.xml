@@ -56,9 +56,6 @@
             android:name=".profileMenus.SupportActivity"
             android:exported="false" />
         <activity
-            android:name=".profileMenus.SettingsActivity"
-            android:exported="false" />
-        <activity
             android:name=".profileMenus.HelpActivity"
             android:exported="false" />
         <activity

@@ -7,6 +7,8 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.usedpalace.DateHelper
+import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.dataClasses.SaleWithSid
 import com.example.usedpalace.requests.GetSaleImagesRequest
@@ -26,6 +28,7 @@ class OwnSalesAdapter(
 
     inner class SaleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val name: TextView = itemView.findViewById(R.id.productName)
+        val date: TextView = itemView.findViewById(R.id.productDate)
         val image: ImageView = itemView.findViewById(R.id.productThumbnail)
         val open: Button = itemView.findViewById(R.id.open)
         val modify: Button = itemView.findViewById(R.id.modify)
@@ -42,6 +45,8 @@ class OwnSalesAdapter(
     override fun onBindViewHolder(holder: SaleViewHolder, position: Int) {
         val sale = sales[position]
         holder.name.text = sale.Name
+        holder.date.text = DateHelper.formatCreatedAt(sale.CreatedAt)
+
 
         // kép betöltés
         CoroutineScope(Dispatchers.IO).launch {

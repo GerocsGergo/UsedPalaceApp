@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.usedpalace.DateHelper
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.dataClasses.SaleWithSid
@@ -18,13 +19,14 @@ import kotlinx.coroutines.withContext
 import network.RetrofitClient
 
 class SalesAdapter(
-    private val sales: MutableList<SaleWithSid>,
+    val sales: MutableList<SaleWithSid>,
     private val onItemClick: (SaleWithSid) -> Unit
 ) : RecyclerView.Adapter<SalesAdapter.SaleViewHolder>() {
 
     inner class SaleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val name: TextView = itemView.findViewById(R.id.productLabel)
         val price: TextView = itemView.findViewById(R.id.productPrice)
+        val date: TextView = itemView.findViewById(R.id.productDate)
         val desc: TextView = itemView.findViewById(R.id.productDescription)
         val image: ImageView = itemView.findViewById(R.id.productImage)
     }
@@ -40,6 +42,7 @@ class SalesAdapter(
         holder.name.text = sale.Name
         holder.price.text = "${sale.Cost} Ft"
         holder.desc.text = sale.Description
+        holder.date.text = DateHelper.formatCreatedAt(sale.CreatedAt)
 
         CoroutineScope(Dispatchers.IO).launch {
             try {

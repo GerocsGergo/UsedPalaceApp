@@ -7,6 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
+    android:background="@drawable/gradient_background"
     tools:context=".profileMenus.AboutActivity">
 
         <!-- Top Section -->
@@ -56,7 +57,7 @@
                             android:id="@+id/textGoal"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Ezen applikáció célja, egy olyan programot biztosítani a felhasználóknak, melyeken régi és új különböző kategoriájú tárgyakat árusíthatnak."
+                            android:text="Ezen applikáció célja, egy olyan felületet biztosítani a felhasználóknak, amelyen régi és új különböző kategoriájú tárgyakról készíthetnek és tölthetnek fel hirdetést, valamint üzenetek formájában kommunikálhatnak egymással."
                             android:textSize="16sp"
                             android:textColor="?attr/colorOnBackground"
                             android:lineSpacingExtra="4dp"/>

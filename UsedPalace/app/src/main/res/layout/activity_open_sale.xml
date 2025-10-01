@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/gradient_background"
     tools:context=".fragments.homeFragmentHelpers.HomeFragmentSingleSaleActivity">
 
     <ScrollView
@@ -39,28 +40,45 @@
                 android:layout_gravity="center_horizontal"/>
 
 
+            <!-- Termék cím -->
             <TextView
                 android:id="@+id/productLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="24sp"
+                android:text="Termék: "
+                android:textSize="20sp"
                 android:textStyle="bold"
-                android:layout_marginTop="16dp"/>
+                android:layout_marginTop="8dp" />
 
+            <!-- Ár -->
             <TextView
                 android:id="@+id/productPrice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text="Ár: "
                 android:textSize="20sp"
                 android:textColor="@color/colorPrimary"
-                android:layout_marginTop="8dp"/>
+                android:layout_marginTop="8dp" />
 
+            <!-- Létrehozás dátuma -->
+            <TextView
+                android:id="@+id/dateText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Létrehozás dátuma: "
+                android:textSize="14sp"
+                android:textColor="@color/colorText"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Leírás -->
             <TextView
                 android:id="@+id/productDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text=""
                 android:layout_marginTop="16dp"
-                android:textSize="16sp"/>
+                android:textSize="16sp" />
 
         </LinearLayout>
     </ScrollView>

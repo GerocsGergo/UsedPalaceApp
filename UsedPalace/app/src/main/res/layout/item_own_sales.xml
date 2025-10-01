@@ -7,40 +7,56 @@
     android:background="@drawable/item_background"
     android:padding="12dp">
 
-    <!-- Product Name on top -->
+    <!-- Termék neve -->
     <TextView
         android:id="@+id/productName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Termék neve"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:textColor="@color/colorText"
         android:maxLines="2"
         android:ellipsize="end"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/buttonGroup"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginEnd="8dp"/>
 
-    <!-- Thumbnail below the product name -->
-    <ImageView
-        android:id="@+id/productThumbnail"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:scaleType="centerCrop"
-        android:contentDescription="Termék thumbnail"
+    <!-- Termék dátuma -->
+    <TextView
+        android:id="@+id/productDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="2025-09-30 14:20"
+        android:textSize="14sp"
+        android:textColor="@color/colorTextButton"
+        android:maxLines="1"
         app:layout_constraintTop_toBottomOf="@id/productName"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintEnd_toStartOf="@id/buttonGroup"
+        android:layout_marginTop="4dp"/>
 
-    <!-- Buttons on the right side, vertical -->
+    <!-- Thumbnail -->
+    <ImageView
+        android:id="@+id/productThumbnail"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="Termék kép"
+        app:layout_constraintTop_toBottomOf="@id/productDate"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Jobb oldali gombok háttérrel -->
     <LinearLayout
         android:id="@+id/buttonGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
+        android:background="@drawable/button_background"
+        android:padding="8dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -57,6 +73,7 @@
             app:iconPadding="8dp"
             app:icon="@drawable/baseline_eye_40"
             app:iconTint="@color/colorText"
+            android:backgroundTint="@color/colorButtonBackground"
             android:textColor="@color/colorText"
             android:layout_marginBottom="8dp"/>
 
@@ -65,6 +82,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Szerkesztés"
+            android:backgroundTint="@color/colorButtonBackground"
             style="@style/Widget.Material3.Button.OutlinedButton"
             app:cornerRadius="12dp"
             app:iconPadding="8dp"
@@ -78,13 +96,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Törlés"
+            android:backgroundTint="@color/colorButtonBackground"
             style="@style/Widget.Material3.Button.OutlinedButton"
             app:cornerRadius="12dp"
             app:iconPadding="8dp"
             app:icon="@drawable/baseline_delete_40"
             app:iconTint="@color/colorText"
             android:textColor="@color/colorText"/>
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

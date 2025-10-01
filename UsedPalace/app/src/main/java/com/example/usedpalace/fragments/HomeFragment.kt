@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -14,6 +15,7 @@ import android.widget.PopupMenu
 import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -46,6 +48,9 @@ class HomeFragment : Fragment() {
     private lateinit var nextPageButton: Button
     private lateinit var pageIndicator: TextView
 
+    private var lastMinPrice: Int? = null
+    private var lastMaxPrice: Int? = null
+
     private var currentPage = 1
     private val pageSize = 10
     private var totalPages = 1
@@ -54,8 +59,8 @@ class HomeFragment : Fragment() {
     private lateinit var adapter: SalesAdapter
     private var isLoading = false
 
-    // default filter: mindkettő
-    private var currentFilter: Int = R.id.filter_both
+
+    private var currentFilter: Int = R.id.filter_name
 
 
     override fun onCreateView(
@@ -145,12 +150,19 @@ class HomeFragment : Fragment() {
             popup.menuInflater.inflate(R.menu.search_filter_menu, popup.menu)
 
             popup.setOnMenuItemClickListener { item ->
-                currentFilter = item.itemId
-                Toast.makeText(requireContext(), "Szűrés: ${item.title}", Toast.LENGTH_SHORT).show()
+                when (item.itemId) {
+                    R.id.filter_price -> showPriceFilterDialog()
+                    R.id.filter_sort -> showSortMenu(v)
+                    else -> {
+                        currentFilter = item.itemId
+                        Toast.makeText(requireContext(), "Szűrés: ${item.title}", Toast.LENGTH_SHORT).show()
+                    }
+                }
                 true
             }
             popup.show()
         }
+
     }
 
 
@@ -161,12 +173,20 @@ class HomeFragment : Fragment() {
         isLoading = true
         CoroutineScope(Dispatchers.IO).launch {
             try {
+
+                val request = SearchRequestName(
+                    searchParam = searchParam,
+                    min = lastMinPrice,
+                    max = lastMaxPrice
+                )
+
                 val response = when (currentFilter) {
-                    R.id.filter_category -> apiService.searchSalesCategory(SearchRequestName(searchParam))
-                    R.id.filter_name     -> apiService.searchSales(SearchRequestName(searchParam))
-                    else -> {
-                        val nameResponse = apiService.searchSales(SearchRequestName(searchParam))
-                        val catResponse = apiService.searchSalesCategory(SearchRequestName(searchParam))
+                    R.id.filter_category -> apiService.searchSalesCategory(request)
+                    R.id.filter_name     -> apiService.searchSales(request)
+
+                    else -> { //Összetesz a name és categoryt
+                        val nameResponse = apiService.searchSales(request)
+                        val catResponse = apiService.searchSalesCategory(request)
                         if (nameResponse.success || catResponse.success) {
                             val merged = mutableListOf<SaleWithSid>()
                             if (nameResponse.success) merged.addAll(nameResponse.data)
@@ -228,12 +248,55 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun showPriceFilterDialog() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_price_filter, null)
+        val minPriceInput = dialogView.findViewById<EditText>(R.id.minPriceInput)
+        val maxPriceInput = dialogView.findViewById<EditText>(R.id.maxPriceInput)
+
+        lastMinPrice?.let { minPriceInput.setText(it.toString()) }
+        lastMaxPrice?.let { maxPriceInput.setText(it.toString()) }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Ár szerint")
+            .setView(dialogView)
+            .setPositiveButton("Kész") { _, _ ->
+                val minPrice = minPriceInput.text.toString().toIntOrNull() ?: 0
+                val maxPrice = maxPriceInput.text.toString().toIntOrNull() ?: Int.MAX_VALUE
+
+                lastMinPrice = minPrice
+                lastMaxPrice = maxPrice
+            }
+            .setNegativeButton("Mégse", null)
+            .show()
+    }
+
+    // Új függvény a rendezés menühöz
+    private fun showSortMenu(anchor: View) {
+        val popup = PopupMenu(requireContext(), anchor)
+        popup.menu.add("Név ↑")
+        popup.menu.add("Név ↓")
+        popup.menu.add("Ár ↑")
+        popup.menu.add("Ár ↓")
+
+        popup.setOnMenuItemClickListener { item ->
+            when (item.title) {
+                "Név ↑" -> adapter.setSales(adapter.sales.sortedBy { it.Name }.toMutableList())
+                "Név ↓" -> adapter.setSales(adapter.sales.sortedByDescending { it.Name }.toMutableList())
+                "Ár ↑"  -> adapter.setSales(adapter.sales.sortedBy { it.Cost }.toMutableList())
+                "Ár ↓"  -> adapter.setSales(adapter.sales.sortedByDescending { it.Cost }.toMutableList())
+            }
+            true
+        }
+        popup.show()
+    }
+
+
 
     private fun onProductClick(sale: SaleWithSid) {
         val saleId = sale.Sid
         val sellerId = sale.SellerId
         val intent = Intent(context, HomeFragmentSingleSaleActivity::class.java).apply {
-            putExtra("SALE_ID", saleId) //Give the saleId to the activity
+            putExtra("SALE_ID", saleId)
             putExtra("SELLER_ID", sellerId)
         }
         startActivity(intent)

@@ -54,6 +54,16 @@
                 android:layout_marginTop="4dp" />
 
             <TextView
+                android:id="@+id/productDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2025-09-30 14:20"
+                android:textSize="14sp"
+                android:textColor="@color/colorText"
+                android:maxLines="1"
+                android:layout_marginTop="4dp"/>
+
+            <TextView
                 android:id="@+id/productDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -19,7 +19,6 @@ import com.example.usedpalace.profileMenus.AboutActivity
 import com.example.usedpalace.profileMenus.CreateSaleActivity
 import com.example.usedpalace.profileMenus.HelpActivity
 import com.example.usedpalace.profileMenus.InformationActivity
-import com.example.usedpalace.profileMenus.SettingsActivity
 import com.example.usedpalace.profileMenus.SupportActivity
 import com.example.usedpalace.profileMenus.ownSalesActivity.OwnSalesActivity
 import com.example.usedpalace.profileMenus.profileActivity.ProfileActivity
@@ -39,7 +38,6 @@ class ProfileFragment : Fragment() {
     private lateinit var buttonCreateSale: Button
     private lateinit var buttonOwnSales: Button
     private lateinit var buttonHelp: Button
-    private lateinit var buttonSettings: Button
     private lateinit var buttonSupport: Button
     private lateinit var buttonAbout: Button
     private lateinit var buttonContacts: Button
@@ -80,7 +78,6 @@ class ProfileFragment : Fragment() {
         buttonCreateSale = view.findViewById(R.id.createSale)
         buttonOwnSales = view.findViewById(R.id.ownSales)
         buttonHelp = view.findViewById(R.id.help)
-        buttonSettings = view.findViewById(R.id.settings)
         buttonSupport = view.findViewById(R.id.support)
         buttonAbout = view.findViewById(R.id.about)
         buttonContacts = view.findViewById(R.id.contacts)
@@ -101,9 +98,6 @@ class ProfileFragment : Fragment() {
         }
         buttonHelp.setOnClickListener {
             startActivity(Intent(requireActivity(), HelpActivity::class.java))
-        }
-        buttonSettings.setOnClickListener {
-            startActivity(Intent(requireActivity(), SettingsActivity::class.java))
         }
         buttonSupport.setOnClickListener {
             startActivity(Intent(requireActivity(), SupportActivity::class.java))

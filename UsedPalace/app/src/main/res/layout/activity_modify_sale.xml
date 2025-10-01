@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:background="@drawable/gradient_background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -14,6 +14,20 @@
         android:paddingEnd="32dp"
         android:paddingTop="32dp"
         android:paddingBottom="32dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text=""
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:cornerRadius="24dp"
+            app:iconGravity="textStart"
+            app:icon="@drawable/baseline_arrow_back_24"
+            app:iconTint="@color/colorText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
 
         <!-- Oldal címe -->
         <TextView
@@ -25,9 +39,10 @@
             android:textStyle="bold"
             android:textAlignment="center"
             android:textColor="@color/colorText"
+            app:layout_constraintStart_toEndOf="@id/buttonBack"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintBottom_toBottomOf="@id/buttonBack"/>
 
         <!-- Kép feltöltés -->
         <LinearLayout
@@ -212,17 +227,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonBack"
-            android:layout_width="0dp"
-            android:layout_height="55dp"
-            android:text="Vissza"
-            android:textSize="18sp"
-            android:layout_marginTop="32dp"
-            android:backgroundTint="@color/colorButtonBackground"
-            app:layout_constraintTop_toBottomOf="@id/createSale"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

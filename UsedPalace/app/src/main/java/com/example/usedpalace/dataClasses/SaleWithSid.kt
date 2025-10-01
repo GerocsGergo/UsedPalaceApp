@@ -10,7 +10,8 @@ data class SaleWithSid(
     @SerializedName("Cost") val Cost: Int,
     @SerializedName("Description") val Description: String,
     @SerializedName("SaleFolder") val SaleFolder: String,
-    @SerializedName("Uid") val SellerId: Int
+    @SerializedName("Uid") val SellerId: Int,
+    @SerializedName("CreatedAt") val CreatedAt: String,
 
 
 ) : Parcelable {
@@ -22,7 +23,8 @@ data class SaleWithSid(
         parcel.readInt(),
         parcel.readString() ?: "", // Handle null case with empty string
         parcel.readString() ?: "",  // Handle null case with empty string
-        parcel.readInt()
+        parcel.readInt(),
+        parcel.readString() ?: ""
     )
 
     // Write object values to Parcel
@@ -33,6 +35,7 @@ data class SaleWithSid(
         parcel.writeString(Description)
         parcel.writeString(SaleFolder)
         parcel.writeInt(SellerId)
+        parcel.writeString(CreatedAt)
     }
 
     // Describes special objects (not needed in most cases)
