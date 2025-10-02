@@ -26,7 +26,6 @@ class AdminMainMenu : AppCompatActivity() {
 
     private lateinit var buttonBack : Button
     private lateinit var usersMenu : Button
-    private lateinit var salesMenu : Button
     private lateinit var statsMenu : Button
     private lateinit var checkMenu : Button
 
@@ -50,7 +49,6 @@ class AdminMainMenu : AppCompatActivity() {
 
         buttonBack = findViewById(R.id.buttonBack)
         usersMenu = findViewById(R.id.usersMenu)
-        salesMenu = findViewById(R.id.salesMenu)
         statsMenu = findViewById(R.id.statsMenu)
         checkMenu = findViewById(R.id.checkMenu)
     }
@@ -60,9 +58,6 @@ class AdminMainMenu : AppCompatActivity() {
             navigateBackToProfile()
         }
         usersMenu.setOnClickListener {
-            startActivity(Intent(this,UsersMenu::class.java))
-        }
-        salesMenu.setOnClickListener {
             startActivity(Intent(this,UsersMenu::class.java))
         }
         statsMenu.setOnClickListener {
