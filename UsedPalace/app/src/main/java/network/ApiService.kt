@@ -1,6 +1,11 @@
 package network
 
 
+import com.example.usedpalace.adminMenus.requests.UserCreateRequest
+import com.example.usedpalace.adminMenus.requests.UserDeleteRequest
+import com.example.usedpalace.adminMenus.requests.UserModifyRequest
+import com.example.usedpalace.adminMenus.responses.GetUsersResponse
+import com.example.usedpalace.adminMenus.responses.GenericResponse
 import com.example.usedpalace.responses.ApiResponseForSearchSales
 import com.example.usedpalace.responses.ApiResponseForSalesWithEverything
 import com.example.usedpalace.responses.ApiResponseGeneric
@@ -19,7 +24,6 @@ import com.example.usedpalace.responses.ResponseMessageWithUser
 import com.example.usedpalace.fragments.ChatAndMessages.responses.ChatListResponse
 import com.example.usedpalace.fragments.ChatAndMessages.Requests.InitiateChatRequest
 import com.example.usedpalace.fragments.ChatAndMessages.responses.InitiateChatResponse
-import com.example.usedpalace.fragments.ChatAndMessages.Requests.SearchChatRequest
 import com.example.usedpalace.responses.UsernameResponse
 import com.example.usedpalace.requests.ChangeEmailRequest
 import com.example.usedpalace.requests.ChangePasswordRequest
@@ -86,7 +90,7 @@ interface ApiService {
 
 
     //Sales
-    @GET("getSales")
+    @GET("get-Sales")
     suspend fun getSales(
         @Query("page") page: Int,
         @Query("limit") limit: Int = 20
@@ -191,5 +195,21 @@ interface ApiService {
     fun confirmDeleteUser(@Body request: ConfirmDeleteAccount): Call<ApiResponseGeneric>
 
 
+    //Admin menühöz tartozók
+    @GET("get-users")
+    suspend fun getUsers(
+        @Query("page") page: Int,
+        @Query("pageSize") pageSize: Int = 20,
+        @Query("adminOnly") adminOnly: Boolean? = false
+    ): GetUsersResponse
+
+    @POST("delete-user-admin")
+    suspend fun deleteUserAdmin(@Body request: UserDeleteRequest): GenericResponse
+
+    @POST("create-user-admin")
+    suspend fun createUserAdmin(@Body request: UserCreateRequest): GenericResponse
+
+    @PUT("/modify-user-admin")
+    suspend fun modifyUserAdmin(@Body request: UserModifyRequest): GenericResponse
 
 }

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_background">
+
+    <!-- Felső sáv -->
+    <LinearLayout
+        android:id="@+id/topSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        android:background="@color/colorBackground"
+        android:elevation="4dp">
+
+        <!-- Vissza gomb -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonBack"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:cornerRadius="20dp"
+            app:iconGravity="textTop"
+            app:icon="@drawable/baseline_arrow_back_24"
+            app:iconTint="@color/colorText" />
+
+        <!-- Cím -->
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Hirdetések"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorText" />
+
+        <!-- Új felhasználó létrehozása -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonFilter"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:cornerRadius="20dp"
+            app:iconGravity="top"
+            app:icon="@drawable/baseline_settings_40"
+            app:iconTint="@color/colorText" />
+    </LinearLayout>
+
+    <!-- Felhasználói kártyák -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewUsers"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingTop="72dp"
+        android:paddingBottom="72dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+
+    <!-- Pagináció -->
+    <LinearLayout
+        android:id="@+id/paginationLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/colorBackground"
+        android:elevation="4dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/prevPageButton"
+            style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Előző"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/pageIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="1 / 1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/nextPageButton"
+            style="@style/Widget.Material3.Button.UsedPalace.ProfileMenuItem"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Következő"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

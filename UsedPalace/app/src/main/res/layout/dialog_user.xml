@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/colorBackground">
+
+    <EditText
+        android:id="@+id/nameInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Teljes név"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:id="@+id/emailInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:layout_marginTop="8dp" />
+
+    <EditText
+        android:id="@+id/passwordInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Jelszó"
+        android:inputType="textPassword"
+        android:layout_marginTop="8dp" />
+
+    <EditText
+        android:id="@+id/phoneInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Telefonszám"
+        android:inputType="phone"
+        android:layout_marginTop="8dp" />
+
+    <CheckBox
+        android:id="@+id/isAdminCheckbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Admin jogosultság"
+        android:layout_marginTop="8dp"/>
+
+    <CheckBox
+        android:id="@+id/isVerified"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hitelesített"
+        android:layout_marginTop="8dp"/>
+</LinearLayout>

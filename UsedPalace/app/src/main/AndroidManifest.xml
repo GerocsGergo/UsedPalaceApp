@@ -17,6 +17,15 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".adminMenus.UsersSales"
+            android:exported="false" />
+        <activity
+            android:name=".adminMenus.UsersMenu"
+            android:exported="false" />
+        <activity
+            android:name=".adminMenus.AdminMainMenu"
+            android:exported="false" />
+        <activity
             android:name=".fragments.ChatAndMessages.OpenSaleChatActivity"
             android:exported="false" />
         <activity

@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import com.example.usedpalace.ErrorHandler
 import com.example.usedpalace.R
 import com.example.usedpalace.UserSession
+import com.example.usedpalace.adminMenus.AdminMainMenu
 import com.example.usedpalace.loginMenus.LogActivity
 import com.example.usedpalace.profileMenus.AboutActivity
 import com.example.usedpalace.profileMenus.CreateSaleActivity
@@ -42,6 +43,7 @@ class ProfileFragment : Fragment() {
     private lateinit var buttonAbout: Button
     private lateinit var buttonContacts: Button
     private lateinit var buttonLogout: Button
+    private lateinit var buttonAdminMenu: Button
     private lateinit var apiService: ApiService
     private lateinit var prefs: SharedPreferences
 
@@ -62,6 +64,7 @@ class ProfileFragment : Fragment() {
         setupViews(view)
         setupClickListeners()
         setUsername()
+        showAdminMenu()
 
         return view
     }
@@ -77,6 +80,7 @@ class ProfileFragment : Fragment() {
         buttonProfile = view.findViewById(R.id.profile)
         buttonCreateSale = view.findViewById(R.id.createSale)
         buttonOwnSales = view.findViewById(R.id.ownSales)
+        buttonAdminMenu = view.findViewById(R.id.adminMenu)
         buttonHelp = view.findViewById(R.id.help)
         buttonSupport = view.findViewById(R.id.support)
         buttonAbout = view.findViewById(R.id.about)
@@ -89,7 +93,9 @@ class ProfileFragment : Fragment() {
         buttonProfile.setOnClickListener {
             startActivity(Intent(requireActivity(), ProfileActivity::class.java))
         }
-
+        buttonAdminMenu.setOnClickListener {
+            startActivity(Intent(requireActivity(), AdminMainMenu::class.java))
+        }
         buttonCreateSale.setOnClickListener {
             startActivity(Intent(requireActivity(), CreateSaleActivity::class.java))
         }
@@ -116,6 +122,14 @@ class ProfileFragment : Fragment() {
             startActivity(intent)
             requireActivity().finish()
 
+        }
+    }
+
+    private fun showAdminMenu(){
+        if (UserSession.getUserIsAdmin()){
+            buttonAdminMenu.visibility = View.VISIBLE
+        } else {
+            buttonAdminMenu.visibility = View.GONE
         }
     }
 

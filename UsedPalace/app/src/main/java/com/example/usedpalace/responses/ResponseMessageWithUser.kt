@@ -9,6 +9,7 @@ data class ResponseMessageWithUser(
 {
     data class UserData(
         val id: Int,
-        val name: String
+        val name: String,
+        val isAdmin: Boolean
     )
 }

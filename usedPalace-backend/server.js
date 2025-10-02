@@ -274,30 +274,32 @@ app.post('/confirm-forgot-password', async (req, res) => {
 //TODO bruteforce protection with login rate limiter
 // Login user
 app.post('/login', async (req, res) => {
-    
     try {
-		const { email, password, deviceInfo } = req.body;
-		console.log('Received login request:', email);
-		
-		if (!email || !password || !deviceInfo) {
-        return res.status(400).json({ 
-			error: 'Some data is missing',
-			message: 'Kérjük töltsön ki minden mezőt!'});
-    }
-		
-		if (!validator.isEmail(email)) {
-        return res.status(400).json({ 
-			error: 'Invalid email address.',
-			message: 'Érvénytelen E-mail cím!'});
-		}
-		
+        const { email, password, deviceInfo } = req.body;
+        console.log('Received login request:', email);
+
+        if (!email || !password || !deviceInfo) {
+            return res.status(400).json({ 
+                error: 'Some data is missing',
+                message: 'Kérjük töltsön ki minden mezőt!'
+            });
+        }
+
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({ 
+                error: 'Invalid email address.',
+                message: 'Érvénytelen E-mail cím!'
+            });
+        }
+
         const query = 'SELECT * FROM Users WHERE Email = ?';
         const [results] = await connection.promise().query(query, [email]);
 
         if (results.length === 0) {
             return res.status(401).json({ 
-				error: 'User not found',
-				message: 'Nincs ilyen felhasználó'});
+                error: 'User not found',
+                message: 'Nincs ilyen felhasználó'
+            });
         }
 
         const user = results[0];
@@ -305,29 +307,32 @@ app.post('/login', async (req, res) => {
         const isPasswordValid = await bcrypt.compare(password, user.PassHashed);
         if (!isPasswordValid) {
             return res.status(401).json({ 
-			error: 'Invalid password',
-			message: 'Helytelen jelszó'});
+                error: 'Invalid password',
+                message: 'Helytelen jelszó'
+            });
         }
 
         if (!user.Verified) {
             return res.status(401).json({ 
-				error: 'Email not verified',
-				message: 'Nincs hitelesítve az email'});
+                error: 'Email not verified',
+                message: 'Nincs hitelesítve az email'
+            });
         }
 
-        const token = jwt.sign({ id: user.Uid }, JWT_SECRET, { expiresIn: '7d' }); //10s for testing 7d for production
-		
-		const createdAt = new Date();
-        const expiresAt = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 * 24 * 60 * 60 * 1000 = 7d for production // 
+        const token = jwt.sign({ id: user.Uid }, JWT_SECRET, { expiresIn: '7d' });
 
-		await connection.promise().query(
+        const createdAt = new Date();
+        const expiresAt = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        await connection.promise().query(
             'INSERT INTO Sessions (UserId, Token, DeviceInfo, CreatedAt, ExpiresAt) VALUES (?, ?, ?, ?, ?)',
             [user.Uid, token, deviceInfo || 'Unknown', createdAt, expiresAt]
         );
-		
+
         const safeUserData = {
             id: user.Uid,
-            name: user.Fullname
+            name: user.Fullname,
+            isAdmin: !!user.IsAdmin  //a !! egy tipus konverzio ami az első ! logikai tagadást csinál: az értéket true-ról false-ra, false-ról true-ra váltja.
         };
 
         res.json({
@@ -339,11 +344,12 @@ app.post('/login', async (req, res) => {
     } catch (err) {
         console.error('Error in /login:', err);
         res.status(500).json({ 
-			error: err.message,
-			message: userServerErrorMessage
-		});
+            error: err.message,
+            message: userServerErrorMessage
+        });
     }
 });
+
 
 // Check if login token is expired
 app.get('/verify-token', async (req, res) => {
@@ -690,7 +696,7 @@ app.post('/get-safe-user-data', authenticateToken , async (req, res) => {
 
 // Endpoints for sales
 // Fetch sales data
-app.get('/getSales', authenticateToken, async (req, res) => {
+app.get('/get-Sales', authenticateToken, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;   // alapértelmezett: 1. oldal
         const limit = parseInt(req.query.limit) || 10; // alapértelmezett: 10 elem
@@ -2539,6 +2545,421 @@ app.post('/confirm-delete-user', authenticateToken , async (req, res) => {
 		});
 	}
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Admin menühöz endpointok
+
+
+app.get('/get-users', authenticateToken, async (req, res) => {
+    try {
+        const { page = 1, pageSize = 10, adminOnly } = req.query;
+
+        let baseQuery = 'FROM Users';
+        const params = [];
+
+        if (adminOnly === 'true') {
+            baseQuery += ' WHERE IsAdmin = 1';
+        } else if (adminOnly === 'false') {
+            baseQuery += ' WHERE IsAdmin = 0';
+        }
+
+        // Pagination: először lekérdezzük a count-ot a szűrés után
+        const [countRows] = await connection.promise().query(`SELECT COUNT(*) as count ${baseQuery}`, params);
+        const totalItems = countRows[0].count;
+        const totalPages = Math.ceil(totalItems / pageSize);
+
+        // Majd a tényleges adatok
+        const query = `SELECT Uid, Fullname, IsAdmin ${baseQuery} LIMIT ? OFFSET ?`;
+        params.push(Number(pageSize), (Number(page) - 1) * Number(pageSize));
+        const [rows] = await connection.promise().query(query, params);
+
+        res.json({
+            success: true,
+            currentPage: Number(page),
+            totalPages,
+            totalItems,
+            data: rows.map(r => ({
+                id: r.Uid,
+                name: r.Fullname,
+                isAdmin: r.IsAdmin === 1
+            }))
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+
+
+// Admin létrehoz új felhasználót
+app.post('/create-user-admin', authenticateToken, async (req, res) => {
+    const { adminId, fullname, email, password, phoneNumber, isAdmin } = req.body;
+
+    if (!adminId || !fullname || !email || !password || !phoneNumber) {
+        return res.status(400).json({
+            success: false,
+            error: 'Some fields are empty!',
+            message: 'Minden mező kitöltése kötelező.'
+        });
+    }
+
+    try {
+        // 1️⃣ Ellenőrizzük, hogy az adminId valóban admin-e
+        const [adminRows] = await connection.promise().query(
+            'SELECT IsAdmin FROM Users WHERE Uid = ?',
+            [adminId]
+        );
+
+        if (adminRows.length === 0 || adminRows[0].IsAdmin !== 1) {
+            return res.status(403).json({
+                success: false,
+                error: 'Not authorized',
+                message: 'Csak admin jogosultságú felhasználó hozhat létre új felhasználót.'
+            });
+        }
+
+        // 2️⃣ Ellenőrzések az új felhasználóra
+        if (fullname.trim().length < 2 || fullname.trim().length > 50) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Fullname length invalid',
+                message: 'A teljes névnek 2 és 50 karakter között kell lennie.'
+            });
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Password complexity invalid',
+                message: 'A jelszónak tartalmaznia kell legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.'
+            });
+        }
+
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Invalid email address',
+                message: 'Érvénytelen email cím.'
+            });
+        }
+
+        const [existingUser] = await connection.promise().query(
+            'SELECT Uid FROM Users WHERE Email = ?',
+            [email]
+        );
+        if (existingUser.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email already in use',
+                message: 'Ez az email cím már használatban van.'
+            });
+        }
+
+        if (phoneNumber.trim().length !== 11 || !/^06\d{9}$/.test(phoneNumber)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Phone number format invalid',
+                message: 'A telefonszám formátuma érvénytelen. Helyes formátum például: 06123456789'
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const query = 'INSERT INTO Users (Fullname, Email, PassHashed, PhoneNumber, IsAdmin) VALUES (?, ?, ?, ?, ?)';
+        await connection.promise().query(query, [fullname, email, hashedPassword, phoneNumber, isAdmin ? 1 : 0]);
+
+        res.json({
+            success: true,
+            message: 'Felhasználó sikeresen létrehozva.'
+        });
+
+    } catch (err) {
+        console.error('Error in /create-user-admin:', err);
+        res.status(500).json({
+            success: false,
+            error: err.message,
+            message: 'Hiba történt a szerveren, a felhasználó létrehozása sikertelen.'
+        });
+    }
+});
+
+
+app.put('/modify-user-admin', authenticateToken, async (req, res) => {
+    const { adminId, userId, fullname, email, password, phoneNumber, isAdmin, isVerified } = req.body;
+
+    if (!adminId || !userId) {
+        return res.status(400).json({
+            success: false,
+            error: 'Admin ID vagy User ID hiányzik',
+            message: 'Az adminId és userId kötelező.'
+        });
+    }
+
+    try {
+        // Ellenőrizzük, hogy admin
+        const [adminRows] = await connection.promise().query(
+            'SELECT IsAdmin FROM Users WHERE Uid = ?',
+            [adminId]
+        );
+        if (adminRows.length === 0 || adminRows[0].IsAdmin !== 1) {
+            return res.status(403).json({
+                success: false,
+                error: 'Not authorized',
+                message: 'Csak admin jogosultságú felhasználó módosíthat felhasználót.'
+            });
+        }
+
+        // Ellenőrizzük, hogy a felhasználó létezik
+        const [userRows] = await connection.promise().query(
+            'SELECT * FROM Users WHERE Uid = ?',
+            [userId]
+        );
+        if (userRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'User not found',
+                message: 'A módosítandó felhasználó nem található.'
+            });
+        }
+        const currentUser = userRows[0];
+
+        // Csak a kitöltött mezőket frissítjük, a többit megtartjuk
+        const updatedFullname = fullname?.trim() ? fullname.trim() : currentUser.Fullname;
+        const updatedEmail = email?.trim() ? email.trim() : currentUser.Email;
+        const updatedPhone = phoneNumber?.trim() ? phoneNumber.trim() : currentUser.PhoneNumber;
+
+        // Password ha üres, marad a régi
+        let updatedPassword = currentUser.PassHashed;
+        if (password?.trim()) {
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Password complexity invalid',
+                    message: 'A jelszónak tartalmaznia kell legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert.'
+                });
+            }
+            updatedPassword = await bcrypt.hash(password, 10);
+        }
+
+        // Email validálás
+        if (email?.trim() && !validator.isEmail(updatedEmail)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid email',
+                message: 'Érvénytelen email cím.'
+            });
+        }
+
+        // Email ütközés
+        if (email?.trim()) {
+            const [existingUser] = await connection.promise().query(
+                'SELECT Uid FROM Users WHERE Email = ? AND Uid != ?',
+                [updatedEmail, userId]
+            );
+            if (existingUser.length > 0) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Email already in use',
+                    message: 'Ez az email cím már használatban van.'
+                });
+            }
+        }
+
+        // Phone validálás
+        if (phoneNumber?.trim() && (updatedPhone.length !== 11 || !/^06\d{9}$/.test(updatedPhone))) {
+            return res.status(400).json({
+                success: false,
+                error: 'Phone number format invalid',
+                message: 'A telefonszám formátuma érvénytelen. Helyes formátum például: 06123456789'
+            });
+        }
+
+        // Végső update
+        await connection.promise().query(
+            `UPDATE Users SET Fullname = ?, Email = ?, PassHashed = ?, PhoneNumber = ?, IsAdmin = ?, Verified = ? WHERE Uid = ?`,
+            [
+                updatedFullname,
+                updatedEmail,
+                updatedPassword,
+                updatedPhone,
+                isAdmin ? 1 : 0,
+                isVerified ? 1 : 0,
+                userId
+            ]
+        );
+
+        res.json({
+            success: true,
+            message: 'Felhasználó sikeresen módosítva.'
+        });
+
+    } catch (err) {
+        console.error('Error in /modify-user-admin:', err);
+        res.status(500).json({
+            success: false,
+            error: err.message,
+            message: 'Hiba történt a szerveren, a felhasználó módosítása sikertelen.'
+        });
+    }
+});
+
+
+
+
+app.post('/delete-user-admin', async (req, res) => {
+    try {
+        const { adminId, targetUserId } = req.body;
+
+        if (!adminId || !targetUserId) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing adminId or targetUserId"
+            });
+        }
+
+        // Lekérdezzük az admin felhasználót
+        const [adminRows] = await connection.promise().query(
+            'SELECT IsAdmin FROM Users WHERE Uid = ?',
+            [adminId]
+        );
+
+        if (adminRows.length === 0 || adminRows[0].IsAdmin !== 1) {
+            return res.status(403).json({
+                success: false,
+                message: "Only admins can delete users"
+            });
+        }
+
+        // Lekérdezzük a törlendő felhasználót
+        const [targetRows] = await connection.promise().query(
+            'SELECT IsAdmin FROM Users WHERE Uid = ?',
+            [targetUserId]
+        );
+
+        if (targetRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Target user not found"
+            });
+        }
+
+        if (targetRows[0].IsAdmin === 1) {
+            return res.status(403).json({
+                success: false,
+                message: "Cannot delete another admin"
+            });
+        }
+
+        // Törlés
+        await connection.promise().query(
+            'INSERT INTO DeletedUsers (Uid) VALUES (?)',
+            [targetUserId]
+        );
+
+        await connection.promise().query(
+            'DELETE FROM Users WHERE Uid = ?',
+            [targetUserId]
+        );
+
+        await connection.promise().query(
+            'DELETE FROM Sales WHERE Uid = ?',
+            [targetUserId]
+        );
+
+        res.json({
+            success: true,
+            message: "User deleted successfully"
+        });
+
+    } catch (err) {
+        console.error('Error in delete-user-admin:', err);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: err.message
+        });
+    }
+});
+
+
+
+//getsales az maradhat az alap
+
+app.post('/delete-sale', authenticateToken , async (req, res) => {
+	try {
+
+		
+	} catch (err) {
+		console.error('Error in ', err);
+        res.status(500).json({ 
+			success: false,
+            message: userApiErrorMessage,
+            error: err.message
+		});
+	}
+});
+
+
+
+
+
+//EZEK NEM TUDOM KELLENEK E
+//bizonyos szavakat például káromkodásokat keres a címben leírásban stb és kihozza az adminnak az ilyen hirdetéseket
+app.get('/get-everything-checked', authenticateToken , async (req, res) => {
+	try {
+
+		
+	} catch (err) {
+		console.error('Error in ', err);
+        res.status(500).json({ 
+			success: false,
+            message: userApiErrorMessage,
+            error: err.message
+		});
+	}
+});
+
+//különböző statokat mutat az adminnak, aktiv felhasználók száma, összes hirdetések száma stb
+app.get('/get-stats', authenticateToken , async (req, res) => {
+	try {
+
+		
+	} catch (err) {
+		console.error('Error in ', err);
+        res.status(500).json({ 
+			success: false,
+            message: userApiErrorMessage,
+            error: err.message
+		});
+	}
+});
+
+
 
 //Start the server
 //app.listen(port, () => {

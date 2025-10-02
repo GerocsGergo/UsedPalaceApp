@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/filter_all"
+        android:title="Mindenki"/>
+    <item
+        android:id="@+id/filter_non_admin"
+        android:title="Nem admin"/>
+    <item
+        android:id="@+id/filter_admin"
+        android:title="Csak admin"/>
+    <item
+        android:id="@+id/add_user"
+        android:title="Hozzáadás"/>
+</menu>

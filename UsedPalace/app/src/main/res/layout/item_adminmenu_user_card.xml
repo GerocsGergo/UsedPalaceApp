@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:strokeColor="@color/colorPrimary"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Felhasználó neve és admin jelzés egy sorban -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/textUserName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Felhasználónév"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorText" />
+
+            <TextView
+                android:id="@+id/textAdminLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ADMIN"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorText"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Felhasználó ID -->
+        <TextView
+            android:id="@+id/textUserId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ID: 123"
+            android:textSize="14sp"
+            android:textColor="@color/colorText" />
+
+        <!-- Gombok sorban -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonOpenSales"
+                android:backgroundTint="@color/colorButtonBackground"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/colorTextButton"
+                android:text="Hirdetések"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonEditUser"
+                android:backgroundTint="@color/colorButtonBackground"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/colorTextButton"
+                android:text="Módosítás"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonDeleteUser"
+                android:backgroundTint="@color/colorBackgroundDelete"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Törlés"
+                android:textColor="@color/colorTextButton" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

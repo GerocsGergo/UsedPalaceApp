@@ -80,11 +80,13 @@ class LogActivity : AppCompatActivity() {
 
                         val savedUserName = prefs.getString("userName", null)
                         val savedUserId = prefs.getInt("userId", -1)
+                        val savedIsAdmin = prefs.getBoolean("isAdmin", false)
 
                         // Set it back into UserSession
                         UserSession.setUserData(
                             id = savedUserId,
-                            name = savedUserName?: ""
+                            name = savedUserName?: "",
+                            isAdmin = savedIsAdmin
                         )
 
                         // Token exists: show only the two buttons
@@ -200,7 +202,8 @@ class LogActivity : AppCompatActivity() {
                             // Store user data in singleton
                             UserSession.setUserData(
                                 id = it.id,
-                                name = it.name
+                                name = it.name,
+                                isAdmin = it.isAdmin
                             )
                         }
 
@@ -210,6 +213,7 @@ class LogActivity : AppCompatActivity() {
                         editor.putString("token", token)
                         editor.putString("userName", userData?.name)
                         editor.putInt("userId", userData?.id ?: -1)
+                        editor.putBoolean("isAdmin", userData?.isAdmin ?: false)
                         editor.apply()
 
                         // Navigate to the main menu

@@ -17,6 +17,7 @@
 
 
     <color name="colorButtonBackground">#4ABC4B</color>
+    <color name="colorButtonBackground2">#FF9800</color>
 
     <color name="colorTextReceivedName">#000000</color>
     <color name="colorBackgroundMessageReceived">#C0C0C0</color>

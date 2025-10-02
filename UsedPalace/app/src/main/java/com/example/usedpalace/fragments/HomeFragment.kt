@@ -3,6 +3,8 @@ package com.example.usedpalace.fragments
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -74,7 +76,9 @@ class HomeFragment : Fragment() {
         adapter = SalesAdapter(mutableListOf()) { sale -> onProductClick(sale) }
         recyclerView.adapter = adapter
 
-        fetchSalesData()
+        Handler(Looper.getMainLooper()).postDelayed({ //Késleltetjük mert túl gyors a szerverhez
+            fetchSalesData()
+        }, 200)
 
         setupViews(view)
         initialize()
@@ -212,7 +216,7 @@ class HomeFragment : Fragment() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Connection error", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.handleNetworkError(requireContext(),e)
                     isLoading = false
                 }
             }
